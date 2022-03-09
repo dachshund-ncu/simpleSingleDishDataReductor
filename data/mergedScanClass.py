@@ -53,5 +53,5 @@ class mergedScan:
         self.numberOfChannels = len(scan1.spectr_bbc_final[0])
         tmpScans = np.zeros( (self.numberOfBBC, self.numberOfChannels), dtype=np.float64 )
         for i in range(self.numberOfBBC):
-            tmpScans[i] = scan1.spectr_bbc_final[i] - scan2.spectr_bbc_final[i]
+            tmpScans[i] = scan1.spectr_bbc_final[i] / 1000.0 - scan2.spectr_bbc_final[i] / 1000.0
         return tmpScans

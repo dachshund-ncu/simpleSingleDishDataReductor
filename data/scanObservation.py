@@ -35,13 +35,10 @@ from mergedScanClass import mergedScan
 
 class observation:
 
-    def __init__(self, filename):
+    def __init__(self, tmpDir, listOfFiles):
         
-        # zapisujemy pierwszy atrybut - nazwa pliku z listą obserwacji
-        self.file_with_list_of_files = filename
-        # wczytujemy listę plików
-        self.list_of_filenames = self.read_list_of_files(self.file_with_list_of_files)
         # tablica ze skanami
+        self.list_of_filenames = [tmpDir + "/" + i for i in listOfFiles]
         self.scans = self.read_scans(self.list_of_filenames)
         # wstępne ustawienia (współrzędne źródła, obserwatorium, precesja...)
         self.make_initial_settings()
@@ -229,6 +226,6 @@ class observation:
     
     def mergeScans(self, scans):
         mergedScans = []
-        for i in range(self.noOfScans/2):
+        for i in range(int(self.noOfScans/2)):
             mergedScans.append(mergedScan(scans[i], scans[i+1]))
         return mergedScans

@@ -29,11 +29,13 @@ class scanStackingFigure(FigureCanvasQTAgg):
         self.__declareNecessaryWidgets()
         super(scanStackingFigure, self).__init__(self.figure)
         plt.subplots_adjust(top=0.95, bottom=0.05, left=0.05, right=0.95)
+        
     def __declareNecessaryWidgets(self):
         '''
         Will declare the necessary figures and axes.
         Then place them correctly inside the widget
         '''
+        plt.style.use("dark_background")
         self.figure = plt.figure()
 
         # outer GS

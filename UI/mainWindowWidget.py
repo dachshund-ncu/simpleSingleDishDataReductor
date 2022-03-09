@@ -5,20 +5,25 @@ Date: 8.03.2022
 '''
 from PySide2 import QtCore, QtWidgets, QtGui
 from scanStackingWidget import scanStackingWidget, scanStackingFigure
+import numpy as np
 
 # -- class definition starts here --
 class mainWindowWidget(QtWidgets.QMainWindow):
     # -- init --
-    def __init__(self, parent):
+    def __init__(self, parent, data = None):
         super().__init__()
         '''
         This is an initialising method. In it, we will place buttons
         and other widgets correctly, by using private methods below:
+        Also we will initialize data reduction by plotting data, if we can:
         '''
         self.__declareAndPlaceButtons()
         self.__declareAndPlaceCustomWidgets()
         self.__setSomeOtherSettings() # mainly column stretch
-        #self.setVisible(True)
+        if data != None:
+            self.data = data
+            self.actualScanNumber = 0
+            self.__plotScanNo(self.actualScanNumber)
 
     def __declareAndPlaceButtons(self):
         '''
@@ -81,3 +86,14 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def __setSomeOtherSettings(self):
         self.layout.setColumnStretch(0, 1)
         self.layout.setColumnStretch(1, 5)
+    
+    def __plotFirstScan(self, data):
+        length = len(data.obs.mergedScans[0].pols[0])
+        x = np.linspace(1, length, length)
+        self.scanStacker.scanFigure.axisForScanYFull.plot(x, data.obs.mergedScans[0].pols[0])
+    
+    def __plotScanNo(self, scanNumber):
+        noOfChannels = len(self.data.obs.mergedScans[scanNumber].pols[0])
+        channelTab = np.linspace(1, noOfChannels, noOfChannels)
+        self.scanStacker.scanFigure.axisForScanYFull.plot(channelTab, self.data.obs.mergedScans[scanNumber].pols[0])
+        self.scanStacker.scanFigure.axisForScanYZoom.plot(channelTab, self.data.obs.mergedScans[scanNumber].pols[0])
