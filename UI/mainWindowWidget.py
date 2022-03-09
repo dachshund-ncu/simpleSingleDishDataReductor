@@ -4,6 +4,7 @@ Author: Michał Durjasz
 Date: 8.03.2022
 '''
 from PySide2 import QtCore, QtWidgets, QtGui
+from scanStackingWidget import scanStackingWidget, scanStackingFigure
 
 # -- class definition starts here --
 class mainWindowWidget(QtWidgets.QMainWindow):
@@ -15,7 +16,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         and other widgets correctly, by using private methods below:
         '''
         self.__declareAndPlaceButtons()
-        #self.__declareAndPlaceCustomWidgets()
+        self.__declareAndPlaceCustomWidgets()
+        self.__setSomeOtherSettings() # mainly column stretch
         #self.setVisible(True)
 
     def __declareAndPlaceButtons(self):
@@ -29,28 +31,36 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.window = QtWidgets.QWidget(self)
         self.setCentralWidget(self.window)
         self.layout = QtWidgets.QGridLayout(self.window)
-        self.vboxMain = QtWidgets.QVBoxLayout()
-        self.frameForButtons = QtWidgets.QGroupBox("Main operations")
-        self.frameForButtons.setLayout(self.vboxMain)
+        self.vboxMainOperationsFrame = QtWidgets.QVBoxLayout()
+        self.mainOperationsFrame = QtWidgets.QGroupBox("Main operations")
+        self.mainOperationsFrame.setLayout(self.vboxMainOperationsFrame)
+        self.vboxChannelHandling = QtWidgets.QVBoxLayout()
+        self.channelHandlingFrame = QtWidgets.QGroupBox("Channel handling")
+        self.channelHandlingFrame.setLayout(self.vboxChannelHandling)
         # buttons
         self.addToStack = QtWidgets.QPushButton("Add to stack") 
         self.discardFromStack = QtWidgets.QPushButton("Discard from stack")
+        self.removeFromStack = QtWidgets.QPushButton("Remove from stack")
         self.removeChannels = QtWidgets.QPushButton("Remove channels")
         self.fitPolynomial = QtWidgets.QPushButton("Fit Polynomial")
         self.automaticReduction = QtWidgets.QPushButton("Go AUTO")
         # buttons placing
-        self.vboxMain.addWidget(self.addToStack)
-        self.vboxMain.addWidget(self.discardFromStack)
-        self.vboxMain.addWidget(self.removeChannels)
-        self.vboxMain.addWidget(self.fitPolynomial)
-        self.vboxMain.addWidget(self.automaticReduction)
+        self.vboxMainOperationsFrame.addWidget(self.addToStack)
+        self.vboxMainOperationsFrame.addWidget(self.discardFromStack)
+        self.vboxMainOperationsFrame.addWidget(self.removeFromStack)
+        self.vboxChannelHandling.addWidget(self.removeChannels)
+        self.vboxChannelHandling.addWidget(self.fitPolynomial)
+        self.vboxChannelHandling.addWidget(self.automaticReduction)
         # layouts placing
-        self.layout.addWidget(self.frameForButtons, 0,0)
+        self.layout.addWidget(self.mainOperationsFrame, 0,0)
+        self.layout.addWidget(self.channelHandlingFrame, 1,0)
         # buttons sizing
         self.addToStack.setMaximumSize(10000, 10000)
         self.addToStack.setMinimumSize(0, 0)
         self.discardFromStack.setMaximumSize(10000, 10000)
         self.discardFromStack.setMinimumSize(0, 0)
+        self.removeFromStack.setMaximumSize(10000, 10000)
+        self.removeFromStack.setMinimumSize(0, 0)
         self.removeChannels.setMaximumSize(10000, 10000)
         self.removeChannels.setMinimumSize(0, 0)
         self.fitPolynomial.setMaximumSize(10000, 10000)
@@ -60,3 +70,14 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # buttons colors
         self.addToStack.setStyleSheet("background-color: green")
         self.discardFromStack.setStyleSheet("background-color: red")
+        self.removeFromStack.setStyleSheet("background-color: red")
+        self.removeChannels.setStyleSheet("background-color: red")
+        self.automaticReduction.setStyleSheet("background-color: blue")
+    
+    def __declareAndPlaceCustomWidgets(self):
+        self.scanStacker = scanStackingWidget()
+        self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
+    
+    def __setSomeOtherSettings(self):
+        self.layout.setColumnStretch(0, 1)
+        self.layout.setColumnStretch(1, 5)

@@ -12,6 +12,6 @@ from PySide2 import QtCore, QtWidgets, QtGui
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     widget = mainWindowWidget(app)
-    widget.resize(800, 600)
+    widget.resize(1366, 720)
     widget.show()
     app.exec_()
