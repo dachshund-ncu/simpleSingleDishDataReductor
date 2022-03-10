@@ -226,6 +226,6 @@ class observation:
     
     def mergeScans(self, scans):
         mergedScans = []
-        for i in range(int(self.noOfScans/2)):
+        for i in range(0,int(self.noOfScans),2):
             mergedScans.append(mergedScan(scans[i], scans[i+1]))
         return mergedScans

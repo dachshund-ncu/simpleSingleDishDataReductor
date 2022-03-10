@@ -14,7 +14,8 @@ class mergedScan:
         pols to polaryzacje z pełną wstęgą
         '''
         self.pols = self.__mergeScans(scan1, scan2)
-
+        self.mjd = scan2.mjd
+        self.tsys = [scan1.tsys, scan2.tsys]
     
     def fitCheby(self, bbc, order, ranges):
         '''
