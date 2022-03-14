@@ -5,6 +5,7 @@ Date: 8.03.2022
 '''
 from PySide2 import QtCore, QtWidgets, QtGui
 from scanStackingWidget import scanStackingWidget, scanStackingFigure
+from polEndWidget import polEndWidget
 import numpy as np
 
 # -- class definition starts here --
@@ -17,6 +18,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         and other widgets correctly, by using private methods below:
         Also we will initialize data reduction by plotting data, if we can:
         '''
+        self.BBCs = [1,4]
         self.__declareAndPlaceButtons()
         self.__declareAndPlaceCustomWidgets()
         self.__setSomeOtherSettings() # mainly column stretch
@@ -24,12 +26,12 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if data != None:
             self.data = data
             self.actualScanNumber = 0
-            self.actualBBC = 1
+            self.actualBBC = self.BBCs[0]
             self.actualFitOrder = 10
             self.maximumScanNumber = len(data.obs.mergedScans)
             self.__plotTimeInfo()
             self.__plotScanNo(self.actualScanNumber)
-
+            self.lhcReduction = True
 
     def __declareAndPlaceButtons(self):
         '''
@@ -58,6 +60,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.automaticReduction = QtWidgets.QPushButton("Go AUTO")
         self.nextScan = QtWidgets.QPushButton("->")
         self.prevScan = QtWidgets.QPushButton("<-")
+        self.finishPol = QtWidgets.QPushButton("Finish LHC")
         # buttons placing
         self.nextPrevScanLayout.addWidget(self.prevScan)
         self.nextPrevScanLayout.addWidget(self.nextScan)
@@ -65,6 +68,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.vboxMainOperationsFrame.addWidget(self.addToStack)
         self.vboxMainOperationsFrame.addWidget(self.discardFromStack)
         self.vboxMainOperationsFrame.addWidget(self.removeFromStack)
+        self.vboxMainOperationsFrame.addWidget(self.finishPol)
         self.vboxChannelHandling.addWidget(self.removeChannels)
         self.vboxChannelHandling.addWidget(self.fitPolynomial)
         self.vboxChannelHandling.addWidget(self.automaticReduction)
@@ -84,15 +88,19 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.fitPolynomial.setMinimumSize(0, 0)
         self.automaticReduction.setMaximumSize(10000, 10000)
         self.automaticReduction.setMinimumSize(0, 0)
+        self.finishPol.setMaximumSize(10000, 10000)
+        self.finishPol.setMinimumSize(0, 0)
         # buttons colors
         self.addToStack.setStyleSheet("background-color: green")
         self.discardFromStack.setStyleSheet("background-color: red")
         self.removeFromStack.setStyleSheet("background-color: red")
         self.removeChannels.setStyleSheet("background-color: red")
         self.automaticReduction.setStyleSheet("background-color: blue")
+        self.finishPol.setStyleSheet("background-color: blue")
     
     def __declareAndPlaceCustomWidgets(self):
         self.scanStacker = scanStackingWidget()
+        self.polEnd = polEndWidget()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
     
     def __setSomeOtherSettings(self):
@@ -102,6 +110,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def __connectButtonsToSlots(self):
         self.nextScan.clicked.connect(self.__nextScanSlot)
         self.prevScan.clicked.connect(self.__prevScanSlot)
+        self.addToStack.clicked.connect(self.__addToStackSlot)
+        self.removeFromStack.clicked.connect(self.__deleteFromStackSlot)
+        self.finishPol.clicked.connect(self.__finishPol)
 
     def __plotScanNo(self, scanNumber):
         '''
@@ -127,7 +138,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.scanFigure.fitChebyPlot.set_data(polyTabX, polyTabY)
         self.scanStacker.scanFigure.spectrumToStackPlot.set_data(range(len(polyTabResiduals)), polyTabResiduals)
         self.scanStacker.setVline(self.data.mergedTimeTab[self.actualScanNumber])
-
+        # --
+        stackPlot = self.data.calculateSpectrumFromStack()
+        if len(stackPlot) == 1:
+            self.scanStacker.scanFigure.stackPlot.set_data(np.nan, np.nan)
+        else:
+            self.scanStacker.scanFigure.stackPlot.set_data(range(len(stackPlot)), stackPlot)
+        # --
         timesDot = [self.data.timeTab[2* self.actualScanNumber], self.data.timeTab[2 * self.actualScanNumber+1]]
         tsysDot = [self.data.tsysTab[self.actualBBC-1][2 * self.actualScanNumber], self.data.tsysTab[self.actualBBC-1][2 * self.actualScanNumber + 1] ]
         totalFluxDot = self.data.totalFluxTab[self.actualBBC-1][self.actualScanNumber]
@@ -164,3 +181,31 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.actualScanNumber = self.maximumScanNumber-1
         
         self.__plotScanNo(self.actualScanNumber)
+    
+    def __addToStackSlot(self):
+        self.data.addToStack(self.actualScanNumber)
+        self.__nextScanSlot()
+    
+    def __deleteFromStackSlot(self):
+        self.data.deleteFromStack(self.actualScanNumber)
+        self.__plotScanNo(self.actualScanNumber)
+
+    def __finishPol(self):
+        # data
+        if self.lhcReduction:
+            self.data.setLHCTab()
+        else:
+            self.data.setRHCTab()
+        # UI
+        self.scanStacker.setVisible(False)
+        self.layout.removeWidget(self.scanStacker)
+        self.layout.addWidget(self.polEnd, 0, 1, 2, 1)
+        self.polEnd.setVisible(True)
+        # plot
+        if self.lhcReduction:
+            spectr = self.data.LHCTab
+        else:
+            spectr = self.data.LHCTab
+        self.polEnd.plotSpectrum(range(len(spectr)), spectr)
+        # BBC
+        self.actualBBC = self.BBCs[1]

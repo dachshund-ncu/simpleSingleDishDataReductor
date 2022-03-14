@@ -110,6 +110,7 @@ class scanStackingFigure(FigureCanvasQTAgg):
         self.zoomedYScanPlot, = self.axisForScanYZoom.plot(np.nan, np.nan, c='cyan', lw=1)
         self.fitChebyPlot, = self.axisForScanYZoom.plot(np.nan, np.nan, c='magenta', lw=1)
         self.spectrumToStackPlot, = self.axisForStackedSpectrum.plot(np.nan, np.nan, c='grey', lw=1)
+        self.stackPlot, = self.axisForStackedSpectrum.plot(np.nan, np.nan, c='orange', lw=1)
         self.zPlot, = self.axisForZ.plot(np.nan, np.nan, c='blue', ls="", marker='s')
         #self.tsysPlot, = self.axisForTsys.plot(np.nan, np.nan, c='blue', ls="", marker='o', mec='red', mfc="none")
         self.actualTsysPlot, = self.axisForTsys.plot(np.nan, np.nan, c='lime', ls="", marker='o', ms=6, zorder=2)

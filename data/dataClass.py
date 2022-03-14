@@ -29,7 +29,11 @@ class dataContainter:
             self.timeTab = self.__getTimeData()
             self.mergedTimeTab = self.__getMergedTimeData()
         
+        self.actualBBC = 1
+        self.fitOrder = 10
+        
         self.stack = []
+        self.scansInStack = []
         self.meanStack = []
         self.velTab = []
 
@@ -101,3 +105,36 @@ class dataContainter:
         time -= self.startEpoch
         time *= 24
         return time
+
+    def addToStack(self, scanIndex):
+        if self.__checkIfStacked(scanIndex):
+            print(f"-----> scan no. {scanIndex+1} is already stacked!")
+            return
+        x,y,residuals, = self.fitChebyForScan(self.actualBBC-1, self.fitOrder, scanIndex)
+        self.stack.append(residuals)
+        self.scansInStack.append(scanIndex)
+
+    def calculateSpectrumFromStack(self):
+        if len(self.stack) == 0:
+            return [-1]
+        else:
+            return np.mean(self.stack, axis=0)
+
+    def deleteFromStack(self, scanIndex):
+        if not self.__checkIfStacked(scanIndex):
+            print(f"-----> scan no. {scanIndex+1} was not stacked, so it cannot be removed!")
+            return
+        i = self.scansInStack.index(scanIndex)
+        self.scansInStack.pop(i)
+        self.stack.pop(i)
+
+    def __checkIfStacked(self, indexNo):
+        if indexNo in self.scansInStack:
+            return True
+        else:
+            return False
+    
+    def setLHCTab(self):
+        self.LHCTab = np.mean(self.stack, axis=0)
+    def setRHCTab(self):
+        self.RHCTab = np.mean(self.stack, axis=0)
