@@ -32,7 +32,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.__plotTimeInfo()
             self.__plotScanNo(self.actualScanNumber)
             self.lhcReduction = True
-
+        self.__setPolyFitMode()
     def __declareAndPlaceButtons(self):
         '''
         This methood will declare and place buttons correctly. There
@@ -44,75 +44,30 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.window = QtWidgets.QWidget(self)
         self.setCentralWidget(self.window)
         self.layout = QtWidgets.QGridLayout(self.window)
-        self.vboxMainOperationsFrame = QtWidgets.QVBoxLayout()
-        self.mainOperationsFrame = QtWidgets.QGroupBox("Main operations")
-        self.mainOperationsFrame.setLayout(self.vboxMainOperationsFrame)
-        self.vboxChannelHandling = QtWidgets.QVBoxLayout()
-        self.channelHandlingFrame = QtWidgets.QGroupBox("Channel handling")
-        self.channelHandlingFrame.setLayout(self.vboxChannelHandling)
-        self.nextPrevScanLayout = QtWidgets.QHBoxLayout()
-        # buttons
-        self.addToStack = QtWidgets.QPushButton("Add to stack") 
-        self.discardFromStack = QtWidgets.QPushButton("Discard from stack")
-        self.removeFromStack = QtWidgets.QPushButton("Remove from stack")
-        self.removeChannels = QtWidgets.QPushButton("Remove channels")
-        self.fitPolynomial = QtWidgets.QPushButton("Fit Polynomial")
-        self.automaticReduction = QtWidgets.QPushButton("Go AUTO")
-        self.nextScan = QtWidgets.QPushButton("->")
-        self.prevScan = QtWidgets.QPushButton("<-")
-        self.finishPol = QtWidgets.QPushButton("Finish LHC")
-        # buttons placing
-        self.nextPrevScanLayout.addWidget(self.prevScan)
-        self.nextPrevScanLayout.addWidget(self.nextScan)
-        self.vboxMainOperationsFrame.addLayout(self.nextPrevScanLayout)
-        self.vboxMainOperationsFrame.addWidget(self.addToStack)
-        self.vboxMainOperationsFrame.addWidget(self.discardFromStack)
-        self.vboxMainOperationsFrame.addWidget(self.removeFromStack)
-        self.vboxMainOperationsFrame.addWidget(self.finishPol)
-        self.vboxChannelHandling.addWidget(self.removeChannels)
-        self.vboxChannelHandling.addWidget(self.fitPolynomial)
-        self.vboxChannelHandling.addWidget(self.automaticReduction)
-        # layouts placing
-        self.layout.addWidget(self.mainOperationsFrame, 0,0)
-        self.layout.addWidget(self.channelHandlingFrame, 1,0)
-        # buttons sizing
-        self.addToStack.setMaximumSize(10000, 10000)
-        self.addToStack.setMinimumSize(0, 0)
-        self.discardFromStack.setMaximumSize(10000, 10000)
-        self.discardFromStack.setMinimumSize(0, 0)
-        self.removeFromStack.setMaximumSize(10000, 10000)
-        self.removeFromStack.setMinimumSize(0, 0)
-        self.removeChannels.setMaximumSize(10000, 10000)
-        self.removeChannels.setMinimumSize(0, 0)
-        self.fitPolynomial.setMaximumSize(10000, 10000)
-        self.fitPolynomial.setMinimumSize(0, 0)
-        self.automaticReduction.setMaximumSize(10000, 10000)
-        self.automaticReduction.setMinimumSize(0, 0)
-        self.finishPol.setMaximumSize(10000, 10000)
-        self.finishPol.setMinimumSize(0, 0)
-        # buttons colors
-        self.addToStack.setStyleSheet("background-color: green")
-        self.discardFromStack.setStyleSheet("background-color: red")
-        self.removeFromStack.setStyleSheet("background-color: red")
-        self.removeChannels.setStyleSheet("background-color: red")
-        self.automaticReduction.setStyleSheet("background-color: blue")
-        self.finishPol.setStyleSheet("background-color: blue")
-    
+
     def __declareAndPlaceCustomWidgets(self):
         self.scanStacker = scanStackingWidget()
         self.polEnd = polEndWidget()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
     
     def __setSomeOtherSettings(self):
-        self.layout.setColumnStretch(0, 1)
-        self.layout.setColumnStretch(1, 5)
-    
+        #self.layout.setColumnStretch(0, 1)
+        #self.layout.setColumnStretch(1, 5)
+        pass
+
     def __connectButtonsToSlots(self):
-        self.nextScan.clicked.connect(self.__nextScanSlot)
-        self.prevScan.clicked.connect(self.__prevScanSlot)
-        self.addToStack.clicked.connect(self.__addToStackSlot)
-        self.removeFromStack.clicked.connect(self.__deleteFromStackSlot)
-        self.finishPol.clicked.connect(self.__finishPol)
+        self.scanStacker.nextScan.clicked.connect(self.__nextScanSlot)
+        self.scanStacker.prevScan.clicked.connect(self.__prevScanSlot)
+        self.scanStacker.addToStack.clicked.connect(self.__addToStackSlot)
+        self.scanStacker.removeFromStack.clicked.connect(self.__deleteFromStackSlot)
+        self.scanStacker.finishPol.clicked.connect(self.__finishPol)
+        self.scanStacker.fitPolynomial.clicked.connect(self.__setPolyFitMode)
+        self.scanStacker.removeChannels.clicked.connect(self.__setRemoveChansMode)
+        self.scanStacker.automaticReduction.clicked.connect(self.__setAutoReductionMode)
+        self.scanStacker.discardFromStack.clicked.connect(self.__discardScan)
+        self.scanStacker.performPolyFit.clicked.connect(self.__fitAndPlot)
+        self.scanStacker.performRemoval.clicked.connect(self.__removeAndPlot)
+        self.scanStacker.cancelRemoval.clicked.connect(self.__cancelRemoval)
 
     def __plotScanNo(self, scanNumber):
         '''
@@ -134,8 +89,12 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.scanFigure.fullYScanPlot.set_data(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
         self.scanStacker.scanFigure.zoomedYScanPlot.set_data(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
         # ------------
+        if len(self.scanStacker.fitBoundsChannels) != 0:
+            self.data.fitBoundsChannels = self.scanStacker.fitBoundsChannels
+        #print(self.data.fitBoundsChannels)
         polyTabX, polyTabY, polyTabResiduals = self.data.fitChebyForScan(self.actualBBC, self.actualFitOrder, scanNumber)
         self.scanStacker.scanFigure.fitChebyPlot.set_data(polyTabX, polyTabY)
+        self.scanStacker.setFitDone()
         self.scanStacker.scanFigure.spectrumToStackPlot.set_data(range(len(polyTabResiduals)), polyTabResiduals)
         self.scanStacker.setVline(self.data.mergedTimeTab[self.actualScanNumber])
         # --
@@ -175,7 +134,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__plotScanNo(self.actualScanNumber)
     
     def __prevScanSlot(self):
-        if self.actualScanNumber-1 > 0:
+        if self.actualScanNumber-1 >= 0:
             self.actualScanNumber -= 1
         else:
             self.actualScanNumber = self.maximumScanNumber-1
@@ -206,6 +165,56 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             spectr = self.data.LHCTab
         else:
             spectr = self.data.LHCTab
-        self.polEnd.plotSpectrum(range(len(spectr)), spectr)
+        self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
         # BBC
         self.actualBBC = self.BBCs[1]
+    
+    def __discardScan(self):
+        self.__nextScanSlot()
+
+    def __setPolyFitMode(self):
+        self.scanStacker.polyFitMode = True
+        self.scanStacker.removeChannelsMode = False
+        self.scanStacker.autoRedMode = False
+        self.scanStacker.fitPolynomial.setChecked(True)
+        self.scanStacker.removeChannels.setChecked(False)
+        self.scanStacker.automaticReduction.setChecked(False)
+        self.scanStacker.performRemoval.setEnabled(False)
+        self.scanStacker.performPolyFit.setEnabled(True)
+        self.scanStacker.removeLines()
+        print("-----> Polynomial fit mode is ACTIVE!")
+
+    def __setRemoveChansMode(self):
+        self.scanStacker.polyFitMode = False
+        self.scanStacker.removeChannelsMode = True
+        self.scanStacker.autoRedMode = False
+        self.scanStacker.fitPolynomial.setChecked(False)
+        self.scanStacker.removeChannels.setChecked(True)
+        self.scanStacker.automaticReduction.setChecked(False)
+        self.scanStacker.performRemoval.setEnabled(True)
+        self.scanStacker.performPolyFit.setEnabled(False)
+        self.scanStacker.removeLines()
+        print("-----> Channel removal mode is ACTIVE!")
+    
+    def __setAutoReductionMode(self):
+        self.scanStacker.polyFitMode = False
+        self.scanStacker.removeChannelsMode = False
+        self.scanStacker.autoRedMode = True
+        self.scanStacker.fitPolynomial.setChecked(False)
+        self.scanStacker.removeChannels.setChecked(False)
+        self.scanStacker.automaticReduction.setChecked(True)
+        print("-----> Auto reduction mode is ACTIVE!")
+    
+    def __fitAndPlot(self):
+        self.scanStacker.setFitDone()
+        self.__plotScanNo(self.actualScanNumber)
+    
+    def __removeAndPlot(self):
+        self.data.removeChannels(self.actualBBC, self.actualScanNumber, self.scanStacker.removeChannelsTab)
+        self.scanStacker.setRemoveDone()
+        self.__plotScanNo(self.actualScanNumber)
+    
+    def __cancelRemoval(self):
+        self.data.cancelRemoval(self.actualBBC, self.actualScanNumber)
+        self.scanStacker.setRemoveDone()
+        self.__plotScanNo(self.actualScanNumber)

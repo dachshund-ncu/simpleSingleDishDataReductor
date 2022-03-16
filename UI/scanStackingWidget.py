@@ -23,7 +23,28 @@ class scanStackingWidget(QtWidgets.QWidget):
         super().__init__()
         self.layout = QtWidgets.QGridLayout(self)
         self.scanFigure = scanStackingFigure()
-        self.layout.addWidget(self.scanFigure)
+        self.__declareNecessaryButtons()
+        self.__placeNecessaryButtons()
+        self.__defaultSettings()
+
+        # -------------------------
+        self.clickedOnce = False
+        self.fitDone = True
+        self.fitBoundsChannels = [
+            [10, 824],
+            [1224, 2872],
+            [3272, 4086]
+        ]
+        self.tmpChans = []
+        # -------------------------
+
+        self.removeDone = True
+        self.removeChannelsTab = []
+        self.polyFitMode = True
+        self.removeChannelsMode = False
+        self.autoRedMode = False
+        
+        id = self.scanFigure.figure.canvas.mpl_connect('button_press_event', self.__onClick)
 
     def updateDataPlots(self):
         self.scanFigure.drawData()
@@ -42,6 +63,151 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.scanFigure.dot1Z.set_data(time[0], zDot[0])
         self.scanFigure.dot2Z.set_data(time[1], zDot[1])
         self.scanFigure.dotTF.set_data(time[1], totalFluxDot)
+    
+    def __declareNecessaryButtons(self):
+        self.vboxMainOperationsFrame = QtWidgets.QVBoxLayout()
+        self.mainOperationsFrame = QtWidgets.QGroupBox("Main operations")
+        self.mainOperationsFrame.setLayout(self.vboxMainOperationsFrame)
+        self.vboxChannelHandling = QtWidgets.QVBoxLayout()
+        self.channelHandlingFrame = QtWidgets.QGroupBox("Channel handling")
+        self.channelHandlingFrame.setLayout(self.vboxChannelHandling)
+        self.nextPrevScanLayout = QtWidgets.QHBoxLayout()
+        # buttons
+        self.addToStack = QtWidgets.QPushButton("Add to stack") 
+        self.discardFromStack = QtWidgets.QPushButton("Discard from stack")
+        self.removeFromStack = QtWidgets.QPushButton("Remove from stack")
+        self.removeChannels = QtWidgets.QPushButton("Remove channels")
+        self.performRemoval = QtWidgets.QPushButton("Perform Removal")
+        self.cancelRemoval = QtWidgets.QPushButton("Cancel Removal")
+        self.performPolyFit = QtWidgets.QPushButton("Perform Polyfit")
+        self.fitPolynomial = QtWidgets.QPushButton("Fit Polynomial")
+        self.automaticReduction = QtWidgets.QPushButton("Go AUTO")
+        self.nextScan = QtWidgets.QPushButton("->")
+        self.prevScan = QtWidgets.QPushButton("<-")
+        self.finishPol = QtWidgets.QPushButton("Finish LHC")
+        # buttons placing
+        self.nextPrevScanLayout.addWidget(self.prevScan)
+        self.nextPrevScanLayout.addWidget(self.nextScan)
+        self.vboxMainOperationsFrame.addLayout(self.nextPrevScanLayout)
+        self.vboxMainOperationsFrame.addWidget(self.addToStack)
+        self.vboxMainOperationsFrame.addWidget(self.discardFromStack)
+        self.vboxMainOperationsFrame.addWidget(self.removeFromStack)
+        self.vboxMainOperationsFrame.addWidget(self.performPolyFit)
+        self.vboxMainOperationsFrame.addWidget(self.performRemoval)
+        self.vboxMainOperationsFrame.addWidget(self.cancelRemoval)
+        self.vboxMainOperationsFrame.addWidget(self.finishPol)
+        self.vboxChannelHandling.addWidget(self.removeChannels)
+        self.vboxChannelHandling.addWidget(self.fitPolynomial)
+        self.vboxChannelHandling.addWidget(self.automaticReduction)
+        
+        # buttons sizing
+        self.addToStack.setMaximumSize(10000, 10000)
+        self.addToStack.setMinimumSize(0, 0)
+        self.discardFromStack.setMaximumSize(10000, 10000)
+        self.discardFromStack.setMinimumSize(0, 0)
+        self.removeFromStack.setMaximumSize(10000, 10000)
+        self.removeFromStack.setMinimumSize(0, 0)
+        self.removeChannels.setMaximumSize(10000, 10000)
+        self.removeChannels.setMinimumSize(0, 0)
+        self.fitPolynomial.setMaximumSize(10000, 10000)
+        self.fitPolynomial.setMinimumSize(0, 0)
+        self.automaticReduction.setMaximumSize(10000, 10000)
+        self.automaticReduction.setMinimumSize(0, 0)
+        self.finishPol.setMaximumSize(10000, 10000)
+        self.finishPol.setMinimumSize(0, 0)
+        self.performPolyFit.setMaximumSize(10000, 10000)
+        self.performPolyFit.setMinimumSize(0, 0)
+        self.performRemoval.setMaximumSize(10000, 10000)
+        self.performRemoval.setMinimumSize(0, 0)
+        self.cancelRemoval.setMaximumSize(10000, 10000)
+        self.cancelRemoval.setMinimumSize(0, 0)
+
+        # buttons colors
+        '''
+        self.addToStack.setStyleSheet("background-color: green")
+        self.discardFromStack.setStyleSheet("background-color: red")
+        self.removeFromStack.setStyleSheet("background-color: red")
+        self.removeChannels.setStyleSheet("background-color: red")
+        self.automaticReduction.setStyleSheet("background-color: blue")
+        self.finishPol.setStyleSheet("background-color: blue")
+        '''
+    
+    def __placeNecessaryButtons(self):
+        # layouts placing
+        self.layout.addWidget(self.mainOperationsFrame, 0,0)
+        self.layout.addWidget(self.channelHandlingFrame, 1,0)
+        self.layout.addWidget(self.scanFigure, 0, 1, 2,1)
+        self.layout.setColumnStretch(0,1)
+        self.layout.setColumnStretch(1,5)
+
+    def __defaultSettings(self):
+        self.fitPolynomial.setCheckable(True)
+        self.removeChannels.setCheckable(True)
+        self.automaticReduction.setCheckable(True)
+        self.fitPolynomial.setChecked(True)
+    
+    # ---- clicking and fitting ----
+    def __onClick(self, event):
+        x = int(event.xdata)
+        
+        if self.polyFitMode:
+            if self.fitDone:
+                self.fitBoundsChannels = []
+                self.fitDone = False
+
+            if not self.clickedOnce:
+                self.tmpChans.append(x)
+                self.clickedOnce = True
+            else:
+                self.tmpChans.append(x)
+                self.fitBoundsChannels.append(self.tmpChans)
+                self.tmpChans = []
+                self.clickedOnce = False
+        
+        elif self.removeChannelsMode:
+            if self.removeDone:
+                self.removeChannelsTab = []
+                self.removeDone = False
+
+            if not self.clickedOnce:
+                self.tmpChans.append(x)
+                self.clickedOnce = True
+            else:
+                self.tmpChans.append(x)
+                self.removeChannelsTab.append(self.tmpChans)
+                self.tmpChans = []
+                self.clickedOnce = False  
+
+        self.__plotVerticalLine(x)
+        
+
+    def __plotVerticalLine(self, x):
+        if self.polyFitMode:
+            self.scanFigure.axisForScanYZoom.axvline(x, c='lime', ls='--', lw=2)
+            self.scanFigure.axisForScanYFull.axvline(x, c='lime', ls='--', lw=2)
+        elif self.removeChannelsMode:
+            self.scanFigure.axisForScanYZoom.axvline(x, c='coral', ls='--', lw=2)
+            self.scanFigure.axisForScanYFull.axvline(x, c='coral', ls='--', lw=2)
+
+        self.scanFigure.figure.canvas.draw_idle()
+
+    def removeLines(self):
+        if len(self.scanFigure.axisForScanYZoom.lines) > 2:
+            for i in range(len(self.scanFigure.axisForScanYZoom.lines)-1, 1, -1 ):
+                self.scanFigure.axisForScanYZoom.lines.remove(self.scanFigure.axisForScanYZoom.lines[i])
+            for i in range(len(self.scanFigure.axisForScanYFull.lines)-1, 0, -1 ):
+                self.scanFigure.axisForScanYFull.lines.remove(self.scanFigure.axisForScanYFull.lines[i])
+    def setFitDone(self):
+        self.removeLines()
+        self.tmpChans = []
+        self.clickedOnce = False
+        self.fitDone = True
+    
+    def setRemoveDone(self):
+        self.removeLines()
+        self.tmpChans = []
+        self.clickedOnce = False
+        self.removeDone = True
 
 class scanStackingFigure(FigureCanvasQTAgg):
     def __init__(self):

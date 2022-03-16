@@ -35,7 +35,9 @@ class dataContainter:
         self.stack = []
         self.scansInStack = []
         self.meanStack = []
-        self.velTab = []
+        self.freqSwitchMode = True
+        self.velTab = self.__generateVelTab()
+        
 
 
     def fitChebyForScan(self, bbc, order, scannr):
@@ -43,7 +45,7 @@ class dataContainter:
         Fits polynomial for specified BBC, with specified order and for 
         specified scan, returns tables X and Y with polynomial and fit residuals
         '''
-        polyTabX, polyTabY, self.polyTabResiduals = self.obs.mergedScans[scannr].fitCheby(bbc-1, order, self.fitBoundsChannels)
+        polyTabX, polyTabY, self.polyTabResiduals = self.obs.mergedScans[scannr].fitCheby(bbc, order, self.fitBoundsChannels)
         return polyTabX, polyTabY, self.__halveResiduals(self.polyTabResiduals)
 
     def __halveResiduals(self, residuals):
@@ -110,7 +112,7 @@ class dataContainter:
         if self.__checkIfStacked(scanIndex):
             print(f"-----> scan no. {scanIndex+1} is already stacked!")
             return
-        x,y,residuals, = self.fitChebyForScan(self.actualBBC-1, self.fitOrder, scanIndex)
+        x,y,residuals, = self.fitChebyForScan(self.actualBBC, self.fitOrder, scanIndex)
         self.stack.append(residuals)
         self.scansInStack.append(scanIndex)
 
@@ -138,3 +140,38 @@ class dataContainter:
         self.LHCTab = np.mean(self.stack, axis=0)
     def setRHCTab(self):
         self.RHCTab = np.mean(self.stack, axis=0)
+
+    def __generateVelTab(self):
+        '''
+        It is to make and return proper array of Radial Velocity, with respect to the local standard of rest (LSR)
+        Generally, the data is rotated to this frame upon loading, so here we are just generating the table straightfoward
+        Nothing really complicated
+        '''
+        velocity = self.obs.scans[0].vlsr # km/s
+        restfreq = self.obs.scans[0].rest # MHz
+        if (self.freqSwitchMode):
+            freq_rang = self.obs.scans[0].bw / 2.0 # MHz
+            nchans = self.obs.scans[0].NNch / 2.0
+        else:
+            freq_rang = self.obs.scans[0].bw
+            nchans = self.obs.scans[0].NNch
+
+        c = 299792.458 # km/s
+        beta = velocity / c
+        gamma  = 1.0 / np.sqrt(1.0 - beta**2.0)
+        fcentr = restfreq * (gamma * (1.0 - beta))
+        fbegin = fcentr - freq_rang / 2.0
+        fend = fcentr + freq_rang / 2.0
+        #self.auto_prepared_to_fft = zeros((4, self.NN), dtype=complex128) # docelowa
+        freqsTab = np.zeros((4, int(nchans)), dtype=np.float64)
+        velsTab = np.zeros((4, int(nchans)), dtype=np.float64)
+        for i in range(len(fbegin)):
+            freqsTab[i] = np.linspace(fbegin[i], fend[i], int(nchans))
+            velsTab[i] = - c * ( (freqsTab[i] / restfreq[i] ) - 1.0 )
+        return velsTab
+
+    def removeChannels(self, BBC, scanNumber, removeTab):
+        self.obs.mergedScans[scanNumber].removeChannels(BBC, removeTab)
+    
+    def cancelRemoval(self, BBC, scanNumber):
+        self.obs.mergedScans[scanNumber].cancelRemove(BBC)

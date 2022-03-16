@@ -14,6 +14,7 @@ class mergedScan:
         pols to polaryzacje z pełną wstęgą
         '''
         self.pols = self.__mergeScans(scan1, scan2)
+        self.backupPols = self.pols.copy()
         self.mjd = scan2.mjd
         self.tsys = [scan1.tsys, scan2.tsys]
     
@@ -25,11 +26,11 @@ class mergedScan:
         zwraca tablice X i Y wielomianu, dodatkowo również rezydua dopasowania
         potrzebne przy generowaniu ostatecznej tablicy z widmem
         '''
-        fitCHans, fitData = self.__getDataFromRanges(bbc, ranges)
+        fitCHans, fitData = self.__getDataFromRanges(bbc-1, ranges)
         poly = np.polyfit(fitCHans, fitData, order)
         polyTabX = np.linspace(1, self.numberOfChannels, self.numberOfChannels)
         polyTabY = np.polyval(poly, polyTabX)
-        polyTabResiduals = self.pols[bbc] - polyTabY
+        polyTabResiduals = self.pols[bbc-1] - polyTabY
         return polyTabX, polyTabY, polyTabResiduals
 
     def __getDataFromRanges(self, bbc, ranges):
@@ -56,3 +57,26 @@ class mergedScan:
         for i in range(self.numberOfBBC):
             tmpScans[i] = scan1.spectr_bbc_final[i] / 1000.0 - scan2.spectr_bbc_final[i] / 1000.0
         return tmpScans
+    
+    def removeChannels(self, BBC, removeTab):
+        for i in removeTab:
+            minChan = i[0]-1
+            maxChan = i[1]-1
+            print(f'------> Removing from channels {minChan} to {maxChan}')
+            for j in range(minChan, maxChan,1):
+                self.pols[BBC-1][j] = self.__interpolate(BBC, minChan, maxChan, j)
+    
+    def __interpolate(self, BBC, minChan, maxChan, j):
+        '''
+        interpolates between specified channels for channel j (useful in removal)
+        '''
+        y1 = self.pols[BBC-1][minChan]
+        x1 = minChan
+        y2 = self.pols[BBC-1][maxChan]
+        x2 = maxChan
+        a = (y1-y2) / (x1 - x2)
+        b = y1 - a * x1
+        return a * j + b
+    
+    def cancelRemove(self, BBC):
+        self.pols[BBC-1] = self.backupPols[BBC-1]
