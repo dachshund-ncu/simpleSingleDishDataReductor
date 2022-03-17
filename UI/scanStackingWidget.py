@@ -148,7 +148,10 @@ class scanStackingWidget(QtWidgets.QWidget):
     
     # ---- clicking and fitting ----
     def __onClick(self, event):
-        x = int(event.xdata)
+        try:
+            x = int(event.xdata)
+        except:
+            return
         
         if self.polyFitMode:
             if self.fitDone:

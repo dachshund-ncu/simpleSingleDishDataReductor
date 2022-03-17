@@ -14,6 +14,9 @@ class dataContainter:
         Initializes dataContainer class
         '''
         self.noOfBBC = 4
+        self.actualBBC = 1
+        self.fitOrder = 10
+        self.freqSwitchMode = True
         self.tmpDirName = '.tmpSimpleDataReductor'
         self.fitBoundsChannels = [ 
             [10, 824],
@@ -28,15 +31,20 @@ class dataContainter:
             self.totalFluxTab = self.__getTotalFluxData()
             self.timeTab = self.__getTimeData()
             self.mergedTimeTab = self.__getMergedTimeData()
+            self.velTab = self.__generateVelTab()
         
-        self.actualBBC = 1
-        self.fitOrder = 10
-        
+        # -- FINAL SPECTRUM --
+        self.finalFitBoundChannels = [
+            [10,20],
+            [1100, 2038]
+        ]
         self.stack = []
         self.scansInStack = []
         self.meanStack = []
-        self.freqSwitchMode = True
-        self.velTab = self.__generateVelTab()
+        self.finalFitRes = []
+        self.finalRHC = []
+        self.finalLHC = []
+        # --------------------
         
 
 
@@ -120,7 +128,9 @@ class dataContainter:
         if len(self.stack) == 0:
             return [-1]
         else:
-            return np.mean(self.stack, axis=0)
+            self.meanStack = np.mean(self.stack, axis=0)
+            self.finalFitRes = self.meanStack.copy()
+            return self.finalFitRes
 
     def deleteFromStack(self, scanIndex):
         if not self.__checkIfStacked(scanIndex):
@@ -168,6 +178,7 @@ class dataContainter:
         for i in range(len(fbegin)):
             freqsTab[i] = np.linspace(fbegin[i], fend[i], int(nchans))
             velsTab[i] = - c * ( (freqsTab[i] / restfreq[i] ) - 1.0 )
+            velsTab[i] = velsTab[i][::-1]
         return velsTab
 
     def removeChannels(self, BBC, scanNumber, removeTab):
@@ -175,3 +186,62 @@ class dataContainter:
     
     def cancelRemoval(self, BBC, scanNumber):
         self.obs.mergedScans[scanNumber].cancelRemove(BBC)
+    
+    def fitChebyToFinalSpec(self, BBC):
+        fitVels, fitData = self.__getDataFromRanges(BBC, self.finalFitBoundChannels)
+        poly = np.polyfit(fitVels, fitData, self.fitOrder)
+        polytabX = np.linspace(self.velTab.min(), self.velTab.max(), len(self.meanStack))
+        polytabY = np.polyval(poly, polytabX)
+        self.finalFitRes -= polytabY
+
+    def __getDataFromRanges(self, BBC, ranges):
+        fitData = []
+        fitVels = []
+        for i in ranges:
+            fitData.extend(self.finalFitRes[i[0]:i[1]])
+            fitVels.extend(self.velTab[BBC-1][i[0]:i[1]])
+        #print(len(fitVels), len(fitData))
+        return fitVels, fitData
+    
+    def convertVelsToChannels(self, BBC, velTab):
+        chanTab = []
+        for i in velTab:
+            minChan = -1
+            maxChan = -1
+            # find minChan
+            for j in range(len(self.velTab[BBC])):
+                if i[0] < self.velTab[BBC][j]:
+                    minChan = j
+                    break
+            # find maxChan
+            for j in range(len(self.velTab[BBC])):
+                if i[1] < self.velTab[BBC][j]:
+                    maxChan = j
+                    break
+            if minChan != -1 and maxChan != -1:
+                chanTab.append([minChan, maxChan])
+        return chanTab
+    
+    def removeChansOnFinalSpectrum(self, channelsToRemove):
+        for i in channelsToRemove:
+            minChan = i[0]
+            maxChan = i[1]
+            print(f'------> Removing from channels {minChan} to {maxChan}')
+            for j in range(minChan, maxChan, 1):
+                self.finalFitRes[j] = self.__interpolateFinal(minChan, maxChan, j)
+
+    def __interpolateFinal(self, minChan, maxChan, j):
+        '''
+        interpolate between specified channels for channel j
+        '''
+        y1 = self.finalFitRes[minChan]
+        x1 = minChan
+        y2 = self.finalFitRes[maxChan]
+        x2 = maxChan
+        a = (y1-y2) / (x1 - x2)
+        b = y1 - a * x1
+        return a * j + b
+    
+    def cancelChangesFinal(self):
+        print(f'------> cancelling all of the changes!')
+        self.finalFitRes = self.meanStack.copy()

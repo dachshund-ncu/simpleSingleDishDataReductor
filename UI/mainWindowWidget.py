@@ -69,6 +69,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performRemoval.clicked.connect(self.__removeAndPlot)
         self.scanStacker.cancelRemoval.clicked.connect(self.__cancelRemoval)
 
+        self.polEnd.performFit.clicked.connect(self.__fitToFinalSpectum)
+        self.polEnd.performRemoval.clicked.connect(self.__removeOnFinalSpectrum)
+        self.polEnd.reverseChanges.clicked.connect(self.__cancelChangesOnFinalSpectrum)
+
     def __plotScanNo(self, scanNumber):
         '''
         It plots scan of the number, given in the argument
@@ -162,12 +166,12 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.setVisible(True)
         # plot
         if self.lhcReduction:
-            spectr = self.data.LHCTab
-        else:
-            spectr = self.data.LHCTab
+            spectr = self.data.calculateSpectrumFromStack()
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
         # BBC
         self.actualBBC = self.BBCs[1]
+        # polyfitmode
+        self.polEnd.setPolyFitMode()
     
     def __discardScan(self):
         self.__nextScanSlot()
@@ -218,3 +222,24 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.data.cancelRemoval(self.actualBBC, self.actualScanNumber)
         self.scanStacker.setRemoveDone()
         self.__plotScanNo(self.actualScanNumber)
+    
+    def __fitToFinalSpectum(self):
+        if len(self.polEnd.fitBoundChannels) != 0:
+            ftBds = self.data.convertVelsToChannels(self.actualBBC-1, self.polEnd.fitBoundChannels)
+            self.data.finalFitBoundChannels = ftBds
+        self.data.fitChebyToFinalSpec(self.actualBBC)
+        # -- 
+        self.polEnd.setFitDone()
+        self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
+    
+    def __removeOnFinalSpectrum(self):
+        if (len(self.polEnd.removeChannelsTab)) != 0:
+            rmBds = self.data.convertVelsToChannels(self.actualBBC-1, self.polEnd.removeChannelsTab)
+            self.data.removeChansOnFinalSpectrum(rmBds)
+        self.polEnd.setRemoveDone()
+        self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
+    
+    def __cancelChangesOnFinalSpectrum(self):
+        self.data.cancelChangesFinal()
+        self.polEnd.setRemoveDone()
+        self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)

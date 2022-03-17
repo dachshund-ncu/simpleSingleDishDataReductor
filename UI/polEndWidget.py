@@ -25,6 +25,28 @@ class polEndWidget(QtWidgets.QWidget):
         self.__placeNecessaryButtons()
         self.__setOtherBeginnerSettings()
 
+        self.polyFitMode = True
+        self.removeChannelsMode = False
+        self.zoomMode = False
+
+        self.__connectButtonsToSlots()
+
+        # -- channel selector --
+        self.fitDone = True
+        self.removeDone = True
+        self.zoomDone = True
+        self.clickedOnce = False
+
+        self.fitBoundChannels = [
+            [10,20],
+            [1100, 2038]
+        ]
+        self.tmpChans = []
+        self.removeChannelsTab = []
+
+
+        id = self.polEndFIg.figure.canvas.mpl_connect('button_press_event', self.__onClick)
+
     def plotSpectrum(self, x, y):
         self.polEndFIg.plotSpectrum(x,y)
 
@@ -50,11 +72,17 @@ class polEndWidget(QtWidgets.QWidget):
 
         self.removeChannels = QtWidgets.QPushButton("Remove channels")
         self.fitPolynomial = QtWidgets.QPushButton("Fit Polynomial")
+        self.performFit = QtWidgets.QPushButton("Perform Fit")
+        self.performRemoval = QtWidgets.QPushButton("Perform removal")
+        self.reverseChanges = QtWidgets.QPushButton("Abandon changes")
         self.zoomButton = QtWidgets.QPushButton("Zoom")
         # buttons placing
         self.vboxMainOperationsFrame.addWidget(self.goToNextPol)
         self.vboxMainOperationsFrame.addWidget(self.backToPol)
         self.vboxMainOperationsFrame.addWidget(self.restoreRemovedChannels)
+        self.vboxMainOperationsFrame.addWidget(self.performFit)
+        self.vboxMainOperationsFrame.addWidget(self.performRemoval)
+        self.vboxMainOperationsFrame.addWidget(self.reverseChanges)
 
         self.vboxCalOpsFrame.addWidget(self.useCalibrations)
         self.vboxCalOpsFrame.addWidget(self.cancelCalibrations)
@@ -84,6 +112,12 @@ class polEndWidget(QtWidgets.QWidget):
         self.useCalibrations.setMinimumSize(0, 0)
         self.restoreRemovedChannels.setMaximumSize(10000, 10000)
         self.restoreRemovedChannels.setMinimumSize(0, 0)
+        self.performFit.setMaximumSize(10000, 10000)
+        self.performFit.setMinimumSize(0, 0)
+        self.performRemoval.setMaximumSize(10000, 10000)
+        self.performRemoval.setMinimumSize(0, 0)
+        self.reverseChanges.setMaximumSize(10000, 10000)
+        self.reverseChanges.setMinimumSize(0, 0)
         # buttons colors
         '''
         self.goToNextPol.setStyleSheet("background-color: green")
@@ -104,8 +138,114 @@ class polEndWidget(QtWidgets.QWidget):
         self.layout.setColumnStretch(1,5)
 
     def __setOtherBeginnerSettings(self):
-        self.fitPolynomial.setDown(True)
-        self.useCalibrations.setDown(True)
+        # --
+        self.fitPolynomial.setCheckable(True)
+        self.removeChannels.setCheckable(True)
+        self.zoomButton.setCheckable(True)
+
+    def __connectButtonsToSlots(self):
+        self.fitPolynomial.clicked.connect(self.setPolyFitMode)
+        self.removeChannels.clicked.connect(self.setRemoveChansMode)
+        self.zoomButton.clicked.connect(self.setZoomMode)
+    '''
+    PRIVATE SLOTS:
+    '''
+    def setPolyFitMode(self):
+        self.polyFitMode = True
+        self.removeChannelsMode = False
+        self.zoomMode = False
+        self.fitPolynomial.setChecked(True)
+        self.removeChannels.setChecked(False)
+        self.zoomButton.setChecked(False)
+        self.setFitDone()
+        self.performRemoval.setEnabled(False)
+        self.performFit.setEnabled(True)
+        print("-----> Polynomial fit mode is ACTIVE!")
+    def setRemoveChansMode(self):
+        self.polyFitMode = False
+        self.removeChannelsMode = True
+        self.zoomMode = False
+        self.fitPolynomial.setChecked(False)
+        self.removeChannels.setChecked(True)
+        self.zoomButton.setChecked(False)
+        self.setRemoveDone()
+        self.performRemoval.setEnabled(True)
+        self.performFit.setEnabled(False)
+        print("-----> Channel removal mode is ACTIVE!")
+    def setZoomMode(self):
+        self.polyFitMode = False
+        self.removeChannelsMode = False
+        self.zoomMode = True
+        self.fitPolynomial.setChecked(False)
+        self.removeChannels.setChecked(False)
+        self.zoomButton.setChecked(True)
+        self.setZoomDone()
+        self.performRemoval.setEnabled(False)
+        self.performFit.setEnabled(False)        
+        print("-----> Channel removal mode is ACTIVE!")
+
+    def __onClick(self, event):
+        try:
+            x = event.xdata
+        except:
+            return
+        if self.polyFitMode:
+            if self.fitDone:
+                self.fitBoundChannels = []
+                self.fitDone = False
+            
+            if not self.clickedOnce:
+                self.tmpChans.append(x)
+                self.clickedOnce = True
+            else:
+                self.tmpChans.append(x)
+                self.fitBoundChannels.append(self.tmpChans)
+                self.tmpChans = []
+                self.clickedOnce = False
+        
+        elif self.removeChannelsMode:
+            if self.removeDone:
+                self.removeChannelsTab = []
+                self.removeDone = False
+
+            if not self.clickedOnce:
+                self.tmpChans.append(x)
+                self.clickedOnce = True
+            else:
+                self.tmpChans.append(x)
+                self.removeChannelsTab.append(self.tmpChans)
+                self.tmpChans = []
+                self.clicedOnce = False
+        self.__plotVerticalLine(x)
+
+    def __plotVerticalLine(self, x):
+        if self.polyFitMode:
+            self.polEndFIg.specAxis.axvline(x, c='lime', ls='--')
+        elif self.removeChannelsMode:
+            self.polEndFIg.specAxis.axvline(x, c='coral', ls='--')
+        elif self.zoomMode:
+            self.polEndFIg.specAxis.axvline(x, c='blue', ls='--')
+        self.polEndFIg.figure.canvas.draw_idle()
+
+    def __resetClickable(self):
+        self.removeLines()
+        self.tmpChans = []
+        self.clickedOnce = False
+
+    def setFitDone(self):
+        self.__resetClickable()
+        self.fitDone = True
+    def setRemoveDone(self):
+        self.__resetClickable()
+        self.removeDone = True
+    def setZoomDone(self):
+        self.__resetClickable()
+        self.zoomDone = True
+
+    def removeLines(self):
+        if len(self.polEndFIg.specAxis.lines) > 1:
+            for i in range(len(self.polEndFIg.specAxis.lines)-1, 0, -1):
+                self.polEndFIg.specAxis.lines.remove(self.polEndFIg.specAxis.lines[i])
 
 class polEndFigure(FigureCanvasQTAgg):
     def __init__(self):
