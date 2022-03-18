@@ -152,7 +152,8 @@ class scanStackingWidget(QtWidgets.QWidget):
             x = int(event.xdata)
         except:
             return
-        
+        if x is None:
+            return
         if self.polyFitMode:
             if self.fitDone:
                 self.fitBoundsChannels = []
@@ -353,4 +354,3 @@ class scanStackingFigure(FigureCanvasQTAgg):
         lowerEnd = min - 2.0 * diff
         upperEnd = max + 2.0 * diff
         self.axisForScanYZoom.set_ylim(lowerEnd, upperEnd)
-

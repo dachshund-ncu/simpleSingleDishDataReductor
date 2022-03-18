@@ -4,9 +4,11 @@ Author: Michał Durjasz
 Date: 8.03.2022
 '''
 from PySide2 import QtCore, QtWidgets, QtGui
-from scanStackingWidget import scanStackingWidget, scanStackingFigure
+from scanStackingWidget import scanStackingWidget
 from polEndWidget import polEndWidget
+from finishWidget import finishWidgetP
 import numpy as np
+import sys
 
 # -- class definition starts here --
 class mainWindowWidget(QtWidgets.QMainWindow):
@@ -19,6 +21,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         Also we will initialize data reduction by plotting data, if we can:
         '''
         self.BBCs = [1,4]
+        self.bbcindex = 0
         self.__declareAndPlaceButtons()
         self.__declareAndPlaceCustomWidgets()
         self.__setSomeOtherSettings() # mainly column stretch
@@ -48,6 +51,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def __declareAndPlaceCustomWidgets(self):
         self.scanStacker = scanStackingWidget()
         self.polEnd = polEndWidget()
+        self.finishW = finishWidgetP()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
     
     def __setSomeOtherSettings(self):
@@ -68,7 +72,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performPolyFit.clicked.connect(self.__fitAndPlot)
         self.scanStacker.performRemoval.clicked.connect(self.__removeAndPlot)
         self.scanStacker.cancelRemoval.clicked.connect(self.__cancelRemoval)
-
+        self.polEnd.goToNextPol.clicked.connect(self.__goToNextPol)
         self.polEnd.performFit.clicked.connect(self.__fitToFinalSpectum)
         self.polEnd.performRemoval.clicked.connect(self.__removeOnFinalSpectrum)
         self.polEnd.reverseChanges.clicked.connect(self.__cancelChangesOnFinalSpectrum)
@@ -154,11 +158,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__plotScanNo(self.actualScanNumber)
 
     def __finishPol(self):
-        # data
-        if self.lhcReduction:
-            self.data.setLHCTab()
-        else:
-            self.data.setRHCTab()
         # UI
         self.scanStacker.setVisible(False)
         self.layout.removeWidget(self.scanStacker)
@@ -168,8 +167,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if self.lhcReduction:
             spectr = self.data.calculateSpectrumFromStack()
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
-        # BBC
-        self.actualBBC = self.BBCs[1]
         # polyfitmode
         self.polEnd.setPolyFitMode()
     
@@ -243,3 +240,30 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.data.cancelChangesFinal()
         self.polEnd.setRemoveDone()
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
+
+    def __goToNextPol(self):
+        if self.lhcReduction:
+            self.data.clearStack(pol='LHC')
+            self.scanStacker.finishPol.setText("Finish RHC")
+        else:
+            self.data.clearStack(pol='RHC')
+        
+        self.bbcindex += 1
+        if self.bbcindex >= len(self.BBCs):
+            print("END")
+            sys.exit()
+        self.actualBBC = self.BBCs[self.bbcindex]
+        self.data.setActualBBC(self.actualBBC)
+        self.actualScanNumber = 0
+        self.lhcReductio = False
+        # --- UI ---
+        self.polEnd.setVisible(False)
+        self.scanStacker.removeLines()
+        self.polEnd.removeLines()
+        self.layout.removeWidget(self.polEnd)
+        self.layout.addWidget(self.scanStacker)
+        self.__plotTimeInfo()
+        self.__plotScanNo(self.actualScanNumber)
+        self.scanStacker.setVisible(True)
+       
+        

@@ -75,7 +75,8 @@ class dataContainter:
         processes the tared data
         '''
         self.obs = observation(self.tmpDirName, self.scansList)
-        os.system("rm " + self.tmpDirName + "/*")
+        for i in self.scansList:
+            os.remove(self.tmpDirName + "/" + i)
         os.rmdir(self.tmpDirName)
         #self.obs.proceed_scans()
         #self.obs.proceed_scans()
@@ -245,3 +246,19 @@ class dataContainter:
     def cancelChangesFinal(self):
         print(f'------> cancelling all of the changes!')
         self.finalFitRes = self.meanStack.copy()
+    
+    def clearStack(self, pol='LHC'):
+        if pol == 'LHC':
+            self.finalLHC = self.finalFitRes.copy()
+        elif pol == 'RHC':
+            self.finalRHC = self.finalFitRes.copy()
+        
+        self.meanStack = []
+        self.stack = []
+        self.stack = []
+        self.scansInStack = []
+        self.meanStack = []
+        self.finalFitRes = []
+    
+    def setActualBBC(self, BBC):
+        self.actualBBC = BBC

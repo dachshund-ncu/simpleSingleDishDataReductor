@@ -189,6 +189,8 @@ class polEndWidget(QtWidgets.QWidget):
             x = event.xdata
         except:
             return
+        if x is None:
+            return
         if self.polyFitMode:
             if self.fitDone:
                 self.fitBoundChannels = []
@@ -207,7 +209,6 @@ class polEndWidget(QtWidgets.QWidget):
             if self.removeDone:
                 self.removeChannelsTab = []
                 self.removeDone = False
-
             if not self.clickedOnce:
                 self.tmpChans.append(x)
                 self.clickedOnce = True
@@ -215,7 +216,8 @@ class polEndWidget(QtWidgets.QWidget):
                 self.tmpChans.append(x)
                 self.removeChannelsTab.append(self.tmpChans)
                 self.tmpChans = []
-                self.clicedOnce = False
+                self.clickedOnce = False
+
         self.__plotVerticalLine(x)
 
     def __plotVerticalLine(self, x):
