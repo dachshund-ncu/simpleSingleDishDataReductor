@@ -77,6 +77,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.performRemoval.clicked.connect(self.__removeOnFinalSpectrum)
         self.polEnd.reverseChanges.clicked.connect(self.__cancelChangesOnFinalSpectrum)
 
+        self.finishW.endDataReduction.clicked.connect(self.__closeApp)
     def __plotScanNo(self, scanNumber):
         '''
         It plots scan of the number, given in the argument
@@ -164,8 +165,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.layout.addWidget(self.polEnd, 0, 1, 2, 1)
         self.polEnd.setVisible(True)
         # plot
-        if self.lhcReduction:
-            spectr = self.data.calculateSpectrumFromStack()
+        spectr = self.data.calculateSpectrumFromStack()
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
         # polyfitmode
         self.polEnd.setPolyFitMode()
@@ -245,17 +245,16 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if self.lhcReduction:
             self.data.clearStack(pol='LHC')
             self.scanStacker.finishPol.setText("Finish RHC")
+            self.lhcReduction = False
         else:
             self.data.clearStack(pol='RHC')
+            self.__finishDataReduction()
+            return
         
         self.bbcindex += 1
-        if self.bbcindex >= len(self.BBCs):
-            print("END")
-            sys.exit()
         self.actualBBC = self.BBCs[self.bbcindex]
         self.data.setActualBBC(self.actualBBC)
         self.actualScanNumber = 0
-        self.lhcReductio = False
         # --- UI ---
         self.polEnd.setVisible(False)
         self.scanStacker.removeLines()
@@ -265,5 +264,17 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__plotTimeInfo()
         self.__plotScanNo(self.actualScanNumber)
         self.scanStacker.setVisible(True)
-       
-        
+    
+    def __finishDataReduction(self):
+        # disappear
+        self.polEnd.setVisible(False)
+        self.layout.removeWidget(self.polEnd)
+        # plot
+        I,V, LHC, RHC = self.data.getFinalPols()
+        self.finishW.plotPols(self.data.velTab[self.actualBBC-1], I, V, LHC, RHC)
+        # appear
+        self.layout.addWidget(self.finishW)
+        self.finishW.setVisible(True)
+    
+    def __closeApp(self):
+        sys.exit()

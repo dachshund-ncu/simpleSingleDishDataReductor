@@ -262,3 +262,8 @@ class dataContainter:
     
     def setActualBBC(self, BBC):
         self.actualBBC = BBC
+
+    def getFinalPols(self):
+        I = (self.finalLHC / 2.0) + (self.finalRHC / 2.0)
+        V  = self.finalRHC - self.finalLHC
+        return I, V, self.finalLHC, self.finalRHC

@@ -11,7 +11,7 @@ import numpy as np
 class finishWidgetP(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.setVisible(True)
+        self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
         self.fig = finishFigure()
         self.__declareButtons()
@@ -34,10 +34,18 @@ class finishWidgetP(QtWidgets.QWidget):
         self.layout.addWidget(self.fig, 0,1)
         self.layout.setColumnStretch(0,1)
         self.layout.setColumnStretch(1,5)
+    
+    def plotPols(self, vels, I, V, LHC, RHC):
+        self.fig.plotI.set_data(vels, I)
+        self.fig.plotV.set_data(vels, V)
+        self.fig.plotRHC.set_data(vels, RHC)
+        self.fig.plotLHC.set_data(vels, LHC)
+        self.fig.autoscaleAxis(self.fig.ax, tight=True)
+        self.fig.drawF()
 
 class finishFigure(templateFigure):
     def __init__(self):
-        super(templateFigure, self).__init__()
+        super().__init__()
         self.__declareAxesAndPlots()
     
     def __declareAxesAndPlots(self):

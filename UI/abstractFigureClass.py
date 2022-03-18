@@ -14,7 +14,7 @@ from matplotlib.ticker import AutoMinorLocator
 class templateFigure(FigureCanvasQTAgg):
     def __init__(self):
         self.figure = plt.figure()
-        super(templateFigure, self).__init__(self.figure)
+        super().__init__()
 
     def makeFancyTicks(self, ax):
         ax.xaxis.set_tick_params(direction='in', width=1, length = 5, top=True, right=True, left=True, bottom = True)
