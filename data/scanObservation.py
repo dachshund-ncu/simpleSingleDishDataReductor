@@ -47,6 +47,8 @@ class observation:
         # -----------------------------------
         self.proceed_scans()
         self.mergedScans = self.mergeScans(self.scans)
+        # -----------------------------------
+        self.__calculateMJD()
 
 
     # --- metoda wczytująca listę ---
@@ -229,3 +231,9 @@ class observation:
         for i in range(0,int(self.noOfScans),2):
             mergedScans.append(mergedScan(scans[i], scans[i+1]))
         return mergedScans
+    
+    def __calculateMJD(self):
+        mjd = []
+        for i in self.scans:
+            mjd.append(i.mjd)
+        self.mjd = mean(mjd)

@@ -4,12 +4,21 @@ Class, that holds the whole data
 
 import tarfile
 from scanObservation import observation
+from caltabClass import caltab
 import sys
 import os
 import numpy as np
+import configparser
 
 class dataContainter:
     def __init__(self, tarName = None):
+
+        '''
+        CALTAB LOADING BLOCK
+        '''
+        self.caltabs = []
+        self.__tryToLoadCaltabs()
+
         '''
         Initializes dataContainer class
         '''
@@ -32,6 +41,8 @@ class dataContainter:
             self.timeTab = self.__getTimeData()
             self.mergedTimeTab = self.__getMergedTimeData()
             self.velTab = self.__generateVelTab()
+            self.properCaltabIndex = self.findProperCaltabIndex()
+
         
         # -- FINAL SPECTRUM --
         self.finalFitBoundChannels = [
@@ -46,6 +57,7 @@ class dataContainter:
         self.finalLHC = []
         # --------------------
         
+
 
 
     def fitChebyForScan(self, bbc, order, scannr):
@@ -65,6 +77,7 @@ class dataContainter:
         '''
         Opens the archive and lists the insides of it
         '''
+        print("-----> Loading archive \"" + tarName + "\"...")
         archive = tarfile.open(tarName, 'r')
         self.scansList = archive.getnames()
         os.mkdir(self.tmpDirName)
@@ -125,11 +138,11 @@ class dataContainter:
         self.stack.append(residuals)
         self.scansInStack.append(scanIndex)
 
-    def calculateSpectrumFromStack(self):
+    def calculateSpectrumFromStack(self, calCoeff = 1.0):
         if len(self.stack) == 0:
             return [-1]
         else:
-            self.meanStack = np.mean(self.stack, axis=0)
+            self.meanStack = np.mean(self.stack, axis=0) * calCoeff
             self.finalFitRes = self.meanStack.copy()
             return self.finalFitRes
 
@@ -267,3 +280,50 @@ class dataContainter:
         I = (self.finalLHC / 2.0) + (self.finalRHC / 2.0)
         V  = self.finalRHC - self.finalLHC
         return I, V, self.finalLHC, self.finalRHC
+    
+    def __tryToLoadCaltabs(self):
+        try:
+            print("-----> Loading caltabs...")
+            confile = configparser.ConfigParser()
+            confile.read('caltabPaths.ini')
+            for i in confile.sections():
+                label = i
+                tab_paths = [confile[i]['lhcCaltab'], confile[i]['rhcCaltab']]
+                freq_ranges = [ float(confile[i]['minFreq']), float(confile[i]['maxFreq'])]
+                self.caltabs.append(caltab(i, tab_paths, freq_ranges))
+                print(f"-----> Caltab loaded: {i} ({freq_ranges[0]} - {freq_ranges[1]} GHz)")
+                print("-----> LHC:", confile[i]['lhcCaltab'])
+                print("-----> RHC:", confile[i]['rhcCaltab'])
+            print("-----------------------------------------")
+        except:
+            print("-----> No caltabs found!")
+    
+    def findProperCaltabIndex(self):
+        '''
+        Assumes the data is loaded
+        '''
+        properIndex = -1
+        for i in range(len(self.caltabs)):
+            if self.caltabs[i].inRange(self.obs.scans[0].rest[0] / 1000.0):
+                properIndex = i
+        return properIndex
+    
+    def printCalibrationMessage(self, calCoeff, epoch, lhc=True):
+        print('-----------------------------------------')
+        print(f'-----> CALIBRATION PROMPT:')
+        print(f'-----> Using {self.caltabs[self.properCaltabIndex].label} to calibrate the data')
+        print(f'-----> Coefficient is {calCoeff} for MJD {int(epoch)}')
+        if lhc==True:
+            maxEpoch = self.caltabs[self.properCaltabIndex].lhcMJDTab.max()
+            minEpoch = self.caltabs[self.properCaltabIndex].lhcMJDTab.min()
+        else:
+            maxEpoch = self.caltabs[self.properCaltabIndex].rhcMJDTab.max()
+            minEpoch = self.caltabs[self.properCaltabIndex].rhcMJDTab.min()
+
+        if epoch < maxEpoch and epoch > minEpoch:
+            print(f'-----> Epoch is placed between MJD {minEpoch} and {maxEpoch}')
+            print(f'-----> Looks OK')
+        else:
+            print(f'-----> Epoch is placed OUTSIDE caltab (MJD from {minEpoch} to {maxEpoch}')
+            print(f'-----> Check CAREFULLY if this is ok.')
+        print('-----------------------------------------')

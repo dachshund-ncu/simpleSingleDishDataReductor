@@ -13,13 +13,14 @@ import sys
 # -- class definition starts here --
 class mainWindowWidget(QtWidgets.QMainWindow):
     # -- init --
-    def __init__(self, parent, data = None):
+    def __init__(self, parent, data = None, calibrate=True):
         super().__init__()
         '''
         This is an initialising method. In it, we will place buttons
         and other widgets correctly, by using private methods below:
         Also we will initialize data reduction by plotting data, if we can:
         '''
+        self.calibrate = calibrate
         self.BBCs = [1,4]
         self.bbcindex = 0
         self.__declareAndPlaceButtons()
@@ -164,17 +165,35 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__plotScanNo(self.actualScanNumber)
 
     def __finishPol(self):
+        # data
+        
         # UI
         self.scanStacker.setVisible(False)
         self.layout.removeWidget(self.scanStacker)
         self.layout.addWidget(self.polEnd, 0, 1)
         self.polEnd.setVisible(True)
-        # plot
-        spectr = self.data.calculateSpectrumFromStack()
-        self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
         # polyfitmode
         self.polEnd.setPolyFitMode()
-    
+        # data handling
+        calCoeff = 1
+        if self.calibrate:
+            date = self.data.obs.mjd
+            if self.lhcReduction:
+                ctabx = self.data.caltabs[self.data.properCaltabIndex].lhcMJDTab
+                ctaby = self.data.caltabs[self.data.properCaltabIndex].lhcCoeffsTab
+                calCoeff = self.data.caltabs[self.data.properCaltabIndex].findCoeffs(date)[0]
+            else:
+                ctabx = self.data.caltabs[self.data.properCaltabIndex].rhcMJDTab
+                ctaby = self.data.caltabs[self.data.properCaltabIndex].rhcCoeffsTab
+                calCoeff = self.data.caltabs[self.data.properCaltabIndex].findCoeffs(date)[1]
+            self.polEnd.plotCalCoeffsTable(ctabx, ctaby)
+            self.polEnd.plotUsedCalCoeff(date, calCoeff)
+            self.data.printCalibrationMessage(calCoeff, date, self.lhcReduction)
+        
+        spectr = self.data.calculateSpectrumFromStack(calCoeff)
+        self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
+        self.polEnd.setFluxLabel(calCoeff)
+
     def __discardScan(self):
         self.__nextScanSlot()
 

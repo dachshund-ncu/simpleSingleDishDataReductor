@@ -52,6 +52,12 @@ class polEndWidget(QtWidgets.QWidget):
     def plotSpectrum(self, x, y):
         self.polEndFIg.plotSpectrum(x,y)
 
+    def plotCalCoeffsTable(self, x,y):
+        self.polEndFIg.plotCalCoeffsTable(x,y)
+    
+    def plotUsedCalCoeff(self, x,y):
+        self.polEndFIg.plotUsedCalCoeff(x,y)
+
     def __declareNecessaryButtons(self):
         self.vboxStokesFrame = QtWidgets.QVBoxLayout()
         self.stokesFrame = QtWidgets.QGroupBox("Stokes handling")
@@ -218,6 +224,11 @@ class polEndWidget(QtWidgets.QWidget):
             for i in range(len(self.polEndFIg.specAxis.lines)-1, 0, -1):
                 self.polEndFIg.specAxis.lines.remove(self.polEndFIg.specAxis.lines[i])
 
+    def setFluxLabel(self, calCoeff):
+        if calCoeff == 1:
+            self.polEndFIg.specAxis.set_ylabel("Antenna Temperature (K)")
+        else:
+            self.polEndFIg.specAxis.set_ylabel(r"F = " + str(round(calCoeff,2)) + r' $\times$ Ta')
 class polEndFigure(templateFigure):
     def __init__(self):
         super().__init__()
@@ -233,6 +244,10 @@ class polEndFigure(templateFigure):
         self.makeFancyTicks(self.caltabPlot)
 
         self.spectrumPlot, = self.specAxis.plot(np.nan, np.nan, c='cyan', lw=1)
+        
+        self.calCoeffsPlot, = self.caltabPlot.plot(np.nan, np.nan, c='white', ls="", marker='+')
+        self.usedcalCoeff, = self.caltabPlot.plot(np.nan, np.nan, c='red', ls="", marker='o', ms=8)
+
         self.specAxis.set_ylabel("Amplitude")
         self.specAxis.set_xlabel(r"V$_{\mathrm{lsr}}\,$(km$\,$s$^{-1}$)")
         self.caltabPlot.set_xlabel("MJD")
@@ -241,4 +256,14 @@ class polEndFigure(templateFigure):
     def plotSpectrum(self, x,y):
         self.spectrumPlot.set_data(x,y)
         self.autoscaleAxis(self.specAxis, tight=True)
+        self.drawF()
+    
+    def plotCalCoeffsTable(self, x,y):
+        self.calCoeffsPlot.set_data(x,y)
+        self.autoscaleAxis(self.caltabPlot)
+        self.drawF()
+    
+    def plotUsedCalCoeff(self, x,y):
+        self.usedcalCoeff.set_data(x,y)
+        self.autoscaleAxis(self.caltabPlot)
         self.drawF()
