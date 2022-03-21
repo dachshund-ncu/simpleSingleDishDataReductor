@@ -53,24 +53,28 @@ class polEndWidget(QtWidgets.QWidget):
         self.polEndFIg.plotSpectrum(x,y)
 
     def __declareNecessaryButtons(self):
-        self.vboxMainOperationsFrame = QtWidgets.QVBoxLayout()
-        self.mainOperationsFrame = QtWidgets.QGroupBox("Main operations")
-        self.mainOperationsFrame.setLayout(self.vboxMainOperationsFrame)
+        self.vboxStokesFrame = QtWidgets.QVBoxLayout()
+        self.stokesFrame = QtWidgets.QGroupBox("Stokes handling")
+        self.stokesFrame.setLayout(self.vboxStokesFrame)
 
-        self.vboxCalOpsFrame = QtWidgets.QVBoxLayout()
-        self.calOpsFrame = QtWidgets.QGroupBox("Calibration")
-        self.calOpsFrame.setLayout(self.vboxCalOpsFrame)
+        self.vboxDataEditFrame = QtWidgets.QVBoxLayout()
+        self.dataEditFrame = QtWidgets.QGroupBox("Data edit")
+        self.dataEditFrame.setLayout(self.vboxDataEditFrame)
 
         self.vboxModesHandling = QtWidgets.QVBoxLayout()
-        self.modesHandlingFrame = QtWidgets.QGroupBox("modes")
+        self.modesHandlingFrame = QtWidgets.QGroupBox("Modes")
         self.modesHandlingFrame.setLayout(self.vboxModesHandling)
+
+        self.vboxCalHandling = QtWidgets.QVBoxLayout()
+        self.calHandling = QtWidgets.QGroupBox("Calibration handling")
+        self.calHandling.setLayout(self.vboxCalHandling)
+
         # buttons
         self.goToNextPol = cButton("Go to next Pol") 
         self.backToPol = cButton("Return to scan edit")
         self.cancelCalibrations = cButton("Cancel calibrations")
         self.useCalibrations = cButton("Use calibrations")
         self.setManualCal =  cButton("Set cal coeff manually")
-        self.restoreRemovedChannels = cButton("Restore Removed Channels")
 
         self.removeChannels = cButton("Remove channels")
         self.fitPolynomial = cButton("Fit Polynomial")
@@ -79,26 +83,27 @@ class polEndWidget(QtWidgets.QWidget):
         self.reverseChanges = cButton("Abandon changes")
         self.zoomButton = cButton("Zoom")
         # buttons placing
-        self.vboxMainOperationsFrame.addWidget(self.goToNextPol)
-        self.vboxMainOperationsFrame.addWidget(self.backToPol)
-        self.vboxMainOperationsFrame.addWidget(self.restoreRemovedChannels)
-        self.vboxMainOperationsFrame.addWidget(self.performFit)
-        self.vboxMainOperationsFrame.addWidget(self.performRemoval)
-        self.vboxMainOperationsFrame.addWidget(self.reverseChanges)
+        self.vboxStokesFrame.addWidget(self.goToNextPol)
+        self.vboxStokesFrame.addWidget(self.backToPol)
 
-        self.vboxCalOpsFrame.addWidget(self.useCalibrations)
-        self.vboxCalOpsFrame.addWidget(self.cancelCalibrations)
-        self.vboxCalOpsFrame.addWidget(self.setManualCal)
+        self.vboxDataEditFrame.addWidget(self.performFit)
+        self.vboxDataEditFrame.addWidget(self.performRemoval)
+        self.vboxDataEditFrame.addWidget(self.reverseChanges)
+
+        self.vboxCalHandling.addWidget(self.useCalibrations)
+        self.vboxCalHandling.addWidget(self.cancelCalibrations)
+        self.vboxCalHandling.addWidget(self.setManualCal)
 
         self.vboxModesHandling.addWidget(self.fitPolynomial)
         self.vboxModesHandling.addWidget(self.removeChannels)
         self.vboxModesHandling.addWidget( self.zoomButton)
 
     def __placeNecessaryButtons(self):
-        self.layout.addWidget(self.mainOperationsFrame, 0,0)
-        self.layout.addWidget(self.calOpsFrame, 1,0)
-        self.layout.addWidget(self.modesHandlingFrame, 2,0)
-        self.layout.addWidget(self.polEndFIg, 0,1,3,1)
+        self.layout.addWidget(self.stokesFrame, 0,0)
+        self.layout.addWidget(self.calHandling, 1,0)
+        self.layout.addWidget(self.dataEditFrame, 2,0)
+        self.layout.addWidget(self.modesHandlingFrame, 3,0)
+        self.layout.addWidget(self.polEndFIg, 0,1,4,1)
         self.layout.setColumnStretch(0,1)
         self.layout.setColumnStretch(1,5)
 

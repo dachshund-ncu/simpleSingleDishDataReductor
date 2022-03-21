@@ -4,7 +4,18 @@ Just to avoid repeating code
 '''
 
 from PySide2 import QtWidgets
-
+'''
+QPushButton#evilButton {
+    background-color: red;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: beige;
+    font: bold 14px;
+    min-width: 10em;
+    padding: 6px;
+}
+'''
 class cButton(QtWidgets.QPushButton):
     def __init__(self, name = ''):
         super().__init__()

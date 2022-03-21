@@ -72,6 +72,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performPolyFit.clicked.connect(self.__fitAndPlot)
         self.scanStacker.performRemoval.clicked.connect(self.__removeAndPlot)
         self.scanStacker.cancelRemoval.clicked.connect(self.__cancelRemoval)
+        self.polEnd.backToPol.clicked.connect(self.__returnToScanEdit)
         self.polEnd.goToNextPol.clicked.connect(self.__goToNextPol)
         self.polEnd.performFit.clicked.connect(self.__fitToFinalSpectum)
         self.polEnd.performRemoval.clicked.connect(self.__removeOnFinalSpectrum)
@@ -109,8 +110,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # --
         stackPlot = self.data.calculateSpectrumFromStack()
         if len(stackPlot) == 1:
+            self.scanStacker.finishPol.setEnabled(False)
             self.scanStacker.scanFigure.stackPlot.set_data(np.nan, np.nan)
         else:
+            self.scanStacker.finishPol.setEnabled(True)
             self.scanStacker.scanFigure.stackPlot.set_data(range(len(stackPlot)), stackPlot)
         # --
         timesDot = [self.data.timeTab[2* self.actualScanNumber], self.data.timeTab[2 * self.actualScanNumber+1]]
@@ -119,6 +122,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         zDot = [self.data.zTab[2 * self.actualScanNumber], self.data.zTab[2 * self.actualScanNumber+1] ]
         self.scanStacker.setDots(timesDot, tsysDot, zDot, totalFluxDot )
         self.scanStacker.updateDataPlots()
+
+
     
     def __plotTimeInfo(self):
         #print(self.data.timeTab)
@@ -162,7 +167,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # UI
         self.scanStacker.setVisible(False)
         self.layout.removeWidget(self.scanStacker)
-        self.layout.addWidget(self.polEnd, 0, 1, 2, 1)
+        self.layout.addWidget(self.polEnd, 0, 1)
         self.polEnd.setVisible(True)
         # plot
         spectr = self.data.calculateSpectrumFromStack()
@@ -248,6 +253,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if self.lhcReduction:
             self.data.clearStack(pol='LHC')
             self.scanStacker.finishPol.setText("Finish RHC")
+            self.polEnd.goToNextPol.setText("Finish reduction")
             self.lhcReduction = False
         else:
             self.data.clearStack(pol='RHC')
@@ -281,3 +287,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     
     def __closeApp(self):
         sys.exit()
+
+    def __returnToScanEdit(self):
+        #UI
+        self.polEnd.setVisible(False)
+        self.layout.removeWidget(self.polEnd)
+        self.layout.addWidget(self.scanStacker, 0, 1)
+        self.scanStacker.setVisible(True)
