@@ -181,6 +181,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.removeChannels.setChecked(False)
         self.scanStacker.automaticReduction.setChecked(False)
         self.scanStacker.performRemoval.setEnabled(False)
+        self.scanStacker.cancelRemoval.setEnabled(False)
         self.scanStacker.performPolyFit.setEnabled(True)
         self.scanStacker.removeLines()
         print("-----> Polynomial fit mode is ACTIVE!")
@@ -193,6 +194,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.removeChannels.setChecked(True)
         self.scanStacker.automaticReduction.setChecked(False)
         self.scanStacker.performRemoval.setEnabled(True)
+        self.scanStacker.cancelRemoval.setEnabled(True)
         self.scanStacker.performPolyFit.setEnabled(False)
         self.scanStacker.removeLines()
         print("-----> Channel removal mode is ACTIVE!")
@@ -203,6 +205,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.autoRedMode = True
         self.scanStacker.fitPolynomial.setChecked(False)
         self.scanStacker.removeChannels.setChecked(False)
+        self.scanStacker.cancelRemoval.setEnabled(False)
         self.scanStacker.automaticReduction.setChecked(True)
         print("-----> Auto reduction mode is ACTIVE!")
     

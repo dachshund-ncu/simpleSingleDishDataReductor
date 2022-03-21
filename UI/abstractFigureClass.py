@@ -13,9 +13,10 @@ from matplotlib.ticker import AutoMinorLocator
 
 class templateFigure(FigureCanvasQTAgg):
     def __init__(self):
+        plt.style.use("dark_background")
         self.figure = plt.figure()
-        super().__init__()
-
+        super(templateFigure, self).__init__(self.figure)
+        
     def makeFancyTicks(self, ax):
         ax.xaxis.set_tick_params(direction='in', width=1, length = 5, top=True, right=True, left=True, bottom = True)
         ax.xaxis.set_tick_params(direction='in', width=1, length = 3,which='minor', top=True, right=True, left=True, bottom = True)
@@ -24,6 +25,10 @@ class templateFigure(FigureCanvasQTAgg):
         ax.xaxis.set_minor_locator(AutoMinorLocator())
         ax.yaxis.set_minor_locator(AutoMinorLocator())
     
+    def clearPlottable(self, ax):
+        ax.set_yticks([])
+        ax.set_xticks([])
+
     def autoscaleAxis(self, ax, tight=False):
         ax.relim()
         if tight:

@@ -7,6 +7,8 @@ Class, that holds the scan stacking widget:
 '''
 
 from PySide2 import QtCore, QtWidgets, QtGui
+from customButton import cButton
+from abstractFigureClass import templateFigure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -65,78 +67,56 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.scanFigure.dotTF.set_data(time[1], totalFluxDot)
     
     def __declareNecessaryButtons(self):
-        self.vboxMainOperationsFrame = QtWidgets.QVBoxLayout()
-        self.mainOperationsFrame = QtWidgets.QGroupBox("Main operations")
-        self.mainOperationsFrame.setLayout(self.vboxMainOperationsFrame)
-        self.vboxChannelHandling = QtWidgets.QVBoxLayout()
-        self.channelHandlingFrame = QtWidgets.QGroupBox("Channel handling")
-        self.channelHandlingFrame.setLayout(self.vboxChannelHandling)
+
+        self.vboxScanOperationsFrame = QtWidgets.QVBoxLayout()
+        self.ScanOperationsFrame = QtWidgets.QGroupBox("Scan operations")
+        self.ScanOperationsFrame.setLayout(self.vboxScanOperationsFrame)
+
+        self.vboxOtherOperationsFrame = QtWidgets.QVBoxLayout()
+        self.otherOperationsFrame = QtWidgets.QGroupBox("Other operations")
+        self.otherOperationsFrame.setLayout(self.vboxOtherOperationsFrame)
+
+        self.vboxModesFrame = QtWidgets.QVBoxLayout()
+        self.modesFrame = QtWidgets.QGroupBox("Modes")
+        self.modesFrame.setLayout(self.vboxModesFrame)
+
         self.nextPrevScanLayout = QtWidgets.QHBoxLayout()
         # buttons
-        self.addToStack = QtWidgets.QPushButton("Add to stack") 
-        self.discardFromStack = QtWidgets.QPushButton("Discard from stack")
-        self.removeFromStack = QtWidgets.QPushButton("Remove from stack")
-        self.removeChannels = QtWidgets.QPushButton("Remove channels")
-        self.performRemoval = QtWidgets.QPushButton("Perform Removal")
-        self.cancelRemoval = QtWidgets.QPushButton("Cancel Removal")
-        self.performPolyFit = QtWidgets.QPushButton("Perform Polyfit")
-        self.fitPolynomial = QtWidgets.QPushButton("Fit Polynomial")
-        self.automaticReduction = QtWidgets.QPushButton("Go AUTO")
-        self.nextScan = QtWidgets.QPushButton("->")
-        self.prevScan = QtWidgets.QPushButton("<-")
-        self.finishPol = QtWidgets.QPushButton("Finish LHC")
+        self.addToStack = cButton("Add to stack") 
+        self.discardFromStack = cButton("Discard from stack")
+        self.removeFromStack = cButton("Remove from stack")
+        self.removeChannels = cButton("Remove channels")
+        self.performRemoval = cButton("Perform Removal")
+        self.cancelRemoval = cButton("Cancel Removal")
+        self.performPolyFit = cButton("Perform Polyfit")
+        self.fitPolynomial = cButton("Fit Polynomial")
+        self.automaticReduction = cButton("Go AUTO")
+        self.nextScan = cButton("->")
+        self.prevScan = cButton("<-")
+        self.finishPol = cButton("Finish LHC")
         # buttons placing
         self.nextPrevScanLayout.addWidget(self.prevScan)
         self.nextPrevScanLayout.addWidget(self.nextScan)
-        self.vboxMainOperationsFrame.addLayout(self.nextPrevScanLayout)
-        self.vboxMainOperationsFrame.addWidget(self.addToStack)
-        self.vboxMainOperationsFrame.addWidget(self.discardFromStack)
-        self.vboxMainOperationsFrame.addWidget(self.removeFromStack)
-        self.vboxMainOperationsFrame.addWidget(self.performPolyFit)
-        self.vboxMainOperationsFrame.addWidget(self.performRemoval)
-        self.vboxMainOperationsFrame.addWidget(self.cancelRemoval)
-        self.vboxMainOperationsFrame.addWidget(self.finishPol)
-        self.vboxChannelHandling.addWidget(self.removeChannels)
-        self.vboxChannelHandling.addWidget(self.fitPolynomial)
-        self.vboxChannelHandling.addWidget(self.automaticReduction)
-        
-        # buttons sizing
-        self.addToStack.setMaximumSize(10000, 10000)
-        self.addToStack.setMinimumSize(0, 0)
-        self.discardFromStack.setMaximumSize(10000, 10000)
-        self.discardFromStack.setMinimumSize(0, 0)
-        self.removeFromStack.setMaximumSize(10000, 10000)
-        self.removeFromStack.setMinimumSize(0, 0)
-        self.removeChannels.setMaximumSize(10000, 10000)
-        self.removeChannels.setMinimumSize(0, 0)
-        self.fitPolynomial.setMaximumSize(10000, 10000)
-        self.fitPolynomial.setMinimumSize(0, 0)
-        self.automaticReduction.setMaximumSize(10000, 10000)
-        self.automaticReduction.setMinimumSize(0, 0)
-        self.finishPol.setMaximumSize(10000, 10000)
-        self.finishPol.setMinimumSize(0, 0)
-        self.performPolyFit.setMaximumSize(10000, 10000)
-        self.performPolyFit.setMinimumSize(0, 0)
-        self.performRemoval.setMaximumSize(10000, 10000)
-        self.performRemoval.setMinimumSize(0, 0)
-        self.cancelRemoval.setMaximumSize(10000, 10000)
-        self.cancelRemoval.setMinimumSize(0, 0)
+        self.vboxScanOperationsFrame.addLayout(self.nextPrevScanLayout)
+        self.vboxScanOperationsFrame.addWidget(self.addToStack)
+        self.vboxScanOperationsFrame.addWidget(self.discardFromStack)
+        self.vboxScanOperationsFrame.addWidget(self.removeFromStack)
 
-        # buttons colors
-        '''
-        self.addToStack.setStyleSheet("background-color: green")
-        self.discardFromStack.setStyleSheet("background-color: red")
-        self.removeFromStack.setStyleSheet("background-color: red")
-        self.removeChannels.setStyleSheet("background-color: red")
-        self.automaticReduction.setStyleSheet("background-color: blue")
-        self.finishPol.setStyleSheet("background-color: blue")
-        '''
+        self.vboxOtherOperationsFrame.addWidget(self.performPolyFit)
+        self.vboxOtherOperationsFrame.addWidget(self.performRemoval)
+        self.vboxOtherOperationsFrame.addWidget(self.cancelRemoval)
+        self.vboxOtherOperationsFrame.addWidget(self.finishPol)
+        
+        self.vboxModesFrame.addWidget(self.removeChannels)
+        self.vboxModesFrame.addWidget(self.fitPolynomial)
+        self.vboxModesFrame.addWidget(self.automaticReduction)
     
     def __placeNecessaryButtons(self):
         # layouts placing
-        self.layout.addWidget(self.mainOperationsFrame, 0,0)
-        self.layout.addWidget(self.channelHandlingFrame, 1,0)
-        self.layout.addWidget(self.scanFigure, 0, 1, 2,1)
+        self.layout.addWidget(self.ScanOperationsFrame, 0,0)
+        self.layout.addWidget(self.otherOperationsFrame, 1,0)
+        self.layout.addWidget(self.modesFrame, 2,0)
+        self.layout.addWidget(self.scanFigure, 0, 1, 3,1)
         self.layout.setColumnStretch(0,1)
         self.layout.setColumnStretch(1,5)
 
@@ -213,20 +193,18 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.clickedOnce = False
         self.removeDone = True
 
-class scanStackingFigure(FigureCanvasQTAgg):
+class scanStackingFigure(templateFigure):
     def __init__(self):
+        super().__init__()
         self.__declareNecessaryWidgets()
-        super(scanStackingFigure, self).__init__(self.figure)
         plt.subplots_adjust(top=0.95, bottom=0.05, left=0.05, right=0.95)
         #plt.ion()
+
     def __declareNecessaryWidgets(self):
         '''
         Will declare the necessary figures and axes.
         Then place them correctly inside the widget
         '''
-        plt.style.use("dark_background")
-        self.figure = plt.figure()
-
         # outer GS
         self.gs = gridspec.GridSpec(3,2, width_ratios=[2,1], figure=self.figure, wspace=0.1)
         self.axisForScan = self.figure.add_subplot(self.gs[0:2,0])
@@ -256,14 +234,14 @@ class scanStackingFigure(FigureCanvasQTAgg):
         self.axisForTsys.set_xticklabels([])
 
         # fancy handling
-        self.__clearPlottable(self.axisForScan)
-        self.__clearPlottable(self.axisForOthers)
-        self.__makeFancyTicks(self.axisForStackedSpectrum)
-        self.__makeFancyTicks(self.axisForScanYFull)
-        self.__makeFancyTicks(self.axisForScanYZoom)
-        self.__makeFancyTicks(self.axisForZ)
-        self.__makeFancyTicks(self.axisForTsys)
-        self.__makeFancyTicks(self.axisForTotalFlux)
+        self.clearPlottable(self.axisForScan)
+        self.clearPlottable(self.axisForOthers)
+        self.makeFancyTicks(self.axisForStackedSpectrum)
+        self.makeFancyTicks(self.axisForScanYFull)
+        self.makeFancyTicks(self.axisForScanYZoom)
+        self.makeFancyTicks(self.axisForZ)
+        self.makeFancyTicks(self.axisForTsys)
+        self.makeFancyTicks(self.axisForTotalFlux)
 
         # labels
         self.axisForZ.set_ylabel("Z$\,$($^{\circ}$)")
@@ -296,19 +274,6 @@ class scanStackingFigure(FigureCanvasQTAgg):
         self.dot1Z, = self.axisForZ.plot(np.nan, np.nan, c='magenta', ls="", marker='o', ms=6, zorder=2)
         self.dot2Z, = self.axisForZ.plot(np.nan, np.nan, c='magenta', ls="", marker='o', ms=6, zorder=2)
         self.dotTF, = self.axisForTotalFlux.plot(np.nan, np.nan, c='magenta', ls="", marker='o', ms=6, zorder=2)
-
-
-    def __clearPlottable(self, ax):
-        ax.set_yticks([])
-        ax.set_xticks([])
-
-    def __makeFancyTicks(self, ax):
-        ax.xaxis.set_tick_params(direction='in', width=1, length = 5, top=True, right=True, left=True, bottom = True)
-        ax.xaxis.set_tick_params(direction='in', width=1, length = 3,which='minor', top=True, right=True, left=True, bottom = True)
-        ax.yaxis.set_tick_params(direction='in', width=1, length = 5, top=True, right=True, left=True, bottom = True)
-        ax.yaxis.set_tick_params(direction='in', width=1, length = 3,which='minor', top=True, right=True, left=True, bottom = True)
-        ax.xaxis.set_minor_locator(AutoMinorLocator())
-        ax.yaxis.set_minor_locator(AutoMinorLocator())
     
     def drawInfo(self):
         self.__autoscaleInfo()
@@ -329,18 +294,10 @@ class scanStackingFigure(FigureCanvasQTAgg):
         self.axisForTotalFlux.autoscale(axis='y')
 
     def __autoscaleData(self):
-
-        self.axisForScanYFull.relim()
-        self.axisForScanYFull.autoscale(axis='x', tight=True)
-        self.axisForScanYFull.autoscale(axis='y', tight=False)
-
-        self.axisForScanYZoom.relim()
-        self.axisForScanYZoom.autoscale(axis='x', tight=True)
+        self.autoscaleAxis(self.axisForScanYFull, tight=True)
+        self.autoscaleAxis(self.axisForScanYZoom, tight=True)
         self.__autoscaleZoomedPlotY()
-
-        self.axisForStackedSpectrum.relim()
-        self.axisForStackedSpectrum.autoscale(axis='x', tight=True)
-        self.axisForStackedSpectrum.autoscale(axis='y', tight=False)
+        self.autoscaleAxis(self.axisForStackedSpectrum, tight=True)
 
     def __autoscaleZoomedPlotY(self):
         '''

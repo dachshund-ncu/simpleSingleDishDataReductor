@@ -7,6 +7,7 @@ from PySide2 import QtWidgets
 from abstractFigureClass import templateFigure
 import matplotlib.pyplot as plt
 import numpy as np
+from customButton import cButton
 
 class finishWidgetP(QtWidgets.QWidget):
     def __init__(self):
@@ -22,7 +23,7 @@ class finishWidgetP(QtWidgets.QWidget):
         self.mainOperatiosFrame = QtWidgets.QGroupBox("Main operations")
         self.mainOperatiosFrame.setLayout(self.vboxMainOperationsFrame)
         # --
-        self.endDataReduction = QtWidgets.QPushButton("End data reduction")
+        self.endDataReduction = cButton("End data reduction")
         # --
         self.vboxMainOperationsFrame.addWidget(self.endDataReduction)
         # --
