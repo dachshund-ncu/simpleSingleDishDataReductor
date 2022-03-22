@@ -270,9 +270,15 @@ class dataContainter:
         self.stack = []
         self.stack = []
         self.scansInStack = []
-        self.meanStack = []
         self.finalFitRes = []
     
+    def clearStackedData(self):
+        self.meanStack = []
+        self.stack = []
+        self.stack = []
+        self.scansInStack = []
+        self.finalFitRes = []
+
     def setActualBBC(self, BBC):
         self.actualBBC = BBC
 

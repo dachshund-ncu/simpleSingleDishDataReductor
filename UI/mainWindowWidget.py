@@ -7,8 +7,10 @@ from PySide2 import QtCore, QtWidgets, QtGui
 from scanStackingWidget import scanStackingWidget
 from polEndWidget import polEndWidget
 from finishWidget import finishWidgetP
+from fitOrderChangeWidget import changeOrder
 import numpy as np
 import sys
+import functools as fctls
 
 # -- class definition starts here --
 class mainWindowWidget(QtWidgets.QMainWindow):
@@ -26,16 +28,17 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__declareAndPlaceButtons()
         self.__declareAndPlaceCustomWidgets()
         self.__setSomeOtherSettings() # mainly column stretch
-        self.__connectButtonsToSlots()
         if data != None:
             self.data = data
             self.actualScanNumber = 0
             self.actualBBC = self.BBCs[0]
-            self.actualFitOrder = 10
             self.maximumScanNumber = len(data.obs.mergedScans)
             self.__plotTimeInfo()
             self.__plotScanNo(self.actualScanNumber)
             self.lhcReduction = True
+        self.__declareMenu()
+        self.__setCheckedBBCActions()
+        self.__connectButtonsToSlots()
         self.__setPolyFitMode()
     def __declareAndPlaceButtons(self):
         '''
@@ -53,12 +56,39 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker = scanStackingWidget()
         self.polEnd = polEndWidget()
         self.finishW = finishWidgetP()
+        self.orderChanger = changeOrder()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
     
     def __setSomeOtherSettings(self):
         #self.layout.setColumnStretch(0, 1)
         #self.layout.setColumnStretch(1, 5)
         pass
+    
+    def __declareMenu(self):
+        #--
+        self.menu = self.menuBar()
+        self.advancedMenu = self.menu.addMenu("&Advanced")
+        # --
+        self.changeOrderAction = QtWidgets.QAction("Change fit order")
+        # --
+        self.advancedMenu.addAction(self.changeOrderAction)
+        self.changeBbcLhc = self.advancedMenu.addMenu("BBC for LHC")
+        self.changeBbcRhc = self.advancedMenu.addMenu("BBC for RHC")
+        self.changeBBCLHCActions = []
+        self.changeBBCRHCActions = []
+        for i in range(len(self.data.obs.mergedScans[0].pols)):
+            self.changeBBCLHCActions.append(QtWidgets.QAction("BBC " + str(i+1)))
+            self.changeBBCRHCActions.append(QtWidgets.QAction("BBC " + str(i+1)))
+            self.changeBBCLHCActions[i].setCheckable(True)
+            self.changeBBCRHCActions[i].setCheckable(True)
+        for i in self.changeBBCLHCActions:
+            self.changeBbcLhc.addAction(i)
+        for i in self.changeBBCRHCActions:
+            self.changeBbcRhc.addAction(i)
+    def __setCheckedBBCActions(self):
+        self.changeBBCLHCActions[self.BBCs[0]-1].setChecked(True)
+        self.changeBBCRHCActions[self.BBCs[1]-1].setChecked(True)
+        
 
     def __connectButtonsToSlots(self):
         self.scanStacker.nextScan.clicked.connect(self.__nextScanSlot)
@@ -78,8 +108,18 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.performFit.clicked.connect(self.__fitToFinalSpectum)
         self.polEnd.performRemoval.clicked.connect(self.__removeOnFinalSpectrum)
         self.polEnd.reverseChanges.clicked.connect(self.__cancelChangesOnFinalSpectrum)
+        
+        self.changeOrderAction.triggered.connect(self.__showFitOrderWidget)
+        self.orderChanger.cancel.clicked.connect(self.__cancelFitOrderChange)
+        self.orderChanger.apply.clicked.connect(self.__changeFitOrder)
 
         self.finishW.endDataReduction.clicked.connect(self.__closeApp)
+
+        for i in range(len(self.changeBBCLHCActions)):
+            self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
+        for i in range(len(self.changeBBCRHCActions)):
+            self.changeBBCRHCActions[i].triggered.connect(fctls.partial(self.__bbcRhcHandler, i))
+
     def __plotScanNo(self, scanNumber):
         '''
         It plots scan of the number, given in the argument
@@ -103,7 +143,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if len(self.scanStacker.fitBoundsChannels) != 0:
             self.data.fitBoundsChannels = self.scanStacker.fitBoundsChannels
         #print(self.data.fitBoundsChannels)
-        polyTabX, polyTabY, polyTabResiduals = self.data.fitChebyForScan(self.actualBBC, self.actualFitOrder, scanNumber)
+        polyTabX, polyTabY, polyTabResiduals = self.data.fitChebyForScan(self.actualBBC, self.data.fitOrder, scanNumber)
         self.scanStacker.scanFigure.fitChebyPlot.set_data(polyTabX, polyTabY)
         self.scanStacker.setFitDone()
         self.scanStacker.scanFigure.spectrumToStackPlot.set_data(range(len(polyTabResiduals)), polyTabResiduals)
@@ -313,3 +353,41 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.layout.removeWidget(self.polEnd)
         self.layout.addWidget(self.scanStacker, 0, 1)
         self.scanStacker.setVisible(True)
+    
+    def __cancelFitOrderChange(self):
+        self.orderChanger.setVisible(False)
+    
+    def __changeFitOrder(self):
+        self.data.fitOrder = self.orderChanger.getValue()
+        self.orderChanger.setVisible(False)
+        self.__plotScanNo(self.actualScanNumber)
+    
+    def __showFitOrderWidget(self):
+        self.orderChanger.setText(self.data.fitOrder)
+        self.orderChanger.setVisible(True)
+
+    def __bbcLhcHandler(self, index):
+        for i in range(len(self.changeBBCLHCActions)):
+            if i != index:
+                self.changeBBCLHCActions[i].setChecked(False)
+        self.changeBBCLHCActions[index].setChecked(True)
+        self.BBCs[0] = index+1
+
+        if self.lhcReduction:
+            self.data.clearStackedData()
+            self.actualScanNumber = 0
+            self.__plotScanNo(self.actualScanNumber)
+        print(f'-----> BBC for LHC set to {index+1}')
+
+    def __bbcRhcHandler(self, index):
+        for i in range(len(self.changeBBCRHCActions)):
+            if i != index:
+                self.changeBBCRHCActions[i].setChecked(False)
+        self.changeBBCRHCActions[index].setChecked(True)
+        self.BBCs[1] = index+1
+
+        if not self.lhcReduction:
+            self.data.clearStackedData()
+            self.actualScanNumber = 0
+            self.__plotScanNo(self.actualScanNumber)
+        print(f'-----> BBC for RHC set to {index+1}')
