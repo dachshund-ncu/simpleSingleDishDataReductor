@@ -8,6 +8,7 @@ from scanStackingWidget import scanStackingWidget
 from polEndWidget import polEndWidget
 from finishWidget import finishWidgetP
 from fitOrderChangeWidget import changeOrder
+from manualCalCoeffSetter import changeCalCoeffWindow
 import numpy as np
 import sys
 import functools as fctls
@@ -58,6 +59,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd = polEndWidget()
         self.finishW = finishWidgetP()
         self.orderChanger = changeOrder()
+        self.calCoeffChanger = changeCalCoeffWindow()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
     
     def __setSomeOtherSettings(self):
@@ -118,6 +120,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
         self.polEnd.cancelCalibrations.clicked.connect(self.__uncalibrateData)
         self.polEnd.useCalibrations.clicked.connect(self.__calibrateData)
+
+        self.polEnd.setManualCal.clicked.connect(self.__showManualCalCoeffWidget)
+
+        self.calCoeffChanger.apply.clicked.connect(self.__setCalCoeffManually)
 
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
@@ -241,9 +247,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
                 ctaby = self.data.caltabs[self.data.properCaltabIndex].rhcCoeffsTab
                 calCoeff = self.data.calCoeffRHC
             self.polEnd.plotCalCoeffsTable(ctabx, ctaby)
+            self.polEnd.plotUsedCalCoeff(date, calCoeff)
             #self.data.printCalibrationMessage(calCoeff, date, self.lhcReduction)
             self.calibrated = True
             self.polEnd.cancelCalibrations.setEnabled(True)
+            self.polEnd.useCalibrations.setEnabled(False)
+        else:
+            self.polEnd.cancelCalibrations.setEnabled(False)
             self.polEnd.useCalibrations.setEnabled(False)
         
         self.data.calculateSpectrumFromStack()
@@ -252,7 +262,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.setFluxLabel(calCoeff)
 
     def __discardScan(self):
-        self.data.discardFromStack()
+        self.data.discardFromStack(self.actualScanNumber)
         if self.data.checkIfAllScansProceeded():
             self.__finishPol()
         else:
@@ -431,12 +441,42 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             if self.lhcReduction:
                 self.polEnd.setFluxLabel(self.data.calCoeffLHC)
             else:
-                self.polEnd.setFluxLabel(self.data.calCoeffLHC)
+                self.polEnd.setFluxLabel(self.data.calCoeffRHC)
             self.calibrated = True
             self.polEnd.cancelCalibrations.setEnabled(True)
             self.polEnd.useCalibrations.setEnabled(False)
         else:
             return
 
-    
+    def __showManualCalCoeffWidget(self):
+        if self.lhcReduction:
+            self.calCoeffChanger.setText(self.data.calCoeffLHC)
+        else:
+            self.calCoeffChanger.setText(self.data.calCoeffLHC)
+        # --
+        self.calCoeffChanger.setVisible(True)
 
+    def __setCalCoeffManually(self):
+        # --
+        date = self.data.obs.mjd
+        calCoeff = self.calCoeffChanger.getValue()
+        # --
+        # -- prepare: --
+        if self.calibrated:
+            self.data.uncalibrate(self.lhcReduction)
+        # -------------
+        if self.lhcReduction:
+            self.data.calCoeffLHC = calCoeff
+        else:
+            self.data.calCoeffRHC = calCoeff
+        # --
+        spectr = self.data.calibrate(self.lhcReduction)
+        # -- plotting --
+        self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
+        self.polEnd.plotUsedCalCoeff(date, calCoeff)
+        if self.lhcReduction:
+            self.polEnd.setFluxLabel(self.data.calCoeffLHC)
+        else:
+            self.polEnd.setFluxLabel(self.data.calCoeffRHC)
+        # -- disappear window --
+        self.calCoeffChanger.setVisible(False)

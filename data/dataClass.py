@@ -347,20 +347,20 @@ class dataContainter:
     
     def calibrate(self, lhc = True):
         if lhc:
-            self.meanStack = self.meanStack*self.calCoeffLHC
-            self.finalFitRes = self.finalFitRes*self.calCoeffLHC
+            self.meanStack *= self.calCoeffLHC
+            self.finalFitRes *= self.calCoeffLHC
         else:
-            self.meanStack = self.meanStack*self.calCoeffRHC
-            self.finalFitRes = self.finalFitRes*self.calCoeffRHC
+            self.meanStack *= self.calCoeffRHC
+            self.finalFitRes *= self.calCoeffRHC
         return self.finalFitRes
     
     def uncalibrate(self, lhc = True):
         if lhc:
-            self.meanStack = self.meanStack/self.calCoeffLHC
-            self.finalFitRes = self.finalFitRes/self.calCoeffLHC
+            self.meanStack /= self.calCoeffLHC
+            self.finalFitRes /= self.calCoeffLHC
         else:
-            self.meanStack = self.meanStack/self.calCoeffRHC
-            self.finalFitRes = self.finalFitRes/self.calCoeffRHC
+            self.meanStack /= self.calCoeffRHC
+            self.finalFitRes /= self.calCoeffRHC
         return self.finalFitRes
     
     def __makeScansProceedTable(self):
