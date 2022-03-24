@@ -42,6 +42,7 @@ class dataContainter:
             self.mergedTimeTab = self.__getMergedTimeData()
             self.velTab = self.__generateVelTab()
             self.properCaltabIndex = self.findProperCaltabIndex()
+            self.scans_proceed = self.__makeScansProceedTable()
 
         
         # -- FINAL SPECTRUM --
@@ -51,13 +52,15 @@ class dataContainter:
         ]
         self.stack = []
         self.scansInStack = []
+        
         self.meanStack = []
         self.finalFitRes = []
         self.finalRHC = []
         self.finalLHC = []
         # --------------------
-        
-
+        # --- calibration ---
+        self.calCoeffLHC = 1.0
+        self.calCoeffRHC = 1.0
 
 
     def fitChebyForScan(self, bbc, order, scannr):
@@ -134,15 +137,19 @@ class dataContainter:
         if self.__checkIfStacked(scanIndex):
             print(f"-----> scan no. {scanIndex+1} is already stacked!")
             return
+        self.scans_proceed[scanIndex] = 'ADDED'
         x,y,residuals, = self.fitChebyForScan(self.actualBBC, self.fitOrder, scanIndex)
         self.stack.append(residuals)
         self.scansInStack.append(scanIndex)
 
-    def calculateSpectrumFromStack(self, calCoeff = 1.0):
+    def discardFromStack(self, scanIndex):
+        self.scans_proceed[scanIndex] = 'DISCARDED'
+
+    def calculateSpectrumFromStack(self):
         if len(self.stack) == 0:
             return [-1]
         else:
-            self.meanStack = np.mean(self.stack, axis=0) * calCoeff
+            self.meanStack = np.mean(self.stack, axis=0)
             self.finalFitRes = self.meanStack.copy()
             return self.finalFitRes
 
@@ -153,6 +160,7 @@ class dataContainter:
         i = self.scansInStack.index(scanIndex)
         self.scansInStack.pop(i)
         self.stack.pop(i)
+        self.scans_proceed[scanIndex] = 'DISCARDED'
 
     def __checkIfStacked(self, indexNo):
         if indexNo in self.scansInStack:
@@ -266,18 +274,14 @@ class dataContainter:
         elif pol == 'RHC':
             self.finalRHC = self.finalFitRes.copy()
         
-        self.meanStack = []
-        self.stack = []
-        self.stack = []
-        self.scansInStack = []
-        self.finalFitRes = []
+        self.clearStackedData()
     
     def clearStackedData(self):
         self.meanStack = []
         self.stack = []
-        self.stack = []
         self.scansInStack = []
         self.finalFitRes = []
+        self.scans_proceed = self.__makeScansProceedTable()
 
     def setActualBBC(self, BBC):
         self.actualBBC = BBC
@@ -314,11 +318,18 @@ class dataContainter:
                 properIndex = i
         return properIndex
     
-    def printCalibrationMessage(self, calCoeff, epoch, lhc=True):
+    def findCalCoefficients(self):
+        date = self.obs.mjd
+        self.calCoeffLHC = self.caltabs[self.properCaltabIndex].findCoeffs(date)[0]
+        self.calCoeffRHC = self.caltabs[self.properCaltabIndex].findCoeffs(date)[1]
+        self.printCalibrationMessage(self.calCoeffLHC, self.calCoeffRHC, date, lhc=True)
+        
+    def printCalibrationMessage(self, calCoeffLHC, calCoeffRHC, epoch, lhc=True):
         print('-----------------------------------------')
         print(f'-----> CALIBRATION PROMPT:')
         print(f'-----> Using {self.caltabs[self.properCaltabIndex].label} to calibrate the data')
-        print(f'-----> Coefficient is {calCoeff} for MJD {int(epoch)}')
+        print(f'-----> (LHC): Coefficient is {calCoeffLHC} for MJD {int(epoch)}')
+        print(f'-----> (RHC): Coefficient is {calCoeffRHC} for MJD {int(epoch)}')
         if lhc==True:
             maxEpoch = self.caltabs[self.properCaltabIndex].lhcMJDTab.max()
             minEpoch = self.caltabs[self.properCaltabIndex].lhcMJDTab.min()
@@ -330,6 +341,36 @@ class dataContainter:
             print(f'-----> Epoch is placed between MJD {minEpoch} and {maxEpoch}')
             print(f'-----> Looks OK')
         else:
-            print(f'-----> Epoch is placed OUTSIDE caltab (MJD from {minEpoch} to {maxEpoch}')
+            print(f'-----> Epoch is placed OUTSIDE caltab (MJD from {minEpoch} to {maxEpoch})')
             print(f'-----> Check CAREFULLY if this is ok.')
         print('-----------------------------------------')
+    
+    def calibrate(self, lhc = True):
+        if lhc:
+            self.meanStack = self.meanStack*self.calCoeffLHC
+            self.finalFitRes = self.finalFitRes*self.calCoeffLHC
+        else:
+            self.meanStack = self.meanStack*self.calCoeffRHC
+            self.finalFitRes = self.finalFitRes*self.calCoeffRHC
+        return self.finalFitRes
+    
+    def uncalibrate(self, lhc = True):
+        if lhc:
+            self.meanStack = self.meanStack/self.calCoeffLHC
+            self.finalFitRes = self.finalFitRes/self.calCoeffLHC
+        else:
+            self.meanStack = self.meanStack/self.calCoeffRHC
+            self.finalFitRes = self.finalFitRes/self.calCoeffRHC
+        return self.finalFitRes
+    
+    def __makeScansProceedTable(self):
+        returned_tab = []
+        for i in range(len(self.obs.mergedScans)):
+            returned_tab.append('NOT_PROCEEDED')
+        return returned_tab
+    
+    def checkIfAllScansProceeded(self):
+        if 'NOT_PROCEEDED' in self.scans_proceed:
+            return False
+        else:
+            return True

@@ -23,6 +23,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         Also we will initialize data reduction by plotting data, if we can:
         '''
         self.calibrate = calibrate
+        self.calibrated = False
         self.BBCs = [1,4]
         self.bbcindex = 0
         self.__declareAndPlaceButtons()
@@ -115,6 +116,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
         self.finishW.endDataReduction.clicked.connect(self.__closeApp)
 
+        self.polEnd.cancelCalibrations.clicked.connect(self.__uncalibrateData)
+        self.polEnd.useCalibrations.clicked.connect(self.__calibrateData)
+
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
         for i in range(len(self.changeBBCRHCActions)):
@@ -198,7 +202,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     
     def __addToStackSlot(self):
         self.data.addToStack(self.actualScanNumber)
-        self.__nextScanSlot()
+        if self.data.checkIfAllScansProceeded():
+            self.__finishPol()
+        else:
+            self.__nextScanSlot()
     
     def __deleteFromStackSlot(self):
         self.data.deleteFromStack(self.actualScanNumber)
@@ -212,30 +219,44 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.layout.removeWidget(self.scanStacker)
         self.layout.addWidget(self.polEnd, 0, 1)
         self.polEnd.setVisible(True)
+
+        if self.lhcReduction:
+            self.changeBbcLhc.setEnabled(False)
+        else:
+            self.changeBbcRhc.setEnabled(False)
+
         # polyfitmode
         self.polEnd.setPolyFitMode()
         # data handling
         calCoeff = 1
         if self.calibrate:
             date = self.data.obs.mjd
+            self.data.findCalCoefficients()
             if self.lhcReduction:
                 ctabx = self.data.caltabs[self.data.properCaltabIndex].lhcMJDTab
                 ctaby = self.data.caltabs[self.data.properCaltabIndex].lhcCoeffsTab
-                calCoeff = self.data.caltabs[self.data.properCaltabIndex].findCoeffs(date)[0]
+                calCoeff = self.data.calCoeffLHC
             else:
                 ctabx = self.data.caltabs[self.data.properCaltabIndex].rhcMJDTab
                 ctaby = self.data.caltabs[self.data.properCaltabIndex].rhcCoeffsTab
-                calCoeff = self.data.caltabs[self.data.properCaltabIndex].findCoeffs(date)[1]
+                calCoeff = self.data.calCoeffRHC
             self.polEnd.plotCalCoeffsTable(ctabx, ctaby)
-            self.polEnd.plotUsedCalCoeff(date, calCoeff)
-            self.data.printCalibrationMessage(calCoeff, date, self.lhcReduction)
+            #self.data.printCalibrationMessage(calCoeff, date, self.lhcReduction)
+            self.calibrated = True
+            self.polEnd.cancelCalibrations.setEnabled(True)
+            self.polEnd.useCalibrations.setEnabled(False)
         
-        spectr = self.data.calculateSpectrumFromStack(calCoeff)
+        self.data.calculateSpectrumFromStack()
+        spectr = self.data.calibrate(lhc=self.lhcReduction)
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
         self.polEnd.setFluxLabel(calCoeff)
 
     def __discardScan(self):
-        self.__nextScanSlot()
+        self.data.discardFromStack()
+        if self.data.checkIfAllScansProceeded():
+            self.__finishPol()
+        else:
+            self.__nextScanSlot()
 
     def __setPolyFitMode(self):
         self.scanStacker.polyFitMode = True
@@ -391,3 +412,31 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.actualScanNumber = 0
             self.__plotScanNo(self.actualScanNumber)
         print(f'-----> BBC for RHC set to {index+1}')
+    
+    def __uncalibrateData(self):
+        if self.calibrated:
+            spectr = self.data.uncalibrate(self.lhcReduction)
+            self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
+            self.polEnd.setFluxLabel(1)
+            self.calibrated = False
+            self.polEnd.cancelCalibrations.setEnabled(False)
+            self.polEnd.useCalibrations.setEnabled(True)
+        else:
+            return
+
+    def __calibrateData(self):
+        if not self.calibrated:
+            spectr = self.data.calibrate(self.lhcReduction)
+            self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
+            if self.lhcReduction:
+                self.polEnd.setFluxLabel(self.data.calCoeffLHC)
+            else:
+                self.polEnd.setFluxLabel(self.data.calCoeffLHC)
+            self.calibrated = True
+            self.polEnd.cancelCalibrations.setEnabled(True)
+            self.polEnd.useCalibrations.setEnabled(False)
+        else:
+            return
+
+    
+
