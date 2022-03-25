@@ -2,7 +2,7 @@
 Single dish radio telescope data reductor. 
 Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in frequency-switch mode)
 
-'''Requirements'''
+###Requirements###
 
 - PySide2
 
@@ -15,8 +15,8 @@ Designed to work with data, obtained from 32m NCU radio telescope autocorrelator
 - PyAstronomy
 
 
-'''Usage'''
+###Usage###
 Very simple. You have to just type singleReductor.py your_archive_name.tar.bz2
 
-'''Output'''
+###Output###
 Files that go outside are in .fits format. Filename: sourcename_MJD.fits
