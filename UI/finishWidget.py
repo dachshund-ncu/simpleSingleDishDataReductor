@@ -8,13 +8,16 @@ from abstractFigureClass import templateFigure
 import matplotlib.pyplot as plt
 import numpy as np
 from customButton import cButton
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 class finishWidgetP(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
+        self.figl = QtWidgets.QVBoxLayout()
         self.fig = finishFigure()
+        self.NT = NavigationToolbar(self.fig, self)
         self.__declareButtons()
         self.__placeEv()
     
@@ -32,7 +35,9 @@ class finishWidgetP(QtWidgets.QWidget):
     
     def __placeEv(self):
         self.layout.addWidget(self.mainOperatiosFrame, 0,0)
-        self.layout.addWidget(self.fig, 0,1)
+        self.figl.addWidget(self.NT)
+        self.figl.addWidget(self.fig)
+        self.layout.addLayout(self.figl, 0,1)
         self.layout.setColumnStretch(0,1)
         self.layout.setColumnStretch(1,5)
     
@@ -43,6 +48,9 @@ class finishWidgetP(QtWidgets.QWidget):
         self.fig.plotLHC.set_data(vels, LHC)
         self.fig.autoscaleAxis(self.fig.ax, tight=True)
         self.fig.drawF()
+    
+    def setYlabel(self, label):
+        self.fig.ax.set_ylabel(label)
 
 class finishFigure(templateFigure):
     def __init__(self):
@@ -61,3 +69,5 @@ class finishFigure(templateFigure):
         self.ax.legend()
         # fancy
         self.makeFancyTicks(self.ax)
+        # labels
+        self.ax.set_xlabel("V$_{LSR}\,$(km$\,$s$^{-1}$)")

@@ -38,10 +38,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.__plotTimeInfo()
             self.__plotScanNo(self.actualScanNumber)
             self.lhcReduction = True
+            if not data.caltabsLoaded:
+                self.calibrate = False
         self.__declareMenu()
         self.__setCheckedBBCActions()
         self.__connectButtonsToSlots()
         self.__setPolyFitMode()
+
     def __declareAndPlaceButtons(self):
         '''
         This methood will declare and place buttons correctly. There
@@ -53,6 +56,26 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.window = QtWidgets.QWidget(self)
         self.setCentralWidget(self.window)
         self.layout = QtWidgets.QGridLayout(self.window)
+        # shortcuts
+        self.firstOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('1'), self)
+        self.secondOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('2'), self)
+        self.thirdOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('3'), self)
+        self.fourthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('4'), self)
+        self.fifthtOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('5'), self)
+        self.sixthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('6'), self)
+        self.seventhOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('7'), self)
+        self.eighthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('8'), self)
+        self.ninthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('9'), self)
+        self.tenthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('t'), self)
+
+        self.shrtAddToStack = QtWidgets.QShortcut(QtGui.QKeySequence('k'), self)
+        self.shrtDiscardToStack = QtWidgets.QShortcut(QtGui.QKeySequence('d'), self)
+        self.shrtNextScan = QtWidgets.QShortcut(QtGui.QKeySequence('right'), self)
+        self.shrtPrevScan = QtWidgets.QShortcut(QtGui.QKeySequence('left'), self)
+        self.shrtNextPol = QtWidgets.QShortcut(QtGui.QKeySequence('n'), self)
+        self.shrtEndRed = QtWidgets.QShortcut(QtGui.QKeySequence('p'), self)
+        self.shrtremoveChansMode = QtWidgets.QShortcut(QtGui.QKeySequence('r'), self)
+        self.shrtfitPolyMode = QtWidgets.QShortcut(QtGui.QKeySequence('f'), self)
 
     def __declareAndPlaceCustomWidgets(self):
         self.scanStacker = scanStackingWidget()
@@ -124,6 +147,26 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.setManualCal.clicked.connect(self.__showManualCalCoeffWidget)
 
         self.calCoeffChanger.apply.clicked.connect(self.__setCalCoeffManually)
+
+        self.firstOrderFit.activated.connect(self.__setFirstOrderPoly)
+        self.secondOrderFit.activated.connect(self.__setsecondOrderPoly)
+        self.thirdOrderFit.activated.connect(self.__setThirdOrderPoly)
+        self.fourthOrderFit.activated.connect(self.__setFourthOrderPoly)
+        self.fifthtOrderFit.activated.connect(self.__setFifthOrderPoly)
+        self.sixthOrderFit.activated.connect(self.__setSixthOrderPoly)
+        self.seventhOrderFit.activated.connect(self.__setSeventhOrderPoly)
+        self.eighthOrderFit.activated.connect(self.__setEightOrderPoly)
+        self.ninthOrderFit.activated.connect(self.__setNinthOrderPoly)
+        self.tenthOrderFit.activated.connect(self.__setTenthOrderPoly)
+
+        self.shrtAddToStack.activated.connect(self.__addToStackSlot)
+        self.shrtDiscardToStack.activated.connect(self.__discardScan)
+        self.shrtNextScan.activated.connect(self.__nextScanSlot)
+        self.shrtPrevScan.activated.connect(self.__prevScanSlot)
+        self.shrtNextPol.activated.connect(self.__goToNextPol)
+        self.shrtEndRed.activated.connect(self.__closeApp)
+        self.shrtremoveChansMode.activated.connect(self.__shrtRemWrapper)
+        self.shrtfitPolyMode.activated.connect(self.__shrtPolyWrapper)
 
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
@@ -304,6 +347,25 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.automaticReduction.setChecked(True)
         print("-----> Auto reduction mode is ACTIVE!")
     
+    def __shrtPolyWrapper(self):
+        if self.scanStacker.isVisible():
+            self.__setPolyFitMode()
+        elif self.polEnd.isVisible():
+            self.polEnd.setPolyFitMode()
+    
+    def __shrtRemWrapper(self):
+        if self.scanStacker.isVisible():
+            self.__setRemoveChansMode()
+        elif self.polEnd.isVisible():
+            self.polEnd.setRemoveChansMode()
+
+    def __shrtAutoWrapper(self):
+        if self.scanStacker.isVisible():
+            self.__setAutoReductionMode()
+        elif self.polEnd.isVisible():
+            self.polEnd.setZoomMode()
+        
+
     def __fitAndPlot(self):
         self.scanStacker.setFitDone()
         self.__plotScanNo(self.actualScanNumber)
@@ -340,6 +402,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
 
     def __goToNextPol(self):
+        if not self.polEnd.isVisible():
+            return
+
         if self.lhcReduction:
             self.data.clearStack(pol='LHC')
             self.scanStacker.finishPol.setText("Finish RHC")
@@ -365,6 +430,12 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.setVisible(True)
     
     def __finishDataReduction(self):
+        self.data.bbcs_used = self.BBCs
+        # save fits file
+        print("-----------------------------------------")
+        self.data.saveReducedDataToFits()
+        print("-----> Done!")
+        print("-----------------------------------------")
         # disappear
         self.polEnd.setVisible(False)
         self.layout.removeWidget(self.polEnd)
@@ -373,10 +444,18 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.finishW.plotPols(self.data.velTab[self.actualBBC-1], I, V, LHC, RHC)
         # appear
         self.layout.addWidget(self.finishW)
+        # -- calibration handling --
+        if self.calibrated:
+            self.finishW.setYlabel("Flux density (Jy)")
+        else:
+            self.finishW.setYlabel("Antenna temperature")
         self.finishW.setVisible(True)
     
     def __closeApp(self):
-        sys.exit()
+        if self.finishW.isVisible():
+            print("-----> This is the end. Bye!")
+            print("-----------------------------------------")
+            sys.exit()
 
     def __returnToScanEdit(self):
         #UI
@@ -389,7 +468,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.orderChanger.setVisible(False)
     
     def __changeFitOrder(self):
-        self.data.fitOrder = self.orderChanger.getValue()
+        self.data.setFitOrder(self.orderChanger.getValue())
         self.orderChanger.setVisible(False)
         self.__plotScanNo(self.actualScanNumber)
     
@@ -480,3 +559,43 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.polEnd.setFluxLabel(self.data.calCoeffRHC)
         # -- disappear window --
         self.calCoeffChanger.setVisible(False)
+
+    '''
+    FOR SHORTCUTS
+    '''
+    def __updatePlotAfterFitOrderChange(self):
+        if self.scanStacker.isVisible():
+            self.__plotScanNo(self.actualScanNumber)
+        elif self.polEnd.isVisible():
+            self.__fitToFinalSpectum()
+
+    def __setFirstOrderPoly(self):
+        self.data.setFitOrder(1)
+        self.__updatePlotAfterFitOrderChange()
+    def __setsecondOrderPoly(self):
+        self.data.setFitOrder(2)
+        self.__updatePlotAfterFitOrderChange()
+    def __setThirdOrderPoly(self):
+        self.data.setFitOrder(3)
+        self.__updatePlotAfterFitOrderChange()
+    def __setFourthOrderPoly(self):
+        self.data.setFitOrder(4)
+        self.__updatePlotAfterFitOrderChange()
+    def __setFifthOrderPoly(self):
+        self.data.setFitOrder(5)
+        self.__updatePlotAfterFitOrderChange()
+    def __setSixthOrderPoly(self):
+        self.data.setFitOrder(6)
+        self.__updatePlotAfterFitOrderChange()
+    def __setSeventhOrderPoly(self):
+        self.data.setFitOrder(7)
+        self.__updatePlotAfterFitOrderChange()
+    def __setEightOrderPoly(self):
+        self.data.setFitOrder(8)
+        self.__updatePlotAfterFitOrderChange()
+    def __setNinthOrderPoly(self):
+        self.data.setFitOrder(9)
+        self.__updatePlotAfterFitOrderChange()
+    def __setTenthOrderPoly(self):
+        self.data.setFitOrder(10)
+        self.__updatePlotAfterFitOrderChange()

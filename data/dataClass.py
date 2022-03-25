@@ -5,23 +5,25 @@ Class, that holds the whole data
 import tarfile
 from scanObservation import observation
 from caltabClass import caltab
-import sys
 import os
 import numpy as np
 import configparser
+from astropy.io import fits
 
 class dataContainter:
-    def __init__(self, tarName = None):
+    def __init__(self, absolutePath, tarName = None):
 
         '''
         CALTAB LOADING BLOCK
         '''
+        self.configDir = absolutePath
         self.caltabs = []
         self.__tryToLoadCaltabs()
 
         '''
         Initializes dataContainer class
         '''
+        self.bbcs_used = []
         self.noOfBBC = 4
         self.actualBBC = 1
         self.fitOrder = 10
@@ -83,7 +85,12 @@ class dataContainter:
         print("-----> Loading archive \"" + tarName + "\"...")
         archive = tarfile.open(tarName, 'r')
         self.scansList = archive.getnames()
-        os.mkdir(self.tmpDirName)
+        try:
+            os.mkdir(self.tmpDirName)
+        except FileExistsError:
+            print(os.listdir(self.tmpDirName))
+            for i in os.listdir(self.tmpDirName):
+                os.remove(os.path.join(self.tmpDirName, i))
         archive.extractall(path='./' + self.tmpDirName)
     
     def __processData(self):
@@ -295,7 +302,7 @@ class dataContainter:
         try:
             print("-----> Loading caltabs...")
             confile = configparser.ConfigParser()
-            confile.read('caltabPaths.ini')
+            confile.read(self.configDir + 'caltabPaths.ini')
             for i in confile.sections():
                 label = i
                 tab_paths = [confile[i]['lhcCaltab'], confile[i]['rhcCaltab']]
@@ -305,8 +312,10 @@ class dataContainter:
                 print("-----> LHC:", confile[i]['lhcCaltab'])
                 print("-----> RHC:", confile[i]['rhcCaltab'])
             print("-----------------------------------------")
+            self.caltabsLoaded = True
         except:
             print("-----> No caltabs found!")
+            self.caltabsLoaded = False
     
     def findProperCaltabIndex(self):
         '''
@@ -374,3 +383,78 @@ class dataContainter:
             return False
         else:
             return True
+    
+    def setFitOrder(self, fitOrder):
+        self.fitOrder = fitOrder
+        print("-----> Fit order changed to", fitOrder)
+    
+    def saveReducedDataToFits(self):
+        # -- filename --
+        fname = self.obs.scans[0].sourcename + '_' + str(round(self.obs.mjd,3)).replace(".", "") + ".fits"
+        print(f"-----> Saving results to file {fname}...")
+        # -- data tables --
+        polLHC = np.array(self.finalLHC, dtype=np.float64)
+        polRHC = np.array(self.finalRHC, dtype=np.float64)
+        columnPol1 = fits.Column(name='Pol 1', format='E', array=polLHC[::-1])
+        columnPol2 = fits.Column(name='Pol 2', format='E', array=polRHC[::-1])
+        # -- headers --
+        primaryHeader = self.__constructPrimaryHeader()
+        dataHeader = fits.BinTableHDU.from_columns([columnPol1, columnPol2])
+        self.__addToSecondaryHeader(dataHeader.header)
+        # -- filesave --
+        hdul = fits.HDUList([primaryHeader, dataHeader])
+        hdul.writeto(fname, overwrite=True)
+
+    '''
+    Methods to help generate FITS file
+    '''
+    def __constructPrimaryHeader(self):
+        hdr = fits.Header()
+        hdr['ORIGIN']   = ('TCfA    '             , "Torun Centre for Astronomy" )                                                                 
+        hdr['SOFTWARE'] = ('MYLOVE  '             , "16k channel Autocorrelator Spectrometer")              
+        hdr['VERSION']  = ('1.0  '             , "Software release version.")                
+        hdr['AUTHOR']   = ('Michal Durjasz (TCfA)', "Software author.")                         
+        hdr['CONTACT']  = ('md@astro.umk.pl'    , "Contact to software author.")
+        primaryHDU = fits.PrimaryHDU(header=hdr)
+        return primaryHDU
+    
+    def __addToSecondaryHeader(self, hdr):
+        fscan = self.obs.scans[0]
+        hdr['AUTHOR'] = ('Michal Durjasz')
+        hdr['INSTRUME'] = ('MYLOVE')
+        hdr['TELESCOP'] = ('RT4     ')
+        hdr['ORIGIN'] = ('TRAO    ')
+        hdr['OBSERVER'] = ('Michal Durjasz')
+        hdr['OBJECT'] = (fscan.sourcename, 'Name of the observed object')
+        hdr['EQUINOX'] = (2000.0, 'Equinox of celestial coordinate system')
+        hdr['SRC_RA'] = (fscan.RA, 'RA of source')
+        hdr['SRC_DEC'] = (fscan.DEC, 'DEC of source')
+        hdr['DATE-OBS'] = (fscan.isotime, 'Format: \'yyyy-mm-ddTHH:MM:SS[.sss]\'')
+        hdr['FREQ'] = (float(fscan.rest[0]) * 10**6, 'Frequency in HZ')
+        hdr['FRQ_BEG'] = (float(fscan.rest[0] - fscan.bw[0] / 4.0), 'Frequency at the beginning [MHz].')
+        hdr['FRQ_MID'] = (float(fscan.rest[0]), 'Frequency at the middle of the spectrum.')
+        hdr['FRQ_END'] = (float(fscan.rest[0] + fscan.bw[0] / 4.0), 'Frequency at the end of the spectrum [MHz].')
+        hdr['FRQ_RANG'] = (float(fscan.bw[0]/2.0), 'Bandwidth [MHz] ')
+        hdr['VSYS'] = (float(fscan.vlsr[0]), 'System velocity in km/s.')
+        hdr['DOPP_VSU'] = (0.0, 'Suns velocity')
+        hdr['DOPP_VOB'] = (0.0, 'Observers velocity.')
+        hdr['DOPP_VTO'] = (0.0, 'Finall Doppler velocity for source')
+        hdr['RESTFRQ'] = float(fscan.rest[0]) * 10 ** 6
+        # --------------- DO UWAGI USERA MOLEKUŁY ---------
+        if fscan.rest[0] < 6034.0:
+            hdr['MOLECULE'] = 'exOH 6031'
+        elif fscan.rest[0] > 6034.0 and fscan.rest[0] < 6100.0:
+            hdr['MOLECULE'] = 'exOH 6035'
+        elif fscan.rest[0] > 6100.0 and fscan.rest[0] < 7000.0:
+            hdr['MOLECULE'] = 'CH3OH 6668'
+        elif fscan.rest[0] > 7000.0 and fscan.rest[0] < 13000.0:
+            hdr['MOLECULE'] = 'CH3OH 12178'
+        else:
+            hdr['MOLECULE'] = 'H20 22235'   
+        # -------------------------------------------------
+        hdr['TIME'] = fscan.isotime,
+        hdr['AZ'] = round(fscan.AZ,4)
+        hdr['Z'] = round(90.0 - fscan.EL,4)
+        hdr['SCAN_TYP'] = 'FINAL   '
+        hdr['TSYS1'] = (float(fscan.tsys[self.bbcs_used[0]-1]), 'Measured Tsys pol 1')
+        hdr['TSYS2'] = (float(fscan.tsys[self.bbcs_used[1]-1]), 'Measured Tsys pol 2')
