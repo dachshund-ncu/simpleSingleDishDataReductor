@@ -1,6 +1,6 @@
 # simpleSingleDishDataReductor
 Single dish radio telescope data reductor. 
-Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in frequency-switch mode)
+Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in frequency-switch mode).
 
 ### Requirements ###
 
