@@ -427,7 +427,7 @@ class scan:
         self.fcBBC = self.fc
 
         # -- przygotowujemy dane do fft --
-        self.fr = - (self.fc) * 2.0 * pi / self.NN
+        self.fr = - (self.fc+1) * 2.0 * pi / self.NN
 
         # -- przygotowujemy tablicę do FFT --
         self.auto_prepared_to_fft = zeros((4, self.NN), dtype=complex128) # docelowa

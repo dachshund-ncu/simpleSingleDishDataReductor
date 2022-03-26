@@ -30,6 +30,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__declareAndPlaceButtons()
         self.__declareAndPlaceCustomWidgets()
         self.__setSomeOtherSettings() # mainly column stretch
+        self.lhcReduction = True
         if data != None:
             self.data = data
             self.actualScanNumber = 0
@@ -37,7 +38,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.maximumScanNumber = len(data.obs.mergedScans)
             self.__plotTimeInfo()
             self.__plotScanNo(self.actualScanNumber)
-            self.lhcReduction = True
             if not data.caltabsLoaded:
                 self.calibrate = False
         self.__declareMenu()
@@ -184,6 +184,12 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         --> resulting spectrum
         -> also marks, which Z, Tsys and Total Flux we are at
         '''
+        if self.lhcReduction:
+            self.actualBBC = self.BBCs[0]
+            self.data.setActualBBC(self.actualBBC)
+        else:
+            self.actualBBC = self.BBCs[1]
+            self.data.setActualBBC(self.actualBBC)
         # ------------
         if scanNumber > len(self.data.obs.mergedScans):
             return
@@ -487,6 +493,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.data.clearStackedData()
             self.actualScanNumber = 0
             self.__plotScanNo(self.actualScanNumber)
+            self.__plotTimeInfo()
         print(f'-----> BBC for LHC set to {index+1}')
 
     def __bbcRhcHandler(self, index):
@@ -500,6 +507,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.data.clearStackedData()
             self.actualScanNumber = 0
             self.__plotScanNo(self.actualScanNumber)
+            self.__plotTimeInfo()
         print(f'-----> BBC for RHC set to {index+1}')
     
     def __uncalibrateData(self):
