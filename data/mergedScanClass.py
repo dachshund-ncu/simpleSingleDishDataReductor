@@ -38,6 +38,21 @@ class mergedScan:
         chans = np.linspace(1, self.numberOfChannels, self.numberOfChannels)
         fitChans = []
         for i in ranges:
+            if i[0] < 0: 
+                i[0] = 0
+            if i[0] > len(self.pols[bbc])-1:
+                i[0] = len(self.pols[bbc])-1
+            if i[1] < 0: 
+                i[1] = 0
+            if i[1] > len(self.pols[bbc])-1:
+                i[1] = len(self.pols[bbc])-1
+
+            if i[0] > i[1]:
+                ee1 = i[1]
+                ee2 = i[0]
+                i[0] = ee1
+                i[1] = ee2
+
             fitData.extend(self.pols[bbc][i[0]:i[1]])
             fitChans.extend(chans[i[0]:i[1]])
         return np.asarray(fitChans), np.asarray(fitData)

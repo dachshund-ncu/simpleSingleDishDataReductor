@@ -26,7 +26,6 @@ class scanStackingWidget(QtWidgets.QWidget):
         '''
         super().__init__()
         self.layout = QtWidgets.QGridLayout(self)
-        self.scanFigure = scanStackingFigure()
         self.newScanFigure = newScanStackingFigure()
         self.newStackedFigure = stackedSpectrumFigure()
         self.newOtherPropsFigure = otherPropsFigure()
@@ -51,29 +50,17 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.removeChannelsMode = False
         self.autoRedMode = False
         
-        id = self.scanFigure.figure.canvas.mpl_connect('button_press_event', self.__onClick)
+        self.newScanFigure.pTop.scene().sigMouseClicked.connect(self.__onClick)
 
     def updateDataPlots(self):
-        self.scanFigure.drawData()
         self.newScanFigure.drawData()
 
-    def updateInfo(self):
-        self.scanFigure.drawInfo()
-
     def setVline(self, time, ):
-        self.scanFigure.tsysVline.set_data([time, time], [0,1])
-        self.scanFigure.zVline.set_data([time, time], [0,1])
-        self.scanFigure.totalFluxVline.set_data([time, time], [0,1])
         # --
         self.newOtherPropsFigure.tsysVline.setValue(time)
         self.newOtherPropsFigure.totalFluxVline.setValue(time)
     
     def setDots(self, time, ampTsys, zDot, totalFluxDot ):
-        self.scanFigure.dot1Tsys.set_data(time[0], ampTsys[0])
-        self.scanFigure.dot2Tsys.set_data(time[1], ampTsys[1])
-        self.scanFigure.dot1Z.set_data(time[0], zDot[0])
-        self.scanFigure.dot2Z.set_data(time[1], zDot[1])
-        self.scanFigure.dotTF.set_data(time[1], totalFluxDot)
         # --
         self.newOtherPropsFigure.dot1Tsys.setData([time[0]], [ampTsys[0]])
         self.newOtherPropsFigure.dot2Tsys.setData([time[1]], [ampTsys[1]])
@@ -132,10 +119,6 @@ class scanStackingWidget(QtWidgets.QWidget):
     
     def __placeNecessaryButtons(self):
         # layouts placing
-        #self.layout.addWidget(self.ScanOperationsFrame, 0,0)
-        #self.layout.addWidget(self.otherOperationsFrame, 1,0, 2, 1)
-        #self.layout.addWidget(self.modesFrame, 3,0)
-        #self.layout.addWidget(self.scanFigure, 0, 1, 3,1)
         self.layout.addWidget(self.leftWidget, 0, 0, 3, 1)
         self.layout.addWidget(self.newScanFigure, 0, 1, 2,1)
         self.layout.addWidget(self.newStackedFigure, 2, 1, 1, 1)
@@ -154,12 +137,16 @@ class scanStackingWidget(QtWidgets.QWidget):
     
     # ---- clicking and fitting ----
     def __onClick(self, event):
+        green = (0,150,0)
+        red = (255, 127, 80)
         try:
-            x = int(event.xdata)
+            mp = self.newScanFigure.pTop.vb.mapSceneToView(event.scenePos())
+            x = int(mp.x())
         except:
             return
         if x is None:
             return
+        
         if self.polyFitMode:
             if self.fitDone:
                 self.fitBoundsChannels = []
@@ -173,7 +160,8 @@ class scanStackingWidget(QtWidgets.QWidget):
                 self.fitBoundsChannels.append(self.tmpChans)
                 self.tmpChans = []
                 self.clickedOnce = False
-        
+            self.newScanFigure.drawVline(x, green)
+
         elif self.removeChannelsMode:
             if self.removeDone:
                 self.removeChannelsTab = []
@@ -187,26 +175,11 @@ class scanStackingWidget(QtWidgets.QWidget):
                 self.removeChannelsTab.append(self.tmpChans)
                 self.tmpChans = []
                 self.clickedOnce = False  
-
-        self.__plotVerticalLine(x)
-        
-
-    def __plotVerticalLine(self, x):
-        if self.polyFitMode:
-            self.scanFigure.axisForScanYZoom.axvline(x, c='lime', ls='--', lw=2)
-            self.scanFigure.axisForScanYFull.axvline(x, c='lime', ls='--', lw=2)
-        elif self.removeChannelsMode:
-            self.scanFigure.axisForScanYZoom.axvline(x, c='coral', ls='--', lw=2)
-            self.scanFigure.axisForScanYFull.axvline(x, c='coral', ls='--', lw=2)
-
-        self.scanFigure.figure.canvas.draw_idle()
-
+            self.newScanFigure.drawVline(x, red)
+    
     def removeLines(self):
-        if len(self.scanFigure.axisForScanYZoom.lines) > 2:
-            for i in range(len(self.scanFigure.axisForScanYZoom.lines)-1, 1, -1 ):
-                self.scanFigure.axisForScanYZoom.lines.remove(self.scanFigure.axisForScanYZoom.lines[i])
-            for i in range(len(self.scanFigure.axisForScanYFull.lines)-1, 0, -1 ):
-                self.scanFigure.axisForScanYFull.lines.remove(self.scanFigure.axisForScanYFull.lines[i])
+        self.newScanFigure.clearVlines()
+
     def setFitDone(self):
         self.removeLines()
         self.tmpChans = []
@@ -218,6 +191,12 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.tmpChans = []
         self.clickedOnce = False
         self.removeDone = True
+    
+    def setBoundChannels(self, bChns):
+        self.fitBoundsChannels = bChns
+    
+    def resetRemoveChans(self):
+        self.removeChannelsTab = []
 
 class scanStackingFigure(templateFigure):
     def __init__(self):
@@ -342,6 +321,15 @@ class newScanStackingFigure(templateFigurePG):
     def __init__(self):
         super().__init__()
         self.__setUpNewFigure()
+        self.__makeCrossHair()
+        self.vlineTabTop = []
+        self.vlineTabZoom = []
+        self.pTop.setMouseEnabled(x=False, y=False)
+        self.pZoom.setMouseEnabled(x=False, y=False)
+
+    def mouseClicked(self, event):
+        mp = self.pTop.vb.mapSceneToView(event.scenePos())
+        print(f"Clicked: {mp.x()}")
 
     def __setUpNewFigure(self):
         #self.newScanFigure()
@@ -353,15 +341,44 @@ class newScanStackingFigure(templateFigurePG):
         self.pTop.showGrid(x=True, y=True, alpha=0.8)
         self.pZoom.showGrid(x=True, y=True, alpha=0.8)
         # PENS 
-        cyan = (0,255,255)
+        cyan = (255,255,255)
         red = (255, 127, 80)
         # --
         self.fullYScanPlot = self.pTop.plot([0,1], pen=cyan)
         self.zoomedYScanPlot = self.pZoom.plot([0,1], pen=cyan)
         self.fitChebyPlot = self.pZoom.plot([0,1], pen=pg.mkPen(red, width=2))
+        # --
+        self.pTop.disableAutoRange()
+        self.pZoom.disableAutoRange()
+        self.pTop.autoRange(0.0)
+        self.pZoom.autoRange(0.0)
 
-        #self.pTop.autoRange(padding=0.0)
-        #self.pZoom.autoRange(padding=0.0)
+    def __makeCrossHair(self):
+        self.xTopCross = pg.InfiniteLine(pos=0.0, angle=90.0, pen=(128,128,128))
+        self.xZoomCross = pg.InfiniteLine(pos=0.0, angle=90.0, pen=(128,128,128))
+        self.pTop.addItem(self.xTopCross)
+        self.pZoom.addItem(self.xZoomCross)
+        self.pTop.scene().sigMouseMoved.connect(self.__mouseMovedEvent)
+
+
+    def __mouseMovedEvent(self, event):
+        mp = self.pTop.vb.mapSceneToView(event)
+        x = mp.x()
+        self.xTopCross.setValue(x)
+        self.xZoomCross.setValue(x)
+
+    def drawVline(self, pos, wcolor):
+        penw = pg.mkPen(color=wcolor, width=3, style=QtCore.Qt.DashLine)
+        self.vlineTabTop.append(pg.InfiniteLine(pos=pos, angle=90.0, pen=penw))
+        self.vlineTabZoom.append(pg.InfiniteLine(pos=pos, angle=90.0, pen=penw))
+        self.pTop.addItem(self.vlineTabTop[len(self.vlineTabTop)-1] )
+        self.pZoom.addItem(self.vlineTabZoom[len(self.vlineTabZoom)-1] )
+
+    def clearVlines(self):
+        [self.pTop.removeItem(i) for i in self.vlineTabTop]
+        [self.pZoom.removeItem(i) for i in self.vlineTabZoom]
+        vlineTabTop = []
+        vlineTabZoom = []
 
     def __autoscaleZoomedPlotY(self):
         '''
@@ -375,14 +392,25 @@ class newScanStackingFigure(templateFigurePG):
         lowerEnd = min - 2.0 * diff
         upperEnd = max + 2.0 * diff
         self.pZoom.setYRange(lowerEnd, upperEnd)
+        self.pZoom.setXRange(x.min(), x.max(), padding=0.0)
     
     def drawData(self):
         self.__autoscaleZoomedPlotY()
+        self.autoscale()
+    
+    def autoscale(self):
+        x,y = self.fullYScanPlot.getData()
+        diff = abs(y.max() - y.min())
+        maxRange = y.max() + 0.05 * diff
+        minRange = y.min() - 0.05 * diff
+        self.pTop.setYRange(minRange, maxRange, padding=0.0)
+
 
 class stackedSpectrumFigure(templateFigurePG):
     def __init__(self):
         super().__init__()
         self.__setUpNewFigure()
+        self.p.setMouseEnabled(x=False, y=False)
 
     def __setUpNewFigure(self):
         #self.newScanFigure()
@@ -399,6 +427,8 @@ class otherPropsFigure(templateFigurePG):
     def __init__(self):
         super().__init__()
         self.__setUpNewFigure()
+        self.pTSys.setMouseEnabled(x=False, y=False)
+        self.pTotal.setMouseEnabled(x=False, y=False)
 
     def __setUpNewFigure(self):
         self.pTSys = self.addPlot(name='tsysPlot')

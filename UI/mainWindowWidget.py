@@ -196,8 +196,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # ------------
         noOfChannels = len(self.data.obs.mergedScans[scanNumber].pols[0])
         channelTab = np.linspace(1, noOfChannels, noOfChannels)
-        self.scanStacker.scanFigure.fullYScanPlot.set_data(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
-        self.scanStacker.scanFigure.zoomedYScanPlot.set_data(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
         self.scanStacker.newScanFigure.fullYScanPlot.setData(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
         self.scanStacker.newScanFigure.zoomedYScanPlot.setData(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
         # ------------
@@ -205,10 +203,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.data.fitBoundsChannels = self.scanStacker.fitBoundsChannels
         #print(self.data.fitBoundsChannels)
         polyTabX, polyTabY, polyTabResiduals = self.data.fitChebyForScan(self.actualBBC, self.data.fitOrder, scanNumber)
-        self.scanStacker.scanFigure.fitChebyPlot.set_data(polyTabX, polyTabY)
         self.scanStacker.newScanFigure.fitChebyPlot.setData(polyTabX, polyTabY)
         self.scanStacker.setFitDone()
-        self.scanStacker.scanFigure.spectrumToStackPlot.set_data(range(len(polyTabResiduals)), polyTabResiduals)
         self.scanStacker.newStackedFigure.spectrumToStackPlot.setData(range(len(polyTabResiduals)), polyTabResiduals)
 
         
@@ -217,11 +213,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         stackPlot = self.data.calculateSpectrumFromStack()
         if len(stackPlot) == 1:
             self.scanStacker.finishPol.setEnabled(False)
-            self.scanStacker.scanFigure.stackPlot.set_data(np.nan, np.nan)
             self.scanStacker.newStackedFigure.stackPlot.setData([])
         else:
             self.scanStacker.finishPol.setEnabled(True)
-            self.scanStacker.scanFigure.stackPlot.set_data(range(len(stackPlot)), stackPlot)
             self.scanStacker.newStackedFigure.stackPlot.setData(range(len(stackPlot)), stackPlot)
         # --
         timesDot = [self.data.timeTab[2* self.actualScanNumber], self.data.timeTab[2 * self.actualScanNumber+1]]
@@ -236,20 +230,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def __plotTimeInfo(self):
         #print(self.data.timeTab)
         #print(self.data.zTab)
-        self.scanStacker.scanFigure.zPlot.set_data(self.data.timeTab, self.data.zTab)
         tmptsys = []
         tmptime = []
         for i in self.data.tsysTab:
-            self.scanStacker.scanFigure.axisForTsys.plot(self.data.timeTab, i, ls="", marker='o', mec='red', mfc="none")
             tmptsys.extend(i)
             tmptime.extend(self.data.timeTab)
             
         self.scanStacker.newOtherPropsFigure.tsysPlot.setData(tmptime, tmptsys)
-        
-        self.scanStacker.scanFigure.actualTsysPlot.set_data(self.data.timeTab, self.data.tsysTab[self.actualBBC-1])
-        self.scanStacker.scanFigure.totalFluxPlot.set_data(self.data.mergedTimeTab, self.data.totalFluxTab[self.actualBBC-1])
-        self.scanStacker.updateInfo()
-
         self.scanStacker.newOtherPropsFigure.actualTsysPlot.setData(self.data.timeTab, self.data.tsysTab[self.actualBBC-1])
         self.scanStacker.newOtherPropsFigure.totalFluxPlot.setData(self.data.mergedTimeTab, self.data.totalFluxTab[self.actualBBC-1])
 
@@ -358,6 +345,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performRemoval.setEnabled(True)
         self.scanStacker.cancelRemoval.setEnabled(True)
         self.scanStacker.performPolyFit.setEnabled(False)
+        self.scanStacker.setBoundChannels(self.data.fitBoundsChannels)
+        self.scanStacker.resetRemoveChans()
         self.scanStacker.removeLines()
         print("-----> Channel removal mode is ACTIVE!")
     
