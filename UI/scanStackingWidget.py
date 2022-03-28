@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import AutoMinorLocator
 import numpy as np
+from moreEfficentFigureTemplate import templateFigurePG
+import pyqtgraph as pg
 
 class scanStackingWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -25,6 +27,9 @@ class scanStackingWidget(QtWidgets.QWidget):
         super().__init__()
         self.layout = QtWidgets.QGridLayout(self)
         self.scanFigure = scanStackingFigure()
+        self.newScanFigure = newScanStackingFigure()
+        self.newStackedFigure = stackedSpectrumFigure()
+        self.newOtherPropsFigure = otherPropsFigure()
         self.__declareNecessaryButtons()
         self.__placeNecessaryButtons()
         self.__defaultSettings()
@@ -50,6 +55,7 @@ class scanStackingWidget(QtWidgets.QWidget):
 
     def updateDataPlots(self):
         self.scanFigure.drawData()
+        self.newScanFigure.drawData()
 
     def updateInfo(self):
         self.scanFigure.drawInfo()
@@ -58,6 +64,9 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.scanFigure.tsysVline.set_data([time, time], [0,1])
         self.scanFigure.zVline.set_data([time, time], [0,1])
         self.scanFigure.totalFluxVline.set_data([time, time], [0,1])
+        # --
+        self.newOtherPropsFigure.tsysVline.setValue(time)
+        self.newOtherPropsFigure.totalFluxVline.setValue(time)
     
     def setDots(self, time, ampTsys, zDot, totalFluxDot ):
         self.scanFigure.dot1Tsys.set_data(time[0], ampTsys[0])
@@ -65,9 +74,15 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.scanFigure.dot1Z.set_data(time[0], zDot[0])
         self.scanFigure.dot2Z.set_data(time[1], zDot[1])
         self.scanFigure.dotTF.set_data(time[1], totalFluxDot)
+        # --
+        self.newOtherPropsFigure.dot1Tsys.setData([time[0]], [ampTsys[0]])
+        self.newOtherPropsFigure.dot2Tsys.setData([time[1]], [ampTsys[1]])
+        self.newOtherPropsFigure.dotTF.setData([time[1]], [totalFluxDot])
     
     def __declareNecessaryButtons(self):
-
+        self.leftWidget = QtWidgets.QWidget()
+        self.vboxLeftWidget = QtWidgets.QVBoxLayout(self.leftWidget)
+        self.vboxLeftWidget.setMargin(0)
         self.vboxScanOperationsFrame = QtWidgets.QVBoxLayout()
         self.ScanOperationsFrame = QtWidgets.QGroupBox("Scan operations")
         self.ScanOperationsFrame.setLayout(self.vboxScanOperationsFrame)
@@ -110,15 +125,26 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.vboxModesFrame.addWidget(self.removeChannels)
         self.vboxModesFrame.addWidget(self.fitPolynomial)
         self.vboxModesFrame.addWidget(self.automaticReduction)
+
+        self.vboxLeftWidget.addWidget(self.ScanOperationsFrame)
+        self.vboxLeftWidget.addWidget(self.otherOperationsFrame)
+        self.vboxLeftWidget.addWidget(self.modesFrame)
     
     def __placeNecessaryButtons(self):
         # layouts placing
-        self.layout.addWidget(self.ScanOperationsFrame, 0,0)
-        self.layout.addWidget(self.otherOperationsFrame, 1,0)
-        self.layout.addWidget(self.modesFrame, 2,0)
-        self.layout.addWidget(self.scanFigure, 0, 1, 3,1)
+        #self.layout.addWidget(self.ScanOperationsFrame, 0,0)
+        #self.layout.addWidget(self.otherOperationsFrame, 1,0, 2, 1)
+        #self.layout.addWidget(self.modesFrame, 3,0)
+        #self.layout.addWidget(self.scanFigure, 0, 1, 3,1)
+        self.layout.addWidget(self.leftWidget, 0, 0, 3, 1)
+        self.layout.addWidget(self.newScanFigure, 0, 1, 2,1)
+        self.layout.addWidget(self.newStackedFigure, 2, 1, 1, 1)
+        self.layout.addWidget(self.newOtherPropsFigure, 0, 2, 2, 1)
         self.layout.setColumnStretch(0,1)
-        self.layout.setColumnStretch(1,5)
+        self.layout.setColumnStretch(1,3)
+        self.layout.setColumnStretch(2,2)
+
+        [self.layout.setRowStretch(i, 1) for i in range(self.layout.rowCount())]
 
     def __defaultSettings(self):
         self.fitPolynomial.setCheckable(True)
@@ -311,3 +337,98 @@ class scanStackingFigure(templateFigure):
         lowerEnd = min - 2.0 * diff
         upperEnd = max + 2.0 * diff
         self.axisForScanYZoom.set_ylim(lowerEnd, upperEnd)
+    
+class newScanStackingFigure(templateFigurePG):
+    def __init__(self):
+        super().__init__()
+        self.__setUpNewFigure()
+
+    def __setUpNewFigure(self):
+        #self.newScanFigure()
+        self.pTop = self.addPlot(name='TopPlot')
+        self.nextRow()
+        self.pZoom = self.addPlot(name='ZoomPlot')
+        self.pTop.setXLink(self.pZoom)
+        # -
+        self.pTop.showGrid(x=True, y=True, alpha=0.8)
+        self.pZoom.showGrid(x=True, y=True, alpha=0.8)
+        # PENS 
+        cyan = (0,255,255)
+        red = (255, 127, 80)
+        # --
+        self.fullYScanPlot = self.pTop.plot([0,1], pen=cyan)
+        self.zoomedYScanPlot = self.pZoom.plot([0,1], pen=cyan)
+        self.fitChebyPlot = self.pZoom.plot([0,1], pen=pg.mkPen(red, width=2))
+
+        #self.pTop.autoRange(padding=0.0)
+        #self.pZoom.autoRange(padding=0.0)
+
+    def __autoscaleZoomedPlotY(self):
+        '''
+        we need to define our own methood for autoscaling
+        the zoomedYScanPlot, because we want it zoomed ;)
+        '''
+        x,y = self.fitChebyPlot.getData()
+        max = y.max()
+        min = y.min()
+        diff = max-min
+        lowerEnd = min - 2.0 * diff
+        upperEnd = max + 2.0 * diff
+        self.pZoom.setYRange(lowerEnd, upperEnd)
+    
+    def drawData(self):
+        self.__autoscaleZoomedPlotY()
+
+class stackedSpectrumFigure(templateFigurePG):
+    def __init__(self):
+        super().__init__()
+        self.__setUpNewFigure()
+
+    def __setUpNewFigure(self):
+        #self.newScanFigure()
+        self.p = self.addPlot(name='Stacked Plot')
+        # --
+        self.p.showGrid(x=True, y=True, alpha=0.8)
+        # --
+        orange = (255,165,0)
+        silver = (128,128,128)
+        self.spectrumToStackPlot = self.p.plot([0,1], pen=silver)
+        self.stackPlot = self.p.plot([0,1], pen=orange)
+
+class otherPropsFigure(templateFigurePG):
+    def __init__(self):
+        super().__init__()
+        self.__setUpNewFigure()
+
+    def __setUpNewFigure(self):
+        self.pTSys = self.addPlot(name='tsysPlot')
+        self.nextRow()
+        self.pTotal = self.addPlot(name='totalPlot')
+        self.pTSys.setXLink(self.pTotal)
+        # - 
+        self.pTSys.showGrid(x=True, y=True, alpha=0.8)
+        self.pTotal.showGrid(x=True, y=True, alpha=0.8)
+        # ---
+        # ---
+        blue=(100, 100, 255)
+        lime = (0,255,0)
+        magenta = (255, 0, 255)
+        self.tsysPlot = self.pTSys.plot([0,1], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
+        self.actualTsysPlot = self.pTSys.plot([0,1], symbol='o', symbolSize=6, symbolBrush=lime, pen=None)
+        self.totalFluxPlot = self.pTotal.plot([0,1], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
+        # dots
+        self.dot1Tsys = self.pTSys.plot( [0,1], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
+        self.dot2Tsys = self.pTSys.plot( [0,1], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
+        self.dotTF = self.pTotal.plot([0,1], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
+        # lines
+
+        self.tsysVline = pg.InfiniteLine(pos=0.0, angle=90.0, pen=magenta)
+        self.totalFluxVline = pg.InfiniteLine(pos=0.0, angle=90.0, pen=magenta)
+        self.pTSys.addItem(self.tsysVline)
+        self.pTotal.addItem(self.totalFluxVline)
+        '''
+        self.zPlot, = self.axisForZ.plot(np.nan, np.nan, c='blue', ls="", marker='s')
+        #self.tsysPlot, = self.axisForTsys.plot(np.nan, np.nan, c='blue', ls="", marker='o', mec='red', mfc="none")
+        self.actualTsysPlot, = self.axisForTsys.plot(np.nan, np.nan, c='lime', ls="", marker='o', ms=6, zorder=2)
+        self.totalFluxPlot, = self.axisForTotalFlux.plot(np.nan, np.nan, c='cyan', ls="", marker='o', ms=3)
+        '''
