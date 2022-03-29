@@ -429,6 +429,7 @@ class otherPropsFigure(templateFigurePG):
         self.__setUpNewFigure()
         self.pTSys.setMouseEnabled(x=False, y=False)
         self.pTotal.setMouseEnabled(x=False, y=False)
+        self.totalFluxPoints = []
 
     def __setUpNewFigure(self):
         self.pTSys = self.addPlot(name='tsysPlot')
@@ -445,7 +446,7 @@ class otherPropsFigure(templateFigurePG):
         magenta = (255, 0, 255)
         self.tsysPlot = self.pTSys.plot([0,1], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
         self.actualTsysPlot = self.pTSys.plot([0,1], symbol='o', symbolSize=6, symbolBrush=lime, pen=None)
-        self.totalFluxPlot = self.pTotal.plot([0,1], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
+        #self.totalFluxPlot = self.pTotal.plot([0,1], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
         # dots
         self.dot1Tsys = self.pTSys.plot( [0,1], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
         self.dot2Tsys = self.pTSys.plot( [0,1], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
@@ -456,9 +457,37 @@ class otherPropsFigure(templateFigurePG):
         self.totalFluxVline = pg.InfiniteLine(pos=0.0, angle=90.0, pen=magenta)
         self.pTSys.addItem(self.tsysVline)
         self.pTotal.addItem(self.totalFluxVline)
+        self.dotTF.setZValue(50)
         '''
         self.zPlot, = self.axisForZ.plot(np.nan, np.nan, c='blue', ls="", marker='s')
         #self.tsysPlot, = self.axisForTsys.plot(np.nan, np.nan, c='blue', ls="", marker='o', mec='red', mfc="none")
         self.actualTsysPlot, = self.axisForTsys.plot(np.nan, np.nan, c='lime', ls="", marker='o', ms=6, zorder=2)
         self.totalFluxPlot, = self.axisForTotalFlux.plot(np.nan, np.nan, c='cyan', ls="", marker='o', ms=3)
         '''
+    
+    def appendToTotalFluxPool(self, x ,y):
+        blue=(100, 100, 255)
+        eee = pg.ScatterPlotItem([x], [y], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
+        eee.setBrush(blue)
+        self.pTotal.addItem(eee)
+        self.totalFluxPoints.append(eee)
+    
+    def setTotalFluxStacked(self, index):
+        if index >= len(self.totalFluxPoints):
+            return
+        limePen = (0,255,0)
+        self.totalFluxPoints[index].setBrush(limePen)
+    
+    def setTotalFluxDiscarded(self, index):
+        if index >= len(self.totalFluxPoints):
+            return
+        redPen = (192, 10, 10)
+        self.totalFluxPoints[index].setBrush(redPen)
+    
+    def setDataForIndex(self, index, x, y):
+        self.totalFluxPoints[index].setData([x],[y])
+
+    def setTotalFluxDefaultBrush(self):
+        blue=(100, 100, 255)
+        [point.setBrush(blue) for point in self.totalFluxPoints]
+            

@@ -36,6 +36,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.actualScanNumber = 0
             self.actualBBC = self.BBCs[0]
             self.maximumScanNumber = len(data.obs.mergedScans)
+            self.timeInfoAlreadyPlotted = False
             self.__plotTimeInfo()
             self.__plotScanNo(self.actualScanNumber)
             if not data.caltabsLoaded:
@@ -238,8 +239,14 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             
         self.scanStacker.newOtherPropsFigure.tsysPlot.setData(tmptime, tmptsys)
         self.scanStacker.newOtherPropsFigure.actualTsysPlot.setData(self.data.timeTab, self.data.tsysTab[self.actualBBC-1])
-        self.scanStacker.newOtherPropsFigure.totalFluxPlot.setData(self.data.mergedTimeTab, self.data.totalFluxTab[self.actualBBC-1])
-
+        #self.scanStacker.newOtherPropsFigure.totalFluxPlot.setData(self.data.mergedTimeTab, self.data.totalFluxTab[self.actualBBC-1])
+        
+        for i in range(len(self.data.totalFluxTab[self.actualBBC-1])):
+            if not self.timeInfoAlreadyPlotted:
+                self.scanStacker.newOtherPropsFigure.appendToTotalFluxPool(self.data.mergedTimeTab[i], self.data.totalFluxTab[self.actualBBC-1][i])
+            else:
+                self.scanStacker.newOtherPropsFigure.setDataForIndex(i, self.data.mergedTimeTab[i], self.data.totalFluxTab[self.actualBBC-1][i])
+        self.timeInfoAlreadyPlotted = True
     '''
     Methods below are being used as SLOTS
     '''
@@ -263,12 +270,17 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def __addToStackSlot(self):
         self.data.addToStack(self.actualScanNumber)
         if self.data.checkIfAllScansProceeded():
+            self.scanStacker.newOtherPropsFigure.setTotalFluxDefaultBrush()
             self.__finishPol()
         else:
+            #print(f'Setting stacked {self.actualScanNumber}')
+            self.scanStacker.newOtherPropsFigure.setTotalFluxStacked(self.actualScanNumber)
             self.__nextScanSlot()
+            
     
     def __deleteFromStackSlot(self):
         self.data.deleteFromStack(self.actualScanNumber)
+        self.scanStacker.newOtherPropsFigure.setTotalFluxDiscarded(self.actualScanNumber)
         self.__plotScanNo(self.actualScanNumber)
 
     def __finishPol(self):
@@ -320,6 +332,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if self.data.checkIfAllScansProceeded():
             self.__finishPol()
         else:
+            self.scanStacker.newOtherPropsFigure.setTotalFluxDiscarded(self.actualScanNumber)
             self.__nextScanSlot()
 
     def __setPolyFitMode(self):
