@@ -6,6 +6,7 @@ Class, that holds the scan stacking widget:
 -> labels: scans, tsys, rms, snr, peak
 '''
 
+#from tkinter import Y
 from PySide2 import QtCore, QtWidgets, QtGui
 from customButton import cButton
 from abstractFigureClass import templateFigure
@@ -51,7 +52,9 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.autoRedMode = False
         
         self.newScanFigure.pTop.scene().sigMouseClicked.connect(self.__onClick)
-
+        self.newOtherPropsFigure.pTotal.scene().sigMouseClicked.connect(self.__onClickAuto)
+        # -- for auto threshold --
+        self.autoThreshold = -1e11
     def updateDataPlots(self):
         self.newScanFigure.drawData()
 
@@ -177,6 +180,12 @@ class scanStackingWidget(QtWidgets.QWidget):
                 self.clickedOnce = False  
             self.newScanFigure.drawVline(x, red)
     
+    def __onClickAuto(self, event):
+        if self.autoRedMode:
+            mp = self.newOtherPropsFigure.pTotal.vb.mapSceneToView(event.scenePos())
+            self.autoThreshold = mp.y()
+            self.newOtherPropsFigure.colorizePoints(self.autoThreshold)
+
     def removeLines(self):
         self.newScanFigure.clearVlines()
 
@@ -354,8 +363,9 @@ class newScanStackingFigure(templateFigurePG):
         self.pZoom.autoRange(0.0)
 
     def __makeCrossHair(self):
-        self.xTopCross = pg.InfiniteLine(pos=0.0, angle=90.0, pen=(128,128,128))
-        self.xZoomCross = pg.InfiniteLine(pos=0.0, angle=90.0, pen=(128,128,128))
+        penw=pg.mkPen(color=(128,128,128), width=2 )
+        self.xTopCross = pg.InfiniteLine(pos=0.0, angle=90.0, pen=penw)
+        self.xZoomCross = pg.InfiniteLine(pos=0.0, angle=90.0, pen=penw)
         self.pTop.addItem(self.xTopCross)
         self.pZoom.addItem(self.xZoomCross)
         self.pTop.scene().sigMouseMoved.connect(self.__mouseMovedEvent)
@@ -430,6 +440,7 @@ class otherPropsFigure(templateFigurePG):
         self.pTSys.setMouseEnabled(x=False, y=False)
         self.pTotal.setMouseEnabled(x=False, y=False)
         self.totalFluxPoints = []
+        self.__makeHorizontalCrossHair()
 
     def __setUpNewFigure(self):
         self.pTSys = self.addPlot(name='tsysPlot')
@@ -455,6 +466,7 @@ class otherPropsFigure(templateFigurePG):
 
         self.tsysVline = pg.InfiniteLine(pos=0.0, angle=90.0, pen=magenta)
         self.totalFluxVline = pg.InfiniteLine(pos=0.0, angle=90.0, pen=magenta)
+
         self.pTSys.addItem(self.tsysVline)
         self.pTotal.addItem(self.totalFluxVline)
         self.dotTF.setZValue(50)
@@ -490,4 +502,24 @@ class otherPropsFigure(templateFigurePG):
     def setTotalFluxDefaultBrush(self):
         blue=(100, 100, 255)
         [point.setBrush(blue) for point in self.totalFluxPoints]
-            
+    
+    def __makeHorizontalCrossHair(self):
+        blue=(100, 100, 255)
+        penw = pg.mkPen(color=blue, width=2)
+        self.yTFCross = pg.InfiniteLine(pos=0.0, angle=0.0, pen=penw)
+        #self.xZoomCross = pg.InfiniteLine(pos=0.0, angle=90.0, pen=blue)
+        self.pTotal.addItem(self.yTFCross)
+        self.pTotal.scene().sigMouseMoved.connect(self.__mouseMovedEventTF)
+    
+    def __mouseMovedEventTF(self, event):
+        mp = self.pTotal.vb.mapSceneToView(event)
+        y = mp.y()
+        self.yTFCross.setValue(y)
+    
+    def colorizePoints(self, threshold):
+        for i in range(len(self.totalFluxPoints)):
+            x,y = self.totalFluxPoints[i].getData()
+            if y.max() > threshold:
+                self.setTotalFluxDiscarded(i)
+            else:
+                self.setTotalFluxStacked(i)

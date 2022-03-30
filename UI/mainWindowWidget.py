@@ -77,6 +77,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.shrtEndRed = QtWidgets.QShortcut(QtGui.QKeySequence('p'), self)
         self.shrtremoveChansMode = QtWidgets.QShortcut(QtGui.QKeySequence('r'), self)
         self.shrtfitPolyMode = QtWidgets.QShortcut(QtGui.QKeySequence('f'), self)
+        self.shrtAutoRedMode = QtWidgets.QShortcut(QtGui.QKeySequence('i'), self)
 
     def __declareAndPlaceCustomWidgets(self):
         self.scanStacker = scanStackingWidget()
@@ -168,6 +169,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.shrtEndRed.activated.connect(self.__closeApp)
         self.shrtremoveChansMode.activated.connect(self.__shrtRemWrapper)
         self.shrtfitPolyMode.activated.connect(self.__shrtPolyWrapper)
+        self.shrtAutoRedMode.activated.connect(self.__shrtAutoWrapper)
 
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
@@ -268,9 +270,20 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__plotScanNo(self.actualScanNumber)
     
     def __addToStackSlot(self):
+        '''
+        Adds to stack of reduced spectra
+        'STACK' is being averaged, what gives better and better SNR with every addition
+        UPDATE:
+        if 'autoReductionMode' is activated, it will try to perform it with discarding standard adding to stack procedure
+        if auto procedure fails for some reason, it will do standard task anyway
+        '''
+        if self.scanStacker.autoRedMode:
+            flag = self.doAutoReduction()
+            if flag:
+                self.__finishPol()
+                return
         self.data.addToStack(self.actualScanNumber)
         if self.data.checkIfAllScansProceeded():
-            self.scanStacker.newOtherPropsFigure.setTotalFluxDefaultBrush()
             self.__finishPol()
         else:
             #print(f'Setting stacked {self.actualScanNumber}')
@@ -346,6 +359,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.cancelRemoval.setEnabled(False)
         self.scanStacker.performPolyFit.setEnabled(True)
         self.scanStacker.removeLines()
+        self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(False)
         print("-----> Polynomial fit mode is ACTIVE!")
 
     def __setRemoveChansMode(self):
@@ -361,6 +375,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.setBoundChannels(self.data.fitBoundsChannels)
         self.scanStacker.resetRemoveChans()
         self.scanStacker.removeLines()
+        self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(False)
         print("-----> Channel removal mode is ACTIVE!")
     
     def __setAutoReductionMode(self):
@@ -370,7 +385,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.fitPolynomial.setChecked(False)
         self.scanStacker.removeChannels.setChecked(False)
         self.scanStacker.cancelRemoval.setEnabled(False)
+        self.scanStacker.performPolyFit.setEnabled(False)
         self.scanStacker.automaticReduction.setChecked(True)
+        self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(True)
         print("-----> Auto reduction mode is ACTIVE!")
     
     def __shrtPolyWrapper(self):
@@ -436,9 +453,11 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.scanStacker.finishPol.setText("Finish RHC")
             self.polEnd.goToNextPol.setText("Finish reduction")
             self.lhcReduction = False
+            self.scanStacker.autoThreshold = -1e11
         else:
             self.data.clearStack(pol='RHC')
             self.__finishDataReduction()
+            self.scanStacker.autoThreshold = -1e11
             return
         
         self.bbcindex += 1
@@ -454,6 +473,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__plotTimeInfo()
         self.__plotScanNo(self.actualScanNumber)
         self.scanStacker.setVisible(True)
+        # ---------
+        self.scanStacker.newOtherPropsFigure.setTotalFluxDefaultBrush()
     
     def __finishDataReduction(self):
         self.data.bbcs_used = self.BBCs
@@ -510,6 +531,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.BBCs[0] = index+1
 
         if self.lhcReduction:
+            self.scanStacker.autoThreshold = -1e11
+            self.scanStacker.newOtherPropsFigure.setTotalFluxDefaultBrush()
             self.data.clearStackedData()
             self.actualScanNumber = 0
             self.__plotScanNo(self.actualScanNumber)
@@ -524,6 +547,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.BBCs[1] = index+1
 
         if not self.lhcReduction:
+            self.scanStacker.autoThreshold = -1e11
+            self.scanStacker.newOtherPropsFigure.setTotalFluxDefaultBrush()
             self.data.clearStackedData()
             self.actualScanNumber = 0
             self.__plotScanNo(self.actualScanNumber)
@@ -627,3 +652,30 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def __setTenthOrderPoly(self):
         self.data.setFitOrder(10)
         self.__updatePlotAfterFitOrderChange()
+    
+    def doAutoReduction(self):
+        '''
+        This method is to do automated data reduction
+        '''
+        if self.scanStacker.autoThreshold == -1e11:
+            return False
+        
+        validationTable = []
+        
+        for i in self.data.totalFluxTab[self.actualBBC-1]:
+            if i < self.scanStacker.autoThreshold:
+                validationTable.append(True)
+            else:
+                validationTable.append(False)
+        
+        print("-----------------------------------------")
+        print("-----> AUTO REDUCTION:")
+        for i in range(len(validationTable)):
+            if validationTable[i]:
+                self.data.addToStack(i)
+                print(f"-----> Scan no. {i+1} added")
+            else:
+                print(f"-----> Scan no. {i+1} discarded")
+        print("Automated pol. reduction ended succesfully")
+        print("-----------------------------------------")
+        return True
