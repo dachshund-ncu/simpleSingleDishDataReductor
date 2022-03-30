@@ -276,7 +276,7 @@ class calTabFigure(templateFigurePG):
         self.caltabPlot = self.pCalCoeffs.plot([0,1], symbol='+', symbolSize=6, symbolBrush=cyan, pen=None)
         self.usedCalCoeffPlot = self.pCalCoeffs.plot([0,1], symbol='o', symbolSize=12, symbolBrush=limePen, pen=None)
         # --
-        self.pCalCoeffs.setLabel(axis='bottom', text="Velocity (km/s)")
+        self.pCalCoeffs.setLabel(axis='bottom', text="MJD")
     def plotCaltab(self, x,y):
         self.caltabPlot.setData(x,y)
     

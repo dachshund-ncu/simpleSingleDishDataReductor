@@ -434,20 +434,22 @@ class dataContainter:
         hdr['OBSERVER'] = ('Michal Durjasz')
         hdr['OBJECT'] = (fscan.sourcename, 'Name of the observed object')
         hdr['EQUINOX'] = (2000.0, 'Equinox of celestial coordinate system')
-        hdr['SRC_RA'] = (fscan.RA, 'RA of source')
-        hdr['SRC_DEC'] = (fscan.DEC, 'DEC of source')
+        strRA, strDEC = self.__makeRAandDECstring(fscan)
+        hdr['SRC_RA'] = (strRA, 'RA of source')
+        hdr['SRC_DEC'] = (strDEC, 'DEC of source')
         hdr['DATE-OBS'] = (fscan.isotime, 'Format: \'yyyy-mm-ddTHH:MM:SS[.sss]\'')
         hdr['FREQ'] = (float(fscan.rest[0]) * 10**6, 'Frequency in HZ')
-        hdr['FRQ_BEG'] = (float(fscan.rest[0] - fscan.bw[0] / 4.0), 'Frequency at the beginning [MHz].')
-        hdr['FRQ_MID'] = (float(fscan.rest[0]), 'Frequency at the middle of the spectrum.')
-        hdr['FRQ_END'] = (float(fscan.rest[0] + fscan.bw[0] / 4.0), 'Frequency at the end of the spectrum [MHz].')
+        FCENTR, FBEGIN, FEND = self.__calculateFbeginAndRest(float(fscan.vlsr[0]), float(fscan.rest[0]) * 10**6, fscan.bw[0] / 2.0)
+        hdr['FRQ_BEG'] = (FBEGIN, 'Frequency at the beginning [MHz].')
+        hdr['FRQ_MID'] = (FCENTR, 'Frequency at the middle of the spectrum.')
+        hdr['FRQ_END'] = (FEND, 'Frequency at the end of the spectrum [MHz].')
         hdr['FRQ_RANG'] = (float(fscan.bw[0]/2.0), 'Bandwidth [MHz] ')
         hdr['VSYS'] = (float(fscan.vlsr[0]), 'System velocity in km/s.')
         hdr['DOPP_VSU'] = (0.0, 'Suns velocity')
         hdr['DOPP_VOB'] = (0.0, 'Observers velocity.')
         hdr['DOPP_VTO'] = (0.0, 'Finall Doppler velocity for source')
         hdr['RESTFRQ'] = float(fscan.rest[0]) * 10 ** 6
-        # --------------- DO UWAGI USERA MOLEKUŁY ---------
+        # --------------- UWAGI MOLEKUŁY ---------
         if fscan.rest[0] < 6034.0:
             hdr['MOLECULE'] = 'exOH 6031'
         elif fscan.rest[0] > 6034.0 and fscan.rest[0] < 6100.0:
@@ -463,5 +465,39 @@ class dataContainter:
         hdr['AZ'] = round(fscan.AZ,4)
         hdr['Z'] = round(90.0 - fscan.EL,4)
         hdr['SCAN_TYP'] = 'FINAL   '
-        hdr['TSYS1'] = (float(fscan.tsys[self.bbcs_used[0]-1]), 'Measured Tsys pol 1')
-        hdr['TSYS2'] = (float(fscan.tsys[self.bbcs_used[1]-1]), 'Measured Tsys pol 2')
+        hdr['TSYS1'] = (float(fscan.tsys[self.bbcs_used[0]-1]) / 1000.0, 'Measured Tsys pol 1')
+        hdr['TSYS2'] = (float(fscan.tsys[self.bbcs_used[1]-1]) / 1000.0, 'Measured Tsys pol 2')
+    
+    def __calculateFbeginAndRest(self, Vlsr, restFreq, bw):
+        c = 299792.458
+        restFreq  /= 1e6
+        beta = Vlsr / c
+        gamma = 1.0 / np.sqrt(1.0-beta**2.0)
+        FCENTR = float(restFreq) * (gamma * (1.0-beta))
+        FBEGIN = float(FCENTR) - float(bw) / 2.0
+        FEND = float(FCENTR) + float(bw) / 2.0
+        return FCENTR, FBEGIN, FEND
+
+    def __makeRAandDECstring(self, fscan):
+        str_rah = self.append0(str(fscan.rah))
+        str_ram = self.append0(str(fscan.ram))
+        str_ras = self.append0(str(fscan.ras))
+
+        str_decd = self.append0(str(fscan.decd))
+        str_decm = self.append0(str(fscan.decm))
+        str_decs = self.append0(str(fscan.decs))
+        # '06h08m53s'
+        # '21d38m29s'
+        strRA = str_rah + 'h' + str_ram + 'm' + str_ras + 's'
+        strDEC = str_decd + 'd' + str_decm + 'm' + str_decs + 's'
+        return strRA, strDEC
+    
+    def append0(self, napis):
+        if napis[0] != '-':
+            if len(napis) == 1:
+                napis = '0' + napis
+            return napis
+        else:
+            if len(napis) == 2:
+                napis = napis[0] + '0' + napis[1]
+            return napis
