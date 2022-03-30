@@ -3,15 +3,10 @@ This class holds widget for polarization reduction end
 '''
 
 
-from PySide2 import QtCore, QtWidgets, QtGui
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-from matplotlib.ticker import AutoMinorLocator
-import numpy as np
+from PySide2 import QtCore, QtWidgets
 from customButton import cButton
-from abstractFigureClass import templateFigure
-
+from moreEfficentFigureTemplate import templateFigurePG
+import pyqtgraph as pg
 
 class polEndWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -22,7 +17,8 @@ class polEndWidget(QtWidgets.QWidget):
         super().__init__()
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
-        self.polEndFIg = polEndFigure()
+        self.newPolEndFig = polEndFigurePG()
+        self.calCoeffFig = calTabFigure()
         self.__declareNecessaryButtons()
         self.__placeNecessaryButtons()
         self.__setOtherBeginnerSettings()
@@ -46,19 +42,22 @@ class polEndWidget(QtWidgets.QWidget):
         self.tmpChans = []
         self.removeChannelsTab = []
 
-
-        id = self.polEndFIg.figure.canvas.mpl_connect('button_press_event', self.__onClick)
+        self.newPolEndFig.pSpec.scene().sigMouseClicked.connect(self.__onClick)
 
     def plotSpectrum(self, x, y):
-        self.polEndFIg.plotSpectrum(x,y)
+        self.newPolEndFig.plotSpectrum(x,y)
 
     def plotCalCoeffsTable(self, x,y):
-        self.polEndFIg.plotCalCoeffsTable(x,y)
+        self.calCoeffFig.plotCaltab(x,y)
     
     def plotUsedCalCoeff(self, x,y):
-        self.polEndFIg.plotUsedCalCoeff(x,y)
+        self.calCoeffFig.plotUsedCalCoeff(x,y)
 
     def __declareNecessaryButtons(self):
+        self.leftWidget = QtWidgets.QWidget()
+        self.vboxLeftWidget = QtWidgets.QVBoxLayout(self.leftWidget)
+        self.vboxLeftWidget.setMargin(0)
+
         self.vboxStokesFrame = QtWidgets.QVBoxLayout()
         self.stokesFrame = QtWidgets.QGroupBox("Stokes handling")
         self.stokesFrame.setLayout(self.vboxStokesFrame)
@@ -104,14 +103,22 @@ class polEndWidget(QtWidgets.QWidget):
         self.vboxModesHandling.addWidget(self.removeChannels)
         self.vboxModesHandling.addWidget( self.zoomButton)
 
+        self.vboxLeftWidget.addWidget(self.stokesFrame)
+        self.vboxLeftWidget.addWidget(self.dataEditFrame)
+        self.vboxLeftWidget.addWidget(self.modesHandlingFrame)
+        self.vboxLeftWidget.addWidget(self.calHandling)
+
     def __placeNecessaryButtons(self):
-        self.layout.addWidget(self.stokesFrame, 0,0)
-        self.layout.addWidget(self.calHandling, 1,0)
-        self.layout.addWidget(self.dataEditFrame, 2,0)
-        self.layout.addWidget(self.modesHandlingFrame, 3,0)
-        self.layout.addWidget(self.polEndFIg, 0,1,4,1)
-        self.layout.setColumnStretch(0,1)
-        self.layout.setColumnStretch(1,5)
+        #self.layout.addWidget(self.stokesFrame, 0,0)
+        #self.layout.addWidget(self.calHandling, 1,0)
+        #self.layout.addWidget(self.dataEditFrame, 2,0)
+        #self.layout.addWidget(self.modesHandlingFrame, 3,0)
+        self.layout.addWidget(self.leftWidget, 0,0, 4, 1)
+        self.layout.addWidget(self.newPolEndFig, 0,1,3,4)
+        self.layout.addWidget(self.calCoeffFig, 3,1,1,4)
+
+        [self.layout.setRowStretch(i, 1) for i in range(self.layout.rowCount())]
+        [self.layout.setColumnStretch(i, 1) for i in range(self.layout.columnCount())]
 
     def __setOtherBeginnerSettings(self):
         self.fitPolynomial.setCheckable(True)
@@ -160,8 +167,11 @@ class polEndWidget(QtWidgets.QWidget):
         print("-----> Channel removal mode is ACTIVE!")
 
     def __onClick(self, event):
+        green = (0,150,0)
+        red = (255, 127, 80)
         try:
-            x = event.xdata
+            mp = self.newPolEndFig.pSpec.vb.mapSceneToView(event.scenePos())
+            x = mp.x()
         except:
             return
         if x is None:
@@ -179,7 +189,8 @@ class polEndWidget(QtWidgets.QWidget):
                 self.fitBoundChannels.append(self.tmpChans)
                 self.tmpChans = []
                 self.clickedOnce = False
-        
+            self.newPolEndFig.drawVline(x, green)
+
         elif self.removeChannelsMode:
             if self.removeDone:
                 self.removeChannelsTab = []
@@ -192,17 +203,7 @@ class polEndWidget(QtWidgets.QWidget):
                 self.removeChannelsTab.append(self.tmpChans)
                 self.tmpChans = []
                 self.clickedOnce = False
-
-        self.__plotVerticalLine(x)
-
-    def __plotVerticalLine(self, x):
-        if self.polyFitMode:
-            self.polEndFIg.specAxis.axvline(x, c='lime', ls='--')
-        elif self.removeChannelsMode:
-            self.polEndFIg.specAxis.axvline(x, c='coral', ls='--')
-        elif self.zoomMode:
-            self.polEndFIg.specAxis.axvline(x, c='blue', ls='--')
-        self.polEndFIg.figure.canvas.draw_idle()
+            self.newPolEndFig.drawVline(x, red)
 
     def __resetClickable(self):
         self.removeLines()
@@ -220,50 +221,64 @@ class polEndWidget(QtWidgets.QWidget):
         self.zoomDone = True
 
     def removeLines(self):
-        if len(self.polEndFIg.specAxis.lines) > 1:
-            for i in range(len(self.polEndFIg.specAxis.lines)-1, 0, -1):
-                self.polEndFIg.specAxis.lines.remove(self.polEndFIg.specAxis.lines[i])
+        self.newPolEndFig.clearVlines()
 
     def setFluxLabel(self, calCoeff):
         if calCoeff == 1:
-            self.polEndFIg.specAxis.set_ylabel("Antenna Temperature (K)")
+            self.newPolEndFig.setLabelY("Antenna Temperature (K)")
         else:
-            self.polEndFIg.specAxis.set_ylabel(r"F = " + str(round(calCoeff,2)) + r' $\times$ Ta')
-class polEndFigure(templateFigure):
+            self.newPolEndFig.setLabelY("F = " + str(round(calCoeff,2)) + ' * Ta')
+
+class polEndFigurePG(templateFigurePG):
     def __init__(self):
         super().__init__()
-        self.__declareNecessaryWidgets()
-        plt.subplots_adjust(top=0.98, bottom=0.08, left=0.08, right=0.98)
-    
-    def __declareNecessaryWidgets(self):
-        self.gs = gridspec.GridSpec(2,1, height_ratios=[3,1])
-        self.specAxis = self.figure.add_subplot(self.gs[0,0])
-        self.caltabPlot = self.figure.add_subplot(self.gs[1,0])
-
-        self.makeFancyTicks(self.specAxis)
-        self.makeFancyTicks(self.caltabPlot)
-
-        self.spectrumPlot, = self.specAxis.plot(np.nan, np.nan, c='cyan', lw=1)
+        self.__setUpNewFigure()
+        #self.setVisible(True)
         
-        self.calCoeffsPlot, = self.caltabPlot.plot(np.nan, np.nan, c='white', ls="", marker='+')
-        self.usedcalCoeff, = self.caltabPlot.plot(np.nan, np.nan, c='red', ls="", marker='o', ms=8)
+        # -- private
+        self.__vlineTab = []
 
-        self.specAxis.set_ylabel("Amplitude")
-        self.specAxis.set_xlabel(r"V$_{\mathrm{lsr}}\,$(km$\,$s$^{-1}$)")
-        self.caltabPlot.set_xlabel("MJD")
-        self.caltabPlot.set_ylabel("Cal coeff.")
+    def __setUpNewFigure(self):
+        self.pSpec = self.addPlot()
+        self.pSpec.showGrid(x=True, y=True, alpha=0.8)
+        cyan = (255,255,255)
+        self.spectrumPlot = self.pSpec.plot([0,1], pen=cyan)
+        self.pSpec.setMouseEnabled(x=False, y=False)
+        self.pSpec.setLabel(axis='bottom', text="Velocity (km/s)")
+
+    def plotSpectrum(self, x, y):
+        self.spectrumPlot.setData(x,y)
     
-    def plotSpectrum(self, x,y):
-        self.spectrumPlot.set_data(x,y)
-        self.autoscaleAxis(self.specAxis, tight=True)
-        self.drawF()
+    def drawVline(self, pos, wcolor):
+        penw = pg.mkPen(color=wcolor, width=3, style=QtCore.Qt.DashLine)
+        self.__vlineTab.append(pg.InfiniteLine(pos=pos, angle=90.0, pen=penw))
+        self.pSpec.addItem(self.__vlineTab[len(self.__vlineTab)-1] )
+
+    def clearVlines(self):
+        [self.pSpec.removeItem(i) for i in self.__vlineTab]
+        self.__vlineTab = []
     
-    def plotCalCoeffsTable(self, x,y):
-        self.calCoeffsPlot.set_data(x,y)
-        self.autoscaleAxis(self.caltabPlot)
-        self.drawF()
+    def setLabelY(self, label):
+        self.pSpec.setLabel(axis='left', text=label)
+
+class calTabFigure(templateFigurePG):
+    def __init__(self):
+        super().__init__()
+        self.__setUpNewFigure()
+        #self.setVisible(True)
+    def __setUpNewFigure(self):
+        self.pCalCoeffs = self.addPlot()
+        self.pCalCoeffs.showGrid(x=True, y=True, alpha=0.8)
+        # --
+        cyan = (255,255,255)
+        limePen = (255,0,0)
+        # --
+        self.caltabPlot = self.pCalCoeffs.plot([0,1], symbol='+', symbolSize=6, symbolBrush=cyan, pen=None)
+        self.usedCalCoeffPlot = self.pCalCoeffs.plot([0,1], symbol='o', symbolSize=12, symbolBrush=limePen, pen=None)
+        # --
+        self.pCalCoeffs.setLabel(axis='bottom', text="Velocity (km/s)")
+    def plotCaltab(self, x,y):
+        self.caltabPlot.setData(x,y)
     
     def plotUsedCalCoeff(self, x,y):
-        self.usedcalCoeff.set_data(x,y)
-        self.autoscaleAxis(self.caltabPlot)
-        self.drawF()
+        self.usedCalCoeffPlot.setData([x], [y])

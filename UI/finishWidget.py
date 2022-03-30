@@ -4,20 +4,17 @@ fihishing widget
 '''
 
 from PySide2 import QtWidgets
-from abstractFigureClass import templateFigure
-import matplotlib.pyplot as plt
-import numpy as np
 from customButton import cButton
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from moreEfficentFigureTemplate import templateFigurePG
 
 class finishWidgetP(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
-        self.figl = QtWidgets.QVBoxLayout()
-        self.fig = finishFigure()
-        self.NT = NavigationToolbar(self.fig, self)
+        #self.fig = finishFigure()
+        self.fig = newFinishFigure()
+        #self.NT = NavigationToolbar(self.fig, self)
         self.__declareButtons()
         self.__placeEv()
     
@@ -35,39 +32,38 @@ class finishWidgetP(QtWidgets.QWidget):
     
     def __placeEv(self):
         self.layout.addWidget(self.mainOperatiosFrame, 0,0)
-        self.figl.addWidget(self.NT)
-        self.figl.addWidget(self.fig)
-        self.layout.addLayout(self.figl, 0,1)
+        self.layout.addWidget(self.fig, 0,1)
         self.layout.setColumnStretch(0,1)
         self.layout.setColumnStretch(1,5)
     
     def plotPols(self, vels, I, V, LHC, RHC):
-        self.fig.plotI.set_data(vels, I)
-        self.fig.plotV.set_data(vels, V)
-        self.fig.plotRHC.set_data(vels, RHC)
-        self.fig.plotLHC.set_data(vels, LHC)
-        self.fig.autoscaleAxis(self.fig.ax, tight=True)
-        self.fig.drawF()
+        self.fig.plotI.setData(vels, I)
+        self.fig.plotV.setData(vels, V)
+        self.fig.plotRHC.setData(vels, RHC)
+        self.fig.plotLHC.setData(vels, LHC)
     
     def setYlabel(self, label):
-        self.fig.ax.set_ylabel(label)
+        self.fig.setYLabel(label)
 
-class finishFigure(templateFigure):
+class newFinishFigure(templateFigurePG):
     def __init__(self):
         super().__init__()
-        self.__declareAxesAndPlots()
+        self.__setUpNewFigure()
     
-    def __declareAxesAndPlots(self):
-        # ax
-        self.ax = self.figure.add_subplot(111)
-        # plots
-        self.plotI, = self.ax.plot(np.nan, np.nan, c='white', lw=1, label = 'I')
-        self.plotV, = self.ax.plot(np.nan, np.nan, c='blue', lw=1, label = 'V')
-        self.plotLHC, = self.ax.plot(np.nan, np.nan, c='coral', lw=1, label = 'LHC')
-        self.plotRHC, = self.ax.plot(np.nan, np.nan, c='lime', lw=1, label = 'RHC')
-        # legend
-        self.ax.legend()
-        # fancy
-        self.makeFancyTicks(self.ax)
-        # labels
-        self.ax.set_xlabel("V$_{LSR}\,$(km$\,$s$^{-1}$)")
+    def __setUpNewFigure(self):
+        self.p = self.addPlot()
+        self.p.addLegend()
+        # --
+        white = (255,255,255)
+        blue=(100, 100, 255)
+        lime = (0,255,0)
+        red = (192, 10, 10)
+        # --
+        self.plotI = self.p.plot([0,1], pen=white, name='I')
+        self.plotV = self.p.plot([0,1], pen=blue, name='V')
+        self.plotLHC = self.p.plot([0,1], pen=red, name='LHC')
+        self.plotRHC = self.p.plot([0,1], pen=lime, name='RHC')
+        # --
+        self.p.setLabel(axis='bottom', text='Velocity (km/s)')
+    def setYLabel(self, label):
+        self.p.setLabel(axis='left', text=label)

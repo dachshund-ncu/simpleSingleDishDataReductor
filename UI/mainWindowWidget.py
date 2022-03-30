@@ -3,7 +3,7 @@ Class, that holds the Main Window of the program
 Author: Michał Durjasz
 Date: 8.03.2022
 '''
-from PySide2 import QtCore, QtWidgets, QtGui
+from PySide2 import QtWidgets, QtGui
 from scanStackingWidget import scanStackingWidget
 from polEndWidget import polEndWidget
 from finishWidget import finishWidgetP

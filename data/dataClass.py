@@ -247,6 +247,13 @@ class dataContainter:
                 if i[1] < self.velTab[BBC][j]:
                     maxChan = j
                     break
+            
+            if i[0] > self.velTab[BBC].max():
+                minChan = len(self.velTab[BBC])-1
+
+            if i[1] > self.velTab[BBC].max():
+                maxChan = len(self.velTab[BBC])-1
+
             if minChan != -1 and maxChan != -1:
                 chanTab.append([minChan, maxChan])
         return chanTab
