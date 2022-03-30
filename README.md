@@ -1,12 +1,12 @@
 # simpleSingleDishDataReductor
 Single dish radio telescope data reductor. 
-Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in frequency-switch mode). It makes use of the QT interface and matplotlib plotting library to interactively visualize the data.
+Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in frequency-switch mode). It makes use of the QT interface and pyqtgraph plotting library to interactively visualize the data.
 
 ### Requirements ###
 
 - PySide2
 
-- matplotlib
+- pyqtgraph
 
 - mpmath
 
