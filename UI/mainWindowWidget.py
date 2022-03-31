@@ -703,4 +703,4 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # tmp
         #rms = 0.15
         #snr = 3.5
-        self.scanStacker.setLabel(self.mode, self.data.fitOrder, round(rms,3), self.actualScanNumber+1, len(self.data.obs.mergedScans), round(snr,3), tsys)
+        self.scanStacker.setLabel(self.mode, self.data.fitOrder, round(rms,3), self.actualScanNumber+1, len(self.data.obs.mergedScans), round(snr,3), tsys, self.actualBBC)

@@ -139,6 +139,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.setFitDone()
         self.performRemoval.setEnabled(False)
         self.performFit.setEnabled(True)
+        self.newPolEndFig.pSpec.setMouseEnabled(x=False, y=False)
         print("-----> Polynomial fit mode is ACTIVE!")
     def setRemoveChansMode(self):
         self.polyFitMode = False
@@ -150,6 +151,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.setRemoveDone()
         self.performRemoval.setEnabled(True)
         self.performFit.setEnabled(False)
+        self.newPolEndFig.pSpec.setMouseEnabled(x=False, y=False)
         print("-----> Channel removal mode is ACTIVE!")
     def setZoomMode(self):
         self.polyFitMode = False
@@ -160,8 +162,9 @@ class polEndWidget(QtWidgets.QWidget):
         self.zoomButton.setChecked(True)
         self.setZoomDone()
         self.performRemoval.setEnabled(False)
-        self.performFit.setEnabled(False)        
-        print("-----> Channel removal mode is ACTIVE!")
+        self.performFit.setEnabled(False)
+        self.newPolEndFig.pSpec.setMouseEnabled(x=True, y=True)
+        print("-----> Zoom mode is ACTIVE!")
 
     def __onClick(self, event):
         green = (0,150,0)

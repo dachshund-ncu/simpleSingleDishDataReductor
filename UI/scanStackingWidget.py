@@ -206,7 +206,7 @@ class scanStackingWidget(QtWidgets.QWidget):
     def resetRemoveChans(self):
         self.removeChannelsTab = []
 
-    def setLabel(self, mode, polyOrder, fitRms, scanNo, scanMax, SNR, TSys):
+    def setLabel(self, mode, polyOrder, fitRms, scanNo, scanMax, SNR, TSys, BBC_number):
         if fitRms > 999999.0:
             fitRms = 'inf'
 
@@ -220,7 +220,10 @@ class scanStackingWidget(QtWidgets.QWidget):
         text += 'Fit RMS: ' + str(fitRms) + '\n'
         text += 'Signal-to-noise ratio: ' + str(SNR) + ' \n \n'
         for i in range(len(TSys)):
-            text += 'BBC ' + str(i+1) + ' ' + str(round(TSys[i], 2)) + ' K \n'
+            if i == BBC_number-1:
+                text += 'BBC ' + str(i+1) + ' ' + str(round(TSys[i], 2)) + ' K  <--- this is used\n'
+            else:
+                text += 'BBC ' + str(i+1) + ' ' + str(round(TSys[i], 2)) + ' K \n'
         
         self.label.setText(text)
 
