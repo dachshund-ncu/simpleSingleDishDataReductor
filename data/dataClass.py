@@ -49,7 +49,7 @@ class dataContainter:
         
         # -- FINAL SPECTRUM --
         self.finalFitBoundChannels = [
-            [10,20],
+            [10,900],
             [1100, 2038]
         ]
         self.stack = []
@@ -73,6 +73,7 @@ class dataContainter:
         polyTabX, polyTabY, self.polyTabResiduals = self.obs.mergedScans[scannr].fitCheby(bbc, order, self.fitBoundsChannels)
         return polyTabX, polyTabY, self.__halveResiduals(self.polyTabResiduals)
 
+
     def __halveResiduals(self, residuals):
         chanCnt = int(len(residuals) / 2)
         self.tmpHalvedRes = (residuals[:chanCnt] - residuals[chanCnt:]) / 2.0
@@ -84,13 +85,19 @@ class dataContainter:
         '''
         print("-----> Loading archive \"" + tarName + "\"...")
         archive = tarfile.open(tarName, 'r')
+        # ---- securing from odd number of scans ---
         self.scansList = archive.getnames()
+        self.fullScansList = self.scansList
+        if len(self.scansList) % 2 != 0:
+            self.scansList = self.scansList[:-1]
+        # ------------------------------------------
+        # --- securing from an event, where temporary dir was not removed ---
         try:
             os.mkdir(self.tmpDirName)
         except FileExistsError:
-            print(os.listdir(self.tmpDirName))
             for i in os.listdir(self.tmpDirName):
                 os.remove(os.path.join(self.tmpDirName, i))
+        # ------------------------------------------
         archive.extractall(path='./' + self.tmpDirName)
     
     def __processData(self):
@@ -98,19 +105,36 @@ class dataContainter:
         processes the tared data
         '''
         self.obs = observation(self.tmpDirName, self.scansList)
-        for i in self.scansList:
+        for i in self.fullScansList:
             os.remove(self.tmpDirName + "/" + i)
         os.rmdir(self.tmpDirName)
         #self.obs.proceed_scans()
         #self.obs.proceed_scans()
     
-    def __calculateRMS(self, data):
+    def calculateFitRMS(self, data):
         sum = 0.0
         no = 0
+        '''
         for i in self.fitBoundsChannels:
             sum += np.sum( data[i[0]:i[1]] * data[i[0]:i[1]])
             no += (i[1] - i[0])
-        return np.sqrt(1.0 / no * sum)
+        '''
+        for i in data:
+            sum += i*i
+        no = len(data)      
+        return np.sqrt( (1.0 / no) * sum)
+
+    def alternateRMSCalc(self, data):
+        if len(data) < 1024:
+            return -1
+        sum = 0.0
+        no = 0.0
+        bounds = [ [20, 400], [len(data) - 400, len(data) - 20]]
+        for i in bounds:
+            sum += np.sum( data[i[0]:i[1]] * data[i[0]:i[1]])
+            no += (i[1] - i[0])
+        return np.sqrt( (1.0 / no) * sum)
+
 
     def __getZData(self):
         ztb = [90.0 - scan.EL for scan in self.obs.scans]
@@ -501,3 +525,11 @@ class dataContainter:
             if len(napis) == 2:
                 napis = napis[0] + '0' + napis[1]
             return napis
+    
+    def calculateSNR(self):
+        spectr = self.calculateSpectrumFromStack()
+        if len(spectr) == 1 and spectr[0] == -1:
+            return 0
+        noise = self.alternateRMSCalc(spectr)
+        snr = spectr.max() / noise
+        return snr

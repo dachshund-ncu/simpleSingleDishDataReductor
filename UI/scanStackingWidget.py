@@ -7,7 +7,7 @@ Class, that holds the scan stacking widget:
 '''
 
 #from tkinter import Y
-from PySide2 import QtCore, QtWidgets
+from PySide2 import QtCore, QtWidgets, QtGui
 from customButton import cButton
 from moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
@@ -93,6 +93,10 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.nextScan = cButton("->")
         self.prevScan = cButton("<-")
         self.finishPol = cButton("Finish LHC")
+        # labels
+        self.label = QtWidgets.QLabel("This is a template label")
+        font = QtGui.QFont("Arial", 12, QtGui.QFont.Bold)
+        self.label.setFont(font)
         # buttons placing
         self.nextPrevScanLayout.addWidget(self.prevScan)
         self.nextPrevScanLayout.addWidget(self.nextScan)
@@ -120,6 +124,7 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.newScanFigure, 0, 1, 2,1)
         self.layout.addWidget(self.newStackedFigure, 2, 1, 1, 1)
         self.layout.addWidget(self.newOtherPropsFigure, 0, 2, 2, 1)
+        self.layout.addWidget(self.label, 2,2, 1,1)
         self.layout.setColumnStretch(0,1)
         self.layout.setColumnStretch(1,3)
         self.layout.setColumnStretch(2,2)
@@ -200,6 +205,24 @@ class scanStackingWidget(QtWidgets.QWidget):
     
     def resetRemoveChans(self):
         self.removeChannelsTab = []
+
+    def setLabel(self, mode, polyOrder, fitRms, scanNo, scanMax, SNR, TSys):
+        if fitRms > 999999.0:
+            fitRms = 'inf'
+
+        for i in range(len(TSys)):
+            if TSys[i] > 1000.0:
+                TSys[i] = 1000.0
+        text = ''
+        text += 'Mode: ' + mode + '\n'
+        text += 'Scan: ' + str(int(scanNo)) + ' / ' + str(int(scanMax)) + '\n'
+        text += 'Polyn. fit order: ' + str(int(polyOrder)) + '\n'
+        text += 'Fit RMS: ' + str(fitRms) + '\n'
+        text += 'Signal-to-noise ratio: ' + str(SNR) + ' \n \n'
+        for i in range(len(TSys)):
+            text += 'BBC ' + str(i+1) + ' ' + str(round(TSys[i], 2)) + ' K \n'
+        
+        self.label.setText(text)
 
 class newScanStackingFigure(templateFigurePG):
     def __init__(self):
@@ -290,7 +313,6 @@ class newScanStackingFigure(templateFigurePG):
         minRange = y.min() - 0.05 * diff
         self.pTop.setYRange(minRange, maxRange, padding=0.0)
 
-
 class stackedSpectrumFigure(templateFigurePG):
     def __init__(self):
         super().__init__()
@@ -330,13 +352,13 @@ class otherPropsFigure(templateFigurePG):
         blue=(100, 100, 255)
         lime = (0,255,0)
         magenta = (255, 0, 255)
-        self.tsysPlot = self.pTSys.plot([0,1], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
-        self.actualTsysPlot = self.pTSys.plot([0,1], symbol='o', symbolSize=6, symbolBrush=lime, pen=None)
+        self.tsysPlot = self.pTSys.plot([0], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
+        self.actualTsysPlot = self.pTSys.plot([0], symbol='o', symbolSize=6, symbolBrush=lime, pen=None)
         #self.totalFluxPlot = self.pTotal.plot([0,1], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
         # dots
-        self.dot1Tsys = self.pTSys.plot( [0,1], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
-        self.dot2Tsys = self.pTSys.plot( [0,1], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
-        self.dotTF = self.pTotal.plot([0,1], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
+        self.dot1Tsys = self.pTSys.plot( [0], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
+        self.dot2Tsys = self.pTSys.plot( [0], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
+        self.dotTF = self.pTotal.plot([0], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
         # lines
 
         self.tsysVline = pg.InfiniteLine(pos=0.0, angle=90.0, pen=magenta)
@@ -345,12 +367,11 @@ class otherPropsFigure(templateFigurePG):
         self.pTSys.addItem(self.tsysVline)
         self.pTotal.addItem(self.totalFluxVline)
         self.dotTF.setZValue(50)
-        '''
-        self.zPlot, = self.axisForZ.plot(np.nan, np.nan, c='blue', ls="", marker='s')
-        #self.tsysPlot, = self.axisForTsys.plot(np.nan, np.nan, c='blue', ls="", marker='o', mec='red', mfc="none")
-        self.actualTsysPlot, = self.axisForTsys.plot(np.nan, np.nan, c='lime', ls="", marker='o', ms=6, zorder=2)
-        self.totalFluxPlot, = self.axisForTotalFlux.plot(np.nan, np.nan, c='cyan', ls="", marker='o', ms=3)
-        '''
+        
+        self.pTSys.setLabel(axis='left', text="Tsys (K)")
+        self.pTotal.setLabel(axis='left', text="Total flux")
+        self.pTotal.setLabel(axis='bottom', text="Hours since start")
+
     
     def appendToTotalFluxPool(self, x ,y):
         blue=(100, 100, 255)

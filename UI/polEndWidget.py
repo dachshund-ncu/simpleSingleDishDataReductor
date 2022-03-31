@@ -35,10 +35,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.zoomDone = True
         self.clickedOnce = False
 
-        self.fitBoundChannels = [
-            [10,20],
-            [1100, 2038]
-        ]
+        self.fitBoundChannels = []
         self.tmpChans = []
         self.removeChannelsTab = []
 
@@ -273,8 +270,8 @@ class calTabFigure(templateFigurePG):
         cyan = (255,255,255)
         limePen = (255,0,0)
         # --
-        self.caltabPlot = self.pCalCoeffs.plot([0,1], symbol='+', symbolSize=6, symbolBrush=cyan, pen=None)
-        self.usedCalCoeffPlot = self.pCalCoeffs.plot([0,1], symbol='o', symbolSize=12, symbolBrush=limePen, pen=None)
+        self.caltabPlot = self.pCalCoeffs.plot([0], symbol='+', symbolSize=6, symbolBrush=cyan, pen=None)
+        self.usedCalCoeffPlot = self.pCalCoeffs.plot([0], symbol='o', symbolSize=12, symbolBrush=limePen, pen=None)
         # --
         self.pCalCoeffs.setLabel(axis='bottom', text="MJD")
     def plotCaltab(self, x,y):

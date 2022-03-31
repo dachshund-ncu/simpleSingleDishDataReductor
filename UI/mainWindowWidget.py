@@ -31,6 +31,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__declareAndPlaceCustomWidgets()
         self.__setSomeOtherSettings() # mainly column stretch
         self.lhcReduction = True
+        self.mode = 'Polynomial fit'
         if data != None:
             self.data = data
             self.actualScanNumber = 0
@@ -45,6 +46,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__setCheckedBBCActions()
         self.__connectButtonsToSlots()
         self.__setPolyFitMode()
+        
 
     def __declareAndPlaceButtons(self):
         '''
@@ -227,6 +229,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         zDot = [self.data.zTab[2 * self.actualScanNumber], self.data.zTab[2 * self.actualScanNumber+1] ]
         self.scanStacker.setDots(timesDot, tsysDot, zDot, totalFluxDot )
         self.scanStacker.updateDataPlots()
+        self.__updateLabel()
 
 
     
@@ -284,6 +287,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
                 return
         self.data.addToStack(self.actualScanNumber)
         if self.data.checkIfAllScansProceeded():
+            self.scanStacker.newOtherPropsFigure.setTotalFluxStacked(self.actualScanNumber)
+            self.__plotScanNo(self.actualScanNumber)
             self.__finishPol()
         else:
             #print(f'Setting stacked {self.actualScanNumber}')
@@ -342,10 +347,11 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     def __discardScan(self):
         self.data.discardFromStack(self.actualScanNumber)
+        self.scanStacker.newOtherPropsFigure.setTotalFluxDiscarded(self.actualScanNumber)
         if self.data.checkIfAllScansProceeded():
+            self.__plotScanNo(self.actualScanNumber)
             self.__finishPol()
         else:
-            self.scanStacker.newOtherPropsFigure.setTotalFluxDiscarded(self.actualScanNumber)
             self.__nextScanSlot()
 
     def __setPolyFitMode(self):
@@ -360,6 +366,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performPolyFit.setEnabled(True)
         self.scanStacker.removeLines()
         self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(False)
+        self.mode = 'Polynomial fit'
+        self.__updateLabel()
         print("-----> Polynomial fit mode is ACTIVE!")
 
     def __setRemoveChansMode(self):
@@ -376,6 +384,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.resetRemoveChans()
         self.scanStacker.removeLines()
         self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(False)
+        self.mode = 'Remove channels'
+        self.__updateLabel()
         print("-----> Channel removal mode is ACTIVE!")
     
     def __setAutoReductionMode(self):
@@ -388,6 +398,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performPolyFit.setEnabled(False)
         self.scanStacker.automaticReduction.setChecked(True)
         self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(True)
+        self.mode = 'AUTO'
+        self.__updateLabel()
         print("-----> Auto reduction mode is ACTIVE!")
     
     def __shrtPolyWrapper(self):
@@ -426,6 +438,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def __fitToFinalSpectum(self):
         if len(self.polEnd.fitBoundChannels) != 0:
             ftBds = self.data.convertVelsToChannels(self.actualBBC-1, self.polEnd.fitBoundChannels)
+            self.polEnd.fitBoundChannels
+            self.polEnd.fitBoundChannels
             self.data.finalFitBoundChannels = ftBds
         self.data.fitChebyToFinalSpec(self.actualBBC)
         # -- 
@@ -679,3 +693,14 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         print("Automated pol. reduction ended succesfully")
         print("-----------------------------------------")
         return True
+    
+    def __updateLabel(self):
+        rms = self.data.calculateFitRMS(self.data.polyTabResiduals)
+        snr = self.data.calculateSNR()
+        tsys1 = self.data.obs.scans[2*self.actualScanNumber].tsys
+        tsys2 = self.data.obs.scans[2*self.actualScanNumber + 1].tsys
+        tsys = ((tsys1 + tsys2) / 2.0) / 1000.0
+        # tmp
+        #rms = 0.15
+        #snr = 3.5
+        self.scanStacker.setLabel(self.mode, self.data.fitOrder, round(rms,3), self.actualScanNumber+1, len(self.data.obs.mergedScans), round(snr,3), tsys)
