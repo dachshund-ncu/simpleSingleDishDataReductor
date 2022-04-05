@@ -360,13 +360,21 @@ class dataContainter:
     
     def findCalCoefficients(self):
         date = self.obs.mjd
-        self.calCoeffLHC = self.caltabs[self.properCaltabIndex].findCoeffs(date)[0]
-        self.calCoeffRHC = self.caltabs[self.properCaltabIndex].findCoeffs(date)[1]
+        if self.properCaltabIndex == -1:
+            self.calCoeffLHC = 1.0
+            self.calCoeffRHC = 1.0
+        else:
+            self.calCoeffLHC = self.caltabs[self.properCaltabIndex].findCoeffs(date)[0]
+            self.calCoeffRHC = self.caltabs[self.properCaltabIndex].findCoeffs(date)[1]
         self.printCalibrationMessage(self.calCoeffLHC, self.calCoeffRHC, date, lhc=True)
         
     def printCalibrationMessage(self, calCoeffLHC, calCoeffRHC, epoch, lhc=True):
         print('-----------------------------------------')
         print(f'-----> CALIBRATION PROMPT:')
+        if self.properCaltabIndex == -1:
+            print(f'-----> Did not fint any suitable caltab!')
+            print('-----------------------------------------')
+            return
         print(f'-----> Using {self.caltabs[self.properCaltabIndex].label} to calibrate the data')
         print(f'-----> (LHC): Coefficient is {calCoeffLHC} for MJD {int(epoch)}')
         print(f'-----> (RHC): Coefficient is {calCoeffRHC} for MJD {int(epoch)}')

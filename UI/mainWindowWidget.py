@@ -42,6 +42,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.__plotScanNo(self.actualScanNumber)
             if not data.caltabsLoaded:
                 self.calibrate = False
+            if self.data.properCaltabIndex == -1:
+                self.calibrate = False
         self.__declareMenu()
         self.__setCheckedBBCActions()
         self.__connectButtonsToSlots()
@@ -330,6 +332,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
                 ctabx = self.data.caltabs[self.data.properCaltabIndex].rhcMJDTab
                 ctaby = self.data.caltabs[self.data.properCaltabIndex].rhcCoeffsTab
                 calCoeff = self.data.calCoeffRHC
+            
             self.polEnd.plotCalCoeffsTable(ctabx, ctaby)
             self.polEnd.plotUsedCalCoeff(date, calCoeff)
             #self.data.printCalibrationMessage(calCoeff, date, self.lhcReduction)
