@@ -28,8 +28,6 @@ from os import path
 # -- barycorrpy --
 from PyAstronomy.pyasl import helcorr
 # ----------------
-from matplotlib.pyplot import plot, show, legend
-# ----------------
 from scanClass import scan
 from mergedScanClass import mergedScan
 

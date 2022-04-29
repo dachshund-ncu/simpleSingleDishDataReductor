@@ -27,8 +27,6 @@ from os import path
 # -- barycorrpy --
 from PyAstronomy.pyasl import helcorr
 # ----------------
-from matplotlib.pyplot import plot, show, legend
-# ----------------
 
 class scan:
 
@@ -508,14 +506,6 @@ class scan:
         print("r0 =                                %.4f    %.4f    %.4f    %.4f" % (self.ACF0[0], self.ACF0[1], self.ACF0[2], self.ACF0[3]))
         print("rmean (bias of 0) =                 %.4f    %.4f    %.4f    %.4f" % (self.rMean[0], self.rMean[1], self.rMean[2], self.rMean[3]))
         print("Threshold (u=V/rms) =               %.4f    %.4f    %.4f    %.4f" % (self.V_sigma[0], self.V_sigma[1], self.V_sigma[2], self.V_sigma[3]))
-    
-    def plot_scan(self):
-        plot(range(len(self.spectr_bbc_final[0])), self.spectr_bbc_final[0], label="bbc1")
-        plot(range(len(self.spectr_bbc_final[0])), self.spectr_bbc_final[1], label="bbc2")
-        plot(range(len(self.spectr_bbc_final[0])), self.spectr_bbc_final[2], label="bbc3")
-        plot(range(len(self.spectr_bbc_final[0])), self.spectr_bbc_final[3], label="bbc4")
-        legend()
-        show()
 
     # ---- POMOCNICZE METODY PRYWATNE ----
 

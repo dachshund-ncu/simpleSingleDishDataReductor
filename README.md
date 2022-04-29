@@ -14,6 +14,10 @@ Designed to work with data, obtained from 32m NCU radio telescope autocorrelator
 
 - PyAstronomy
 
+- validators
+
+- requests
+
 
 ### Usage ###
 Very simple. You have to just type singleReductor.py your_archive_name.tar.bz2
