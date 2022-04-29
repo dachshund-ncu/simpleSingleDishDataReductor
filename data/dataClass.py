@@ -345,7 +345,7 @@ class dataContainter:
             print("-----------------------------------------")
             self.caltabsLoaded = True
         except:
-            print("-----> No caltabs found!")
+            print("-----> Error loading caltabs")
             self.caltabsLoaded = False
     
     def findProperCaltabIndex(self):

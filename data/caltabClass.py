@@ -4,6 +4,8 @@ There can be numerous caltab instances, so this should be taken into account
 '''
 
 import numpy as np
+import validators as valid
+import requests
 
 class caltab():
     def __init__(self, label = None, filename=None, freqRange = None):
@@ -23,9 +25,27 @@ class caltab():
     def __loadCaltab(self, filename):
         '''
         C'mon, it's pretty straightforward what it does, really xD
+        If filename[0] is an URL: download file and load
+        If it is NOT an URL: just load
+        Simple
         '''
-        self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt(filename[0], usecols=(0,1), unpack=True)
-        self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt(filename[1], usecols=(0,1), unpack=True)
+        # validating if these are URL
+        # LHC
+        if valid.url(filename[0]):
+            r = requests.get(filename[0], allow_redirects=True)
+            open('CALTAB_L1', 'wb').write(r.content)
+            self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt('CALTAB_L1', usecols=(0,1), unpack=True)
+        else:
+            self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt(filename[0], usecols=(0,1), unpack=True)
+        
+        # RHC
+        if valid.url(filename[1]):
+            r = requests.get(filename[1], allow_redirects=True)
+            open('CALTAB_R1', 'wb').write(r.content)
+            self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt('CALTAB_R1', usecols=(0,1), unpack=True)
+        else:
+            self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt(filename[1], usecols=(0,1), unpack=True)
+
         self.lhcMJDTab += 50000.0
         self.rhcMJDTab += 50000.0
         #[print(self.lhcMJDTab[i], self.lhcCoeffsTab[i]) for i in range(len(self.lhcMJDTab))]
