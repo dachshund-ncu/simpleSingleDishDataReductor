@@ -18,10 +18,10 @@ class caltab():
         If not - only empty Caltab instance is initialized
         '''
         if not (filename is None):
+            self.freqRange = freqRange
             self.__loadCaltab(filename)
             self.label=label
-            self.freqRange = freqRange
-
+            
     def __loadCaltab(self, filename):
         '''
         C'mon, it's pretty straightforward what it does, really xD
@@ -31,24 +31,26 @@ class caltab():
         '''
         # validating if these are URL
         # LHC
+        strRange = str(self.freqRange[0]) + '_' + str(self.freqRange[1])
         if valid.url(filename[0]):
             r = requests.get(filename[0], allow_redirects=True)
-            open('CALTAB_L1', 'wb').write(r.content)
-            self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt('CALTAB_L1', usecols=(0,1), unpack=True)
+            fnameCALL1 = 'CALTAB_' + strRange + '_L1'
+            open(fnameCALL1, 'wb').write(r.content)
+            self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt(fnameCALL1, usecols=(0,1), unpack=True)
         else:
             self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt(filename[0], usecols=(0,1), unpack=True)
         
         # RHC
         if valid.url(filename[1]):
             r = requests.get(filename[1], allow_redirects=True)
-            open('CALTAB_R1', 'wb').write(r.content)
-            self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt('CALTAB_R1', usecols=(0,1), unpack=True)
+            fnameCALR1 = 'CALTAB_' + strRange + '_R1'
+            open(fnameCALR1, 'wb').write(r.content)
+            self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt(fnameCALR1, usecols=(0,1), unpack=True)
         else:
             self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt(filename[1], usecols=(0,1), unpack=True)
 
         self.lhcMJDTab += 50000.0
         self.rhcMJDTab += 50000.0
-        #[print(self.lhcMJDTab[i], self.lhcCoeffsTab[i]) for i in range(len(self.lhcMJDTab))]
 
     def findCoeffs(self, date):
         '''
