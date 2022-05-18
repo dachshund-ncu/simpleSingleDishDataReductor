@@ -6,6 +6,7 @@ There can be numerous caltab instances, so this should be taken into account
 import numpy as np
 import validators as valid
 import requests
+from os import remove as rm
 
 class caltab():
     def __init__(self, label = None, filename=None, freqRange = None):
@@ -25,30 +26,28 @@ class caltab():
     def __loadCaltab(self, filename):
         '''
         C'mon, it's pretty straightforward what it does, really xD
-        If filename[0] is an URL: download file and load
+        If filename[0] is an URL: download file and load, then remove temporary file
         If it is NOT an URL: just load
         Simple
         '''
         # validating if these are URL
         # LHC
-        strRange = str(self.freqRange[0]) + '_' + str(self.freqRange[1])
         if valid.url(filename[0]):
             r = requests.get(filename[0], allow_redirects=True)
-            fnameCALL1 = 'CALTAB_' + strRange + '_L1'
-            open(fnameCALL1, 'wb').write(r.content)
-            self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt(fnameCALL1, usecols=(0,1), unpack=True)
+            open('tmpCalTab', 'wb').write(r.content)
+            self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt('tmpCalTab', usecols=(0,1), unpack=True)
         else:
             self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt(filename[0], usecols=(0,1), unpack=True)
+        rm('tmpCalTab')
         
         # RHC
         if valid.url(filename[1]):
             r = requests.get(filename[1], allow_redirects=True)
-            fnameCALR1 = 'CALTAB_' + strRange + '_R1'
-            open(fnameCALR1, 'wb').write(r.content)
-            self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt(fnameCALR1, usecols=(0,1), unpack=True)
+            open('tmpCalTab', 'wb').write(r.content)
+            self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt('tmpCalTab', usecols=(0,1), unpack=True)
         else:
             self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt(filename[1], usecols=(0,1), unpack=True)
-
+        rm('tmpCalTab')
         self.lhcMJDTab += 50000.0
         self.rhcMJDTab += 50000.0
 

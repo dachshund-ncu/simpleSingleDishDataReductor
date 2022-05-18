@@ -12,17 +12,14 @@ https://www.flaticon.com/free-icons/radar
 # -- LIBRARY IMPORT --
 import sys
 from PySide2 import QtCore, QtWidgets, QtGui
-from os.path import realpath
+import os
 
-# -- custom widgets etc. --
-scr_directory = realpath(__file__)
-tmp = scr_directory.split('/')
-scr_directory = ""
-for i in range(len(tmp)-1):
-    scr_directory += tmp[i] + '/'
+# managing source dirname to properly import custom classes:
+scr_directory = os.path.dirname(__file__) + '/'
 sys.path.append(scr_directory)
 sys.path.append(scr_directory + "UI")
 sys.path.append(scr_directory + "data")
+
 from mainWindowWidget import mainWindowWidget
 from dataClass import dataContainter
 
