@@ -41,6 +41,12 @@ palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
 palette.setColor(QtGui.QPalette.HighlightedText, QtGui.Qt.black)
 
 if __name__ == "__main__":
+    """
+    This is main of the SSDDR
+    - we print here welcome message and wake to life objects, used in the process of data reduction
+    - we also need to program invocation around -nocal option    
+    """
+
     print("-----------------------------------------")
     print("-----> Welcome to SSDDR (Simple Single Dish Data Reductor)!")
     print("-----------------------------------------")
@@ -50,14 +56,27 @@ if __name__ == "__main__":
         print("-----> Bad usage! You need to pass .tar.bz2 archive as a program argument!")
         print("-----------------------------------------")
         sys.exit()    
-    data = dataContainter(scr_directory, sys.argv[1])
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("Fusion")
     app.setPalette(palette)
+
     if '-nocal' in sys.argv:
+        '''
+        We need to program this app for two cases:
+        ./singleDreductor.py archive.tar.bz2 -nocal
+        and
+        ./singleDreductor.py -nocal archive.tar.bz2
+        '''
+        nocalIndex = sys.argv.index('-nocal')
+        if nocalIndex == 1:
+            data = dataContainter(scr_directory, sys.argv[2])
+        else:
+            data = dataContainter(scr_directory, sys.argv[1])
         widget = mainWindowWidget(app, data, calibrate=False)
     else:
+        data = dataContainter(scr_directory, sys.argv[1])
         widget = mainWindowWidget(app, data, calibrate=True)
+    
     widget.setWindowIcon(QtGui.QIcon(scr_directory + "icons/satellite-dish.png"))
     widget.setWindowTitle("Data reduction: " + data.obs.scans[0].sourcename + " " + data.obs.scans[0].isotime)
     widget.resize(1366, 720)
