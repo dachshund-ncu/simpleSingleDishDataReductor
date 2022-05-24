@@ -245,6 +245,8 @@ class polEndFigurePG(templateFigurePG):
         self.spectrumPlot = self.pSpec.plot([0,1], pen=cyan)
         self.pSpec.setMouseEnabled(x=False, y=False)
         self.pSpec.setLabel(axis='bottom', text="Velocity (km/s)")
+        # -
+        self.pSpec.scene().setMoveDistance(100)
 
     def plotSpectrum(self, x, y):
         self.spectrumPlot.setData(x,y)

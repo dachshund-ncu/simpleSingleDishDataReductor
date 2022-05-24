@@ -65,5 +65,8 @@ class newFinishFigure(templateFigurePG):
         self.plotRHC = self.p.plot([0,1], pen=lime, name='RHC')
         # --
         self.p.setLabel(axis='bottom', text='Velocity (km/s)')
+        # --
+        self.p.scene().setMoveDistance(100)
+
     def setYLabel(self, label):
         self.p.setLabel(axis='left', text=label)

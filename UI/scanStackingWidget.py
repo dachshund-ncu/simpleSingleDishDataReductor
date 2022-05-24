@@ -49,6 +49,7 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.newOtherPropsFigure.pTotal.scene().sigMouseClicked.connect(self.__onClickAuto)
         # -- for auto threshold --
         self.autoThreshold = -1e11
+
     def updateDataPlots(self):
         self.newScanFigure.drawData()
 
@@ -139,8 +140,6 @@ class scanStackingWidget(QtWidgets.QWidget):
     
     # ---- clicking and fitting ----
     def __onClick(self, event):
-        green = (0,150,0)
-        red = (255, 127, 80)
         try:
             mp = self.newScanFigure.pTop.vb.mapSceneToView(event.scenePos())
             x = int(mp.x())
@@ -148,7 +147,16 @@ class scanStackingWidget(QtWidgets.QWidget):
             return
         if x is None:
             return
+        self.__makeAfterClickActionOnSpectrumPlot(x)
         
+    def __onClickAuto(self, event):
+        if self.autoRedMode:
+            mp = self.newOtherPropsFigure.pTotal.vb.mapSceneToView(event.scenePos())
+            self.__makeAfterClickActionOnAutoPlot(mp.y())
+
+    def __makeAfterClickActionOnSpectrumPlot(self, x):
+        green = (0, 150, 0)
+        red = (255, 127, 80)
         if self.polyFitMode:
             if self.fitDone:
                 self.fitBoundsChannels = []
@@ -178,12 +186,11 @@ class scanStackingWidget(QtWidgets.QWidget):
                 self.tmpChans = []
                 self.clickedOnce = False  
             self.newScanFigure.drawVline(x, red)
-    
-    def __onClickAuto(self, event):
-        if self.autoRedMode:
-            mp = self.newOtherPropsFigure.pTotal.vb.mapSceneToView(event.scenePos())
-            self.autoThreshold = mp.y()
+
+    def __makeAfterClickActionOnAutoPlot(self, y):
+            self.autoThreshold = y
             self.newOtherPropsFigure.colorizePoints(self.autoThreshold)
+
 
     def removeLines(self):
         self.newScanFigure.clearVlines()
@@ -262,6 +269,9 @@ class newScanStackingFigure(templateFigurePG):
         self.pZoom.disableAutoRange()
         self.pTop.autoRange(0.0)
         self.pZoom.autoRange(0.0)
+        # --
+        self.pTop.scene().setMoveDistance(100)
+        self.pZoom.scene().setMoveDistance(100)
 
     def __makeCrossHair(self):
         penw=pg.mkPen(color=(128,128,128), width=2 )
@@ -332,6 +342,7 @@ class stackedSpectrumFigure(templateFigurePG):
         silver = (128,128,128)
         self.spectrumToStackPlot = self.p.plot([0,1], pen=silver)
         self.stackPlot = self.p.plot([0,1], pen=orange)
+        self.p.scene().setMoveDistance(100)
 
 class otherPropsFigure(templateFigurePG):
     def __init__(self):
@@ -374,6 +385,9 @@ class otherPropsFigure(templateFigurePG):
         self.pTSys.setLabel(axis='left', text="Tsys (K)")
         self.pTotal.setLabel(axis='left', text="Total flux")
         self.pTotal.setLabel(axis='bottom', text="Hours since start")
+        # --
+        self.pTotal.scene().setMoveDistance(100)
+        self.pTSys.scene().setMoveDistance(100)
 
     
     def appendToTotalFluxPool(self, x ,y):
