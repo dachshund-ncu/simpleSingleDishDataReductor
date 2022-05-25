@@ -49,6 +49,7 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.newOtherPropsFigure.pTotal.scene().sigMouseClicked.connect(self.__onClickAuto)
         # -- for auto threshold --
         self.autoThreshold = -1e11
+        # -- fancy pointers --
 
     def updateDataPlots(self):
         self.newScanFigure.drawData()
@@ -272,6 +273,10 @@ class newScanStackingFigure(templateFigurePG):
         # --
         self.pTop.scene().setMoveDistance(100)
         self.pZoom.scene().setMoveDistance(100)
+        # --
+        cursor = QtGui.QCursor(QtCore.Qt.CursorShape.CrossCursor)
+        self.pTop.setCursor(cursor)
+        self.pZoom.setCursor(cursor)
 
     def __makeCrossHair(self):
         penw=pg.mkPen(color=(128,128,128), width=2 )
@@ -343,6 +348,9 @@ class stackedSpectrumFigure(templateFigurePG):
         self.spectrumToStackPlot = self.p.plot([0,1], pen=silver)
         self.stackPlot = self.p.plot([0,1], pen=orange)
         self.p.scene().setMoveDistance(100)
+        # -
+        cursor = QtGui.QCursor(QtCore.Qt.CursorShape.CrossCursor)
+        self.p.setCursor(cursor)
 
 class otherPropsFigure(templateFigurePG):
     def __init__(self):
@@ -388,6 +396,10 @@ class otherPropsFigure(templateFigurePG):
         # --
         self.pTotal.scene().setMoveDistance(100)
         self.pTSys.scene().setMoveDistance(100)
+        # --
+        cursor = QtGui.QCursor(QtCore.Qt.CursorShape.CrossCursor)
+        self.pTotal.setCursor(cursor)
+        self.pTSys.setCursor(cursor)
 
     
     def appendToTotalFluxPool(self, x ,y):

@@ -3,7 +3,7 @@ This class holds widget for polarization reduction end
 '''
 
 
-from PySide2 import QtCore, QtWidgets
+from PySide2 import QtCore, QtWidgets, QtGui
 from customButton import cButton
 from moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
@@ -233,7 +233,7 @@ class polEndFigurePG(templateFigurePG):
     def __init__(self):
         super().__init__()
         self.__setUpNewFigure()
-        #self.setVisible(True)
+        self.__makeCrossHair()
         
         # -- private
         self.__vlineTab = []
@@ -242,14 +242,20 @@ class polEndFigurePG(templateFigurePG):
         self.pSpec = self.addPlot()
         self.pSpec.showGrid(x=True, y=True, alpha=0.8)
         cyan = (255,255,255)
-        self.spectrumPlot = self.pSpec.plot([0,1], pen=cyan)
+        self.spectrumPlot = self.pSpec.plot([0,1], pen=cyan, name="specPlot")
         self.pSpec.setMouseEnabled(x=False, y=False)
         self.pSpec.setLabel(axis='bottom', text="Velocity (km/s)")
         # -
         self.pSpec.scene().setMoveDistance(100)
+        # -
+        cursor = QtGui.QCursor(QtCore.Qt.CursorShape.CrossCursor)
+        self.pSpec.setCursor(cursor)
+        # -
+        #self.pSpec.vb.autoRange(padding = 0.1, items=[self.spectrumPlot])
 
     def plotSpectrum(self, x, y):
         self.spectrumPlot.setData(x,y)
+        self.pSpec.vb.autoRange(padding=0.05, items=[self.spectrumPlot])
     
     def drawVline(self, pos, wcolor):
         penw = pg.mkPen(color=wcolor, width=3, style=QtCore.Qt.DashLine)
@@ -262,6 +268,17 @@ class polEndFigurePG(templateFigurePG):
     
     def setLabelY(self, label):
         self.pSpec.setLabel(axis='left', text=label)
+    
+    def __makeCrossHair(self):
+        penw = pg.mkPen(color=(128, 128, 128), width=2)
+        self.xCross = pg.InfiniteLine(pos=0.0, angle=90.0, pen=penw)
+        self.pSpec.addItem(self.xCross)
+        self.pSpec.scene().sigMouseMoved.connect(self.__mouseMovedEvent)
+
+    def __mouseMovedEvent(self, event):
+        mp = self.pSpec.vb.mapSceneToView(event)
+        x = mp.x()
+        self.xCross.setValue(x)
 
 class calTabFigure(templateFigurePG):
     def __init__(self):
