@@ -454,7 +454,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             rmBds = self.data.convertVelsToChannels(self.actualBBC-1, self.polEnd.removeChannelsTab)
             self.data.removeChansOnFinalSpectrum(rmBds)
         self.polEnd.setRemoveDone()
-        self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
+        self.polEnd.plotSpectrumWOAutoRange(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
     
     def __cancelChangesOnFinalSpectrum(self):
         self.data.cancelChangesFinal()

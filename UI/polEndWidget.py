@@ -44,6 +44,9 @@ class polEndWidget(QtWidgets.QWidget):
     def plotSpectrum(self, x, y):
         self.newPolEndFig.plotSpectrum(x,y)
 
+    def plotSpectrumWOAutoRange(self, x,y):
+        self.newPolEndFig.plotSpecWOAutoRange(x,y)
+
     def plotCalCoeffsTable(self, x,y):
         self.calCoeffFig.plotCaltab(x,y)
     
@@ -256,6 +259,9 @@ class polEndFigurePG(templateFigurePG):
     def plotSpectrum(self, x, y):
         self.spectrumPlot.setData(x,y)
         self.pSpec.vb.autoRange(padding=0.05, items=[self.spectrumPlot])
+    
+    def plotSpecWOAutoRange(self, x,y):
+        self.spectrumPlot.setData(x,y)
     
     def drawVline(self, pos, wcolor):
         penw = pg.mkPen(color=wcolor, width=3, style=QtCore.Qt.DashLine)
