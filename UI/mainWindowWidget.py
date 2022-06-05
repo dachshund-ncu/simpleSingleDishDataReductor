@@ -82,6 +82,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.shrtremoveChansMode = QtWidgets.QShortcut(QtGui.QKeySequence('r'), self)
         self.shrtfitPolyMode = QtWidgets.QShortcut(QtGui.QKeySequence('f'), self)
         self.shrtAutoRedMode = QtWidgets.QShortcut(QtGui.QKeySequence('i'), self)
+        self.setDefaultRangeOnPolEndShrt = QtWidgets.QShortcut(QtGui.QKeySequence('b'), self)
 
     def __declareAndPlaceCustomWidgets(self):
         self.scanStacker = scanStackingWidget()
@@ -135,22 +136,23 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performPolyFit.clicked.connect(self.__fitAndPlot)
         self.scanStacker.performRemoval.clicked.connect(self.__removeAndPlot)
         self.scanStacker.cancelRemoval.clicked.connect(self.__cancelRemoval)
+
         self.polEnd.backToPol.clicked.connect(self.__returnToScanEdit)
         self.polEnd.goToNextPol.clicked.connect(self.__goToNextPol)
         self.polEnd.performFit.clicked.connect(self.__fitToFinalSpectum)
         self.polEnd.performRemoval.clicked.connect(self.__removeOnFinalSpectrum)
         self.polEnd.reverseChanges.clicked.connect(self.__cancelChangesOnFinalSpectrum)
-        
+        self.polEnd.cancelCalibrations.clicked.connect(self.__uncalibrateData)
+        self.polEnd.useCalibrations.clicked.connect(self.__calibrateData)
+        self.polEnd.setManualCal.clicked.connect(self.__showManualCalCoeffWidget)
+        self.polEnd.setDefaultRangeButton.clicked.connect(self.__setAutoRangeOnPolEndPlot)
+
         self.changeOrderAction.triggered.connect(self.__showFitOrderWidget)
         self.orderChanger.cancel.clicked.connect(self.__cancelFitOrderChange)
         self.orderChanger.apply.clicked.connect(self.__changeFitOrder)
 
         self.finishW.endDataReduction.clicked.connect(self.__closeApp)
 
-        self.polEnd.cancelCalibrations.clicked.connect(self.__uncalibrateData)
-        self.polEnd.useCalibrations.clicked.connect(self.__calibrateData)
-
-        self.polEnd.setManualCal.clicked.connect(self.__showManualCalCoeffWidget)
 
         self.calCoeffChanger.apply.clicked.connect(self.__setCalCoeffManually)
 
@@ -174,6 +176,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.shrtremoveChansMode.activated.connect(self.__shrtRemWrapper)
         self.shrtfitPolyMode.activated.connect(self.__shrtPolyWrapper)
         self.shrtAutoRedMode.activated.connect(self.__shrtAutoWrapper)
+        self.setDefaultRangeOnPolEndShrt.activated.connect(self.__setAutoRangeOnPolEndPlot)
 
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
@@ -639,6 +642,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         elif self.polEnd.isVisible():
             self.__fitToFinalSpectum()
 
+    def __setAutoRangeOnPolEndPlot(self):
+        '''
+        Sets auto range on polEndPlot
+        '''
+        if self.polEnd.isVisible():
+            self.polEnd.setDefaultRange()
+
     def __setFirstOrderPoly(self):
         self.data.setFitOrder(1)
         self.__updatePlotAfterFitOrderChange()
@@ -669,6 +679,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def __setTenthOrderPoly(self):
         self.data.setFitOrder(10)
         self.__updatePlotAfterFitOrderChange()
+    
     
     def doAutoReduction(self):
         '''

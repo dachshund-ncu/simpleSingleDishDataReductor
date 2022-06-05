@@ -87,6 +87,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.performRemoval = cButton("Perform removal")
         self.reverseChanges = cButton("Abandon changes")
         self.zoomButton = cButton("Zoom")
+        self.setDefaultRangeButton = cButton("Set default range")
         # buttons placing
         self.vboxStokesFrame.addWidget(self.goToNextPol)
         self.vboxStokesFrame.addWidget(self.backToPol)
@@ -94,6 +95,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.vboxDataEditFrame.addWidget(self.performFit)
         self.vboxDataEditFrame.addWidget(self.performRemoval)
         self.vboxDataEditFrame.addWidget(self.reverseChanges)
+        self.vboxDataEditFrame.addWidget(self.setDefaultRangeButton)
 
         self.vboxCalHandling.addWidget(self.useCalibrations)
         self.vboxCalHandling.addWidget(self.cancelCalibrations)
@@ -168,6 +170,12 @@ class polEndWidget(QtWidgets.QWidget):
         self.performFit.setEnabled(False)
         self.newPolEndFig.pSpec.setMouseEnabled(x=True, y=True)
         print("-----> Zoom mode is ACTIVE!")
+    def setDefaultRange(self):
+        '''
+        This method sets default range of the spectrum plot
+        should be attatcheed to the button and shortcut 'b' 
+        '''
+        self.newPolEndFig.autoRangeSpectrumPlot()
 
     def __onClick(self, event):
         green = (0,150,0)
@@ -260,6 +268,9 @@ class polEndFigurePG(templateFigurePG):
         self.spectrumPlot.setData(x,y)
         self.pSpec.vb.autoRange(padding=0.05, items=[self.spectrumPlot])
     
+    def autoRangeSpectrumPlot(self):
+        self.pSpec.vb.autoRange(padding=0.05, items=[self.spectrumPlot])
+
     def plotSpecWOAutoRange(self, x,y):
         self.spectrumPlot.setData(x,y)
     
