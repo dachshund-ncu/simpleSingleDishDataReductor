@@ -12,7 +12,7 @@ Designed to work with data, obtained from 32m NCU radio telescope autocorrelator
 
 - astropy
 
-- PyAstronomy
+- barycorrpy
 
 - validators
 
