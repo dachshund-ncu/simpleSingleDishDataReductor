@@ -31,6 +31,11 @@ from PyAstronomy.pyasl import helcorr
 from scanClass import scan
 from mergedScanClass import mergedScan
 
+''' 
+DEBUG
+'''
+import time
+
 class observation:
 
     def __init__(self, tmpDir, listOfFiles):
@@ -139,7 +144,7 @@ class observation:
             # -- korekta funkcji autokorelacji --
             # ze względu na 2 i 3 poziomową kwantyzację etc.
             self.scans[i].correct_auto(scannr = i+1)
-
+            
             # -- wygładzanie Hanninga --
             self.scans[i].hanning_smooth()
 
@@ -160,7 +165,7 @@ class observation:
 
             # -- kilka statystyk liczymy --
             self.scans[i].do_statistics()
-            
+
             # -- skalujemy tsys w mK --
             self.scans[i].scale_tsys_to_mK()
 
@@ -174,7 +179,6 @@ class observation:
 
             # -- kalibrujemy tsys --
             self.scans[i].calibrate_in_tsys()
-        
         # printujemy belkę rozdzielającą
         print("-----------------------------------------")
 

@@ -18,6 +18,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     # -- init --
     def __init__(self, parent, data = None, calibrate=True):
         super().__init__()
+        self.setVisible(False)
         '''
         This is an initialising method. In it, we will place buttons
         and other widgets correctly, by using private methods below:
@@ -48,6 +49,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__setCheckedBBCActions()
         self.__connectButtonsToSlots()
         self.__setPolyFitMode()
+        self.setVisible(True)
         
 
     def __declareAndPlaceButtons(self):

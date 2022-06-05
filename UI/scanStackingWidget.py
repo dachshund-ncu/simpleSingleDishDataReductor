@@ -20,6 +20,7 @@ class scanStackingWidget(QtWidgets.QWidget):
         -> will declare necessary widgets and place them correctly
         '''
         super().__init__()
+        self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
         self.newScanFigure = newScanStackingFigure()
         self.newStackedFigure = stackedSpectrumFigure()
@@ -49,7 +50,9 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.newOtherPropsFigure.pTotal.scene().sigMouseClicked.connect(self.__onClickAuto)
         # -- for auto threshold --
         self.autoThreshold = -1e11
-        # -- fancy pointers --
+
+        self.setVisible(True)
+
 
     def updateDataPlots(self):
         self.newScanFigure.drawData()
