@@ -26,7 +26,6 @@ from sys import argv, exit
 from os import path
 # ---------
 # -- barycorrpy --
-from PyAstronomy.pyasl import helcorr
 import barycorrpy
 # ----------------
 
