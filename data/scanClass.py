@@ -1,14 +1,15 @@
-
 '''
 Klasa, przechowująca pojedynczy skan
 Data utworzenia: 05.03.2022
 Właściciel: Michał Durjasz
+
+This file is part of the Simple Single-Dish Data Reeductor package (SSDDR)
 '''
 
 # -- importujemy potrzebne moduły --
 # -- numpy --
 from calendar import EPOCH
-from numpy import exp, nan, int64, sin, cos, asarray, sqrt, mean, pi, radians, zeros, inf, complex128, linspace
+from numpy import exp, nan, int64, sin, cos, asarray, sqrt, mean, pi, radians, zeros, inf, complex128, linspace, loadtxt
 from numpy.fft import fft
 # -----------
 # -- math i mpmath --
@@ -32,7 +33,8 @@ import barycorrpy
 class scan:
 
     # -- metoda inicjująca klasę --
-    def __init__(self, filename):
+    def __init__(self, filename, onOFF = False):
+        self.isOnOff = onOFF
         # -- stałe --
         self.c = 2.99792458e+5
         self.NN = 8192
@@ -50,9 +52,7 @@ class scan:
     def read_header_and_data(self):
         # -- wczytujemy plik do pamięci --
         try:
-            fle = open(self.fname, 'r+')
-            a = fle.readlines() # zapisuje linie pliku w tablicy
-            fle.close() # zamykamy obiekt pliku, nie będzie nam więcej potrzebny
+            a = loadtxt(self.fname, dtype=str, delimiter='\n')
         except FileNotFoundError:
             print("-----> File \"%s\" does not exist! Exiting..." % self.fname)
             print("-----------------------------------------")
@@ -397,8 +397,11 @@ class scan:
 
 
         # --- rotowanie oryginalnego widma ---
-        # przesuwamy linię na 1/4 wstęgi
-        self.lo[0] = self.lo[0] - (self.bw[0] / 4)
+        # przesuwamy linię na 1/4 wstęgi (1/2 jeśli robimy obserwacje OnOff)
+        if self.isOnOff:
+            self.lo[0] = self.lo[0] - (self.bw[0] / 4)
+        else:
+            self.lo[0] = self.lo[0] - (self.bw[0] / 4)
         # faktyczna częstotliwość obserwowana
         self.fsky = self.rest - self.rest * (-self.Vdop + self.vlsr) / self.c
         # częstotliwość bbc linii widmowej
@@ -422,12 +425,16 @@ class scan:
         # robimy kanalv
         self.kanalv = self.NNch - self.kanalf + 1
         # prędkość w kanale 1024 w spoektrum częstotliwości
-        self.v1024f = self.vlsr + (1024 - self.kanalf) * (-self.c * self.bw) / (self.rest * self.NNch)
+        if self.isOnOff:
+            targetChan = 1024
+        else:
+            targetChan = 1024
+        self.v1024f = self.vlsr + (targetChan - self.kanalf) * (-self.c * self.bw) / (self.rest * self.NNch)
         # prędkość w kanale 1024 w spektrum prędkości
-        self.v1024v = self.vlsr + (1024 - self.kanalv) * (self.c * self.bw) / (self.rest * self.NNch)
+        self.v1024v = self.vlsr + (targetChan - self.kanalv) * (self.c * self.bw) / (self.rest * self.NNch)
         
         # ilość kanałów, o które trzeba przerotować widmo 
-        self.fc = self.q * self.NNch - 1024
+        self.fc = self.q * self.NNch - targetChan
         self.fcBBC = self.fc
 
         # -- przygotowujemy dane do fft --
@@ -518,6 +525,7 @@ class scan:
     # -- oblicza prędkość słońca względem LSR (local standard of rest) --
     # -- rzutowaną na kierunek, w którym jest źródełko --
     # -- RA i DEC podawane muszą być w STOPNIACH --
+    # -- i poprawione na PRECESJĘ --
     def __lsr_motion(self, ra,dec,decimalyear):
         
         # -- zacztnamy --
@@ -553,11 +561,15 @@ class scan:
     # nakłada na funkcję autokorelacji krektę na 2 i 3 - poziomową kwantyzację
     # przyjmuje w argumencie pojedynczy punkt
     def __correctACF(self, autof, r0, rMean):
-        # oblicza korekcję do funkcji autokorelacji dla kilku przypadków
-        # 3- i 2- poziomowego autokorelatora
-        # autof - funkcja autokorelacji (jeden punkt dokładnie)
-        # r0 - współczynnik korelacji dla zerowego zapóźnienia
-        # bias0 - średni współczynnik dla ogona funkcji autokorelacji (większe zapóźnienia)
+        '''
+        Oblicza korekcję do funkcji autokorelacji dla kilku przypadków
+        3- i 2- poziomowego autokorelatora
+        autof - funkcja autokorelacji (jeden punkt dokładnie)
+        r0 - współczynnik korelacji dla zerowego zapóźnienia
+        bias0 - średni współczynnik dla ogona funkcji autokorelacji (większe zapóźnienia)
+
+        Ta metoda jest w całości przeportowana z programu A2S, który jest napisany w języku Fortran77 przez K. Borkowskiego
+        '''
         if rMean <= 1e-5:
             # -- limituemy funkcję autokorelacji między 0 i 1
             # tak powinna być znormalizowana (1 w zerowym zapóźnieniu)

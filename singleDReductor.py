@@ -47,6 +47,7 @@ def ohHelp():
     print("\t-h, --help    | show this help message and exit")
     print("\t-v, --version | show version and exit")
     print("\t-n, --nocal   | do not use calibration tables")
+    print("\t-f, --onoff   | do an on-off reduction instead of a frequency-switch")
     print("-----------------------------------------")
     sys.exit()
 
@@ -84,6 +85,11 @@ if __name__ == "__main__":
     elif '-h' in sys.argv or '--help' in sys.argv:
         ohHelp()
 
+    if '-f' in sys.argv or '--onoff' in sys.argv:
+        onOff = True
+    else:
+        onOff = False
+
     if '--nocal' in sys.argv or '-n' in sys.argv:
         '''
         We need to program this app for two cases:
@@ -97,15 +103,13 @@ if __name__ == "__main__":
             nocalIndex = sys.argv.index('-n')
 
         if nocalIndex == 1:
-            data = dataContainter(scr_directory, sys.argv[2])
+            data = dataContainter(scr_directory, sys.argv[2], onOff)
         else:
-            data = dataContainter(scr_directory, sys.argv[1])
+            data = dataContainter(scr_directory, sys.argv[1], onOff)
         widget = mainWindowWidget(app, data, calibrate=False)
     else:
-        data = dataContainter(scr_directory, sys.argv[1])
+        data = dataContainter(scr_directory, sys.argv[1], onOff)
         widget = mainWindowWidget(app, data, calibrate=True)
-    
-
     
     widget.setWindowIcon(QtGui.QIcon(scr_directory + "icons/satellite-dish.png"))
     widget.setWindowTitle("Data reduction: " + data.obs.scans[0].sourcename + " " + data.obs.scans[0].isotime)

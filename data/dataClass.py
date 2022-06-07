@@ -11,8 +11,8 @@ import configparser
 from astropy.io import fits
 
 class dataContainter:
-    def __init__(self, absolutePath, tarName = None):
-
+    def __init__(self, absolutePath, tarName = None, onOff = False):
+        self.isOnOff = onOff
         '''
         CALTAB LOADING BLOCK
         '''
@@ -27,7 +27,6 @@ class dataContainter:
         self.noOfBBC = 4
         self.actualBBC = 1
         self.fitOrder = 10
-        self.freqSwitchMode = True
         self.tmpDirName = '.tmpSimpleDataReductor'
         self.fitBoundsChannels = [ 
             [10, 824],
@@ -71,8 +70,10 @@ class dataContainter:
         specified scan, returns tables X and Y with polynomial and fit residuals
         '''
         polyTabX, polyTabY, self.polyTabResiduals = self.obs.mergedScans[scannr].fitCheby(bbc, order, self.fitBoundsChannels)
-        return polyTabX, polyTabY, self.__halveResiduals(self.polyTabResiduals)
-
+        if not self.isOnOff:
+            return polyTabX, polyTabY, self.__halveResiduals(self.polyTabResiduals)
+        else:
+            return polyTabX, polyTabY, self.polyTabResiduals#self.__halveResiduals(self.polyTabResiduals)
 
     def __halveResiduals(self, residuals):
         chanCnt = int(len(residuals) / 2)
@@ -104,12 +105,10 @@ class dataContainter:
         '''
         processes the tared data
         '''
-        self.obs = observation(self.tmpDirName, self.scansList)
+        self.obs = observation(self.tmpDirName, self.scansList, self.isOnOff)
         for i in self.fullScansList:
             os.remove(self.tmpDirName + "/" + i)
         os.rmdir(self.tmpDirName)
-        #self.obs.proceed_scans()
-        #self.obs.proceed_scans()
     
     def calculateFitRMS(self, data):
         sum = 0.0
@@ -212,7 +211,7 @@ class dataContainter:
         '''
         velocity = self.obs.scans[0].vlsr # km/s
         restfreq = self.obs.scans[0].rest # MHz
-        if (self.freqSwitchMode):
+        if not self.isOnOff:
             freq_rang = self.obs.scans[0].bw / 2.0 # MHz
             nchans = self.obs.scans[0].NNch / 2.0
         else:

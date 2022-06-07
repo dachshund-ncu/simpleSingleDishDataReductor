@@ -8,7 +8,7 @@ Właściciel: Michał Durjasz
 
 # -- importujemy potrzebne moduły --
 # -- numpy --
-from numpy import exp, nan, int64, sin, cos, asarray, sqrt, mean, pi, radians, zeros, inf, complex128, linspace
+from numpy import exp, loadtxt, nan, int64, sin, cos, asarray, sqrt, mean, pi, radians, zeros, inf, complex128, linspace
 from numpy.fft import fft
 # -----------
 # -- math i mpmath --
@@ -38,8 +38,9 @@ import time
 
 class observation:
 
-    def __init__(self, tmpDir, listOfFiles):
+    def __init__(self, tmpDir, listOfFiles, onOff = False):
         
+        self.isOnOff = onOff
         # tablica ze skanami
         self.list_of_filenames = [tmpDir + "/" + i for i in listOfFiles]
         self.scans = self.read_scans(self.list_of_filenames)
@@ -57,10 +58,7 @@ class observation:
     # --- metoda wczytująca listę ---
     def read_list_of_files(self, list_filename):
         try:
-            # -- otwieramy --
-            d = open(list_filename, "r+")
-            a = d.readlines()
-            d.close()
+            flenames = loadtxt(list_filename, dtype=str)
         except FileNotFoundError:
             print("-----> File \"%s\" does not exist! Exiting..." % list_filename)
             print("-----------------------------------------")
@@ -84,7 +82,7 @@ class observation:
 
         # -- tworzymy klasy --
         for i in range(len(list_of_filenames)):
-            tab.append(scan(list_of_filenames[i]))
+            tab.append(scan(list_of_filenames[i], self.isOnOff))
         
         # -- printujemy powiadomienie --
         print("-----> Loaded", len(tab), "scans")
