@@ -57,21 +57,17 @@ class observation:
 
     # --- metoda wczytująca listę ---
     def read_list_of_files(self, list_filename):
+        '''
+        Reads list of files
+        OBSOLETE, NOT USED ANYMORE
+        SHOULD BE DELETED BY THE VERSION 1.11
+        '''
         try:
             flenames = loadtxt(list_filename, dtype=str)
         except FileNotFoundError:
             print("-----> File \"%s\" does not exist! Exiting..." % list_filename)
             print("-----------------------------------------")
             exit()
-
-        # ---------------
-        # -- czytamy pliki --
-        flenames = []
-        for i in range(len(a)):
-            tmp = a[i].split()
-            flenames.append(tmp[0])
-        # -------------------
-        # -- zwracamy tablicę z nazwami plików --
         return flenames
 
     # --- metoda zwracająca listę z klasami "scan" ---
