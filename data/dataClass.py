@@ -474,7 +474,10 @@ class dataContainter:
         hdr['FRQ_BEG'] = (FBEGIN, 'Frequency at the beginning [MHz].')
         hdr['FRQ_MID'] = (FCENTR, 'Frequency at the middle of the spectrum.')
         hdr['FRQ_END'] = (FEND, 'Frequency at the end of the spectrum [MHz].')
-        hdr['FRQ_RANG'] = (float(fscan.bw[0]/2.0), 'Bandwidth [MHz] ')
+        if not self.isOnOff:
+            hdr['FRQ_RANG'] = (float(fscan.bw[0]/2.0), 'Bandwidth [MHz] ')
+        else:
+            hdr['FRQ_RANG'] = (float(fscan.bw[0]), 'Bandwidth [MHz] ')
         hdr['VSYS'] = (float(fscan.vlsr[0]), 'System velocity in km/s.')
         hdr['DOPP_VSU'] = (0.0, 'Suns velocity')
         hdr['DOPP_VOB'] = (0.0, 'Observers velocity.')
