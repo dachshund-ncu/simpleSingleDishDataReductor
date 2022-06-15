@@ -22,9 +22,9 @@ class scanStackingWidget(QtWidgets.QWidget):
         super().__init__()
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
-        self.newScanFigure = newScanStackingFigure()
-        self.newStackedFigure = stackedSpectrumFigure()
-        self.newOtherPropsFigure = otherPropsFigure()
+        self.newScanFigure = newScanStackingFigure(self)
+        self.newStackedFigure = stackedSpectrumFigure(self)
+        self.newOtherPropsFigure = otherPropsFigure(self)
         self.__declareNecessaryButtons()
         self.__placeNecessaryButtons()
         self.__defaultSettings()
@@ -50,9 +50,7 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.newOtherPropsFigure.pTotal.scene().sigMouseClicked.connect(self.__onClickAuto)
         # -- for auto threshold --
         self.autoThreshold = -1e11
-
         self.setVisible(True)
-
 
     def updateDataPlots(self):
         self.newScanFigure.drawData()
@@ -239,8 +237,8 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.label.setText(text)
 
 class newScanStackingFigure(templateFigurePG):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.__setUpNewFigure()
         self.__makeCrossHair()
         self.vlineTabTop = []
@@ -335,7 +333,7 @@ class newScanStackingFigure(templateFigurePG):
         self.pTop.setYRange(minRange, maxRange, padding=0.0)
 
 class stackedSpectrumFigure(templateFigurePG):
-    def __init__(self):
+    def __init__(self, parent=None):
         super().__init__()
         self.__setUpNewFigure()
         self.p.setMouseEnabled(x=False, y=False)
@@ -356,7 +354,7 @@ class stackedSpectrumFigure(templateFigurePG):
         self.p.setCursor(cursor)
 
 class otherPropsFigure(templateFigurePG):
-    def __init__(self):
+    def __init__(self, parent=None):
         super().__init__()
         self.__setUpNewFigure()
         self.pTSys.setMouseEnabled(x=False, y=False)

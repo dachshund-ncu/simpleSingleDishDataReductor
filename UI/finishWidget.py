@@ -13,7 +13,7 @@ class finishWidgetP(QtWidgets.QWidget):
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
         #self.fig = finishFigure()
-        self.fig = newFinishFigure()
+        self.fig = newFinishFigure(self)
         #self.NT = NavigationToolbar(self.fig, self)
         self.__declareButtons()
         self.__placeEv()
@@ -46,8 +46,8 @@ class finishWidgetP(QtWidgets.QWidget):
         self.fig.setYLabel(label)
 
 class newFinishFigure(templateFigurePG):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.__setUpNewFigure()
     
     def __setUpNewFigure(self):

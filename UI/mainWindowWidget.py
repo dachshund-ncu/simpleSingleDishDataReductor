@@ -3,7 +3,7 @@ Class, that holds the Main Window of the program
 Author: Michał Durjasz
 Date: 8.03.2022
 '''
-from PySide2 import QtWidgets, QtGui
+from PySide2 import QtWidgets, QtGui, QtCore
 from scanStackingWidget import scanStackingWidget
 from polEndWidget import polEndWidget
 from finishWidget import finishWidgetP
@@ -30,7 +30,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.bbcindex = 0
         self.__declareAndPlaceButtons()
         self.__declareAndPlaceCustomWidgets()
-        self.__setSomeOtherSettings() # mainly column stretch
         self.lhcReduction = True
         self.mode = 'Polynomial fit'
         if data != None:
@@ -57,7 +56,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         This methood will declare and place buttons correctly. There
         is also declared layout (QGrid) and primary widget(window), so watch out for that.
         Maybe it would be better to declare it separately?
-        Buttons will be placed in the groupBox
+        Buttons will be placed in the groupBoxes
         '''
         # layouts
         self.window = QtWidgets.QWidget(self)
@@ -87,6 +86,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.setDefaultRangeOnPolEndShrt = QtWidgets.QShortcut(QtGui.QKeySequence('b'), self)
 
     def __declareAndPlaceCustomWidgets(self):
+        '''
+        Declares custom widgets, defined in separate files
+        Only self.scanStacker should be visible at the start of the program
+        '''
         self.scanStacker = scanStackingWidget()
         self.polEnd = polEndWidget()
         self.finishW = finishWidgetP()
@@ -94,12 +97,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.calCoeffChanger = changeCalCoeffWindow()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
     
-    def __setSomeOtherSettings(self):
-        #self.layout.setColumnStretch(0, 1)
-        #self.layout.setColumnStretch(1, 5)
-        pass
-    
     def __declareMenu(self):
+        '''
+        This method solely declares and places menu in the top of the Main Window
+        '''
         #--
         self.menu = self.menuBar()
         self.advancedMenu = self.menu.addMenu("&Advanced")
@@ -120,12 +121,24 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.changeBbcLhc.addAction(i)
         for i in self.changeBBCRHCActions:
             self.changeBbcRhc.addAction(i)
+
     def __setCheckedBBCActions(self):
+        '''
+        This method sets checked actions for BBCs
+        We want only the 1 BBC per pol to be checked
+        We manage that by executing the code below
+        self.BBCs is the list of used BBCs: by default these are [1,4]
+
+        '''
         self.changeBBCLHCActions[self.BBCs[0]-1].setChecked(True)
         self.changeBBCRHCActions[self.BBCs[1]-1].setChecked(True)
         
 
     def __connectButtonsToSlots(self):
+        '''
+        This method connects buttons and actions to the corresponding slots
+        '''
+        # -- scan stacker --
         self.scanStacker.nextScan.clicked.connect(self.__nextScanSlot)
         self.scanStacker.prevScan.clicked.connect(self.__prevScanSlot)
         self.scanStacker.addToStack.clicked.connect(self.__addToStackSlot)
@@ -138,7 +151,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performPolyFit.clicked.connect(self.__fitAndPlot)
         self.scanStacker.performRemoval.clicked.connect(self.__removeAndPlot)
         self.scanStacker.cancelRemoval.clicked.connect(self.__cancelRemoval)
-
+        # -- pol end widget --
         self.polEnd.backToPol.clicked.connect(self.__returnToScanEdit)
         self.polEnd.goToNextPol.clicked.connect(self.__goToNextPol)
         self.polEnd.performFit.clicked.connect(self.__fitToFinalSpectum)
@@ -148,16 +161,14 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.useCalibrations.clicked.connect(self.__calibrateData)
         self.polEnd.setManualCal.clicked.connect(self.__showManualCalCoeffWidget)
         self.polEnd.setDefaultRangeButton.clicked.connect(self.__setAutoRangeOnPolEndPlot)
-
+        self.calCoeffChanger.apply.clicked.connect(self.__setCalCoeffManually)
+        # -- both stacker and end widget --
         self.changeOrderAction.triggered.connect(self.__showFitOrderWidget)
         self.orderChanger.cancel.clicked.connect(self.__cancelFitOrderChange)
         self.orderChanger.apply.clicked.connect(self.__changeFitOrder)
-
+        # -- finish widget --
         self.finishW.endDataReduction.clicked.connect(self.__closeApp)
-
-
-        self.calCoeffChanger.apply.clicked.connect(self.__setCalCoeffManually)
-
+        # -- fit shortcuts --
         self.firstOrderFit.activated.connect(self.__setFirstOrderPoly)
         self.secondOrderFit.activated.connect(self.__setsecondOrderPoly)
         self.thirdOrderFit.activated.connect(self.__setThirdOrderPoly)
@@ -168,7 +179,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.eighthOrderFit.activated.connect(self.__setEightOrderPoly)
         self.ninthOrderFit.activated.connect(self.__setNinthOrderPoly)
         self.tenthOrderFit.activated.connect(self.__setTenthOrderPoly)
-
+        # -- THIS (or in more phythonic language: self) --
         self.shrtAddToStack.activated.connect(self.__addToStackSlot)
         self.shrtDiscardToStack.activated.connect(self.__discardScan)
         self.shrtNextScan.activated.connect(self.__nextScanSlot)
@@ -179,7 +190,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.shrtfitPolyMode.activated.connect(self.__shrtPolyWrapper)
         self.shrtAutoRedMode.activated.connect(self.__shrtAutoWrapper)
         self.setDefaultRangeOnPolEndShrt.activated.connect(self.__setAutoRangeOnPolEndPlot)
-
+        # --- Menu  - selecting BBCs ---
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
         for i in range(len(self.changeBBCRHCActions)):
@@ -241,8 +252,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     
     def __plotTimeInfo(self):
-        #print(self.data.timeTab)
-        #print(self.data.zTab)
+        '''
+        It plots info about Tsys vs time and total flux vs time
+        It is meant to be called only once per pol
+        '''
         tmptsys = []
         tmptime = []
         for i in self.data.tsysTab:
@@ -251,7 +264,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             
         self.scanStacker.newOtherPropsFigure.tsysPlot.setData(tmptime, tmptsys)
         self.scanStacker.newOtherPropsFigure.actualTsysPlot.setData(self.data.timeTab, self.data.tsysTab[self.actualBBC-1])
-        #self.scanStacker.newOtherPropsFigure.totalFluxPlot.setData(self.data.mergedTimeTab, self.data.totalFluxTab[self.actualBBC-1])
         
         for i in range(len(self.data.totalFluxTab[self.actualBBC-1])):
             if not self.timeInfoAlreadyPlotted:
@@ -259,10 +271,11 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             else:
                 self.scanStacker.newOtherPropsFigure.setDataForIndex(i, self.data.mergedTimeTab[i], self.data.totalFluxTab[self.actualBBC-1][i])
         self.timeInfoAlreadyPlotted = True
+
     '''
     Methods below are being used as SLOTS
     '''
-
+    @QtCore.Slot()
     def __nextScanSlot(self):
         if self.actualScanNumber+1 < self.maximumScanNumber:
             self.actualScanNumber += 1
@@ -271,6 +284,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         
         self.__plotScanNo(self.actualScanNumber)
     
+    @QtCore.Slot()
     def __prevScanSlot(self):
         if self.actualScanNumber-1 >= 0:
             self.actualScanNumber -= 1
@@ -279,6 +293,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         
         self.__plotScanNo(self.actualScanNumber)
     
+    @QtCore.Slot()
     def __addToStackSlot(self):
         '''
         Adds to stack of reduced spectra
@@ -302,12 +317,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.scanStacker.newOtherPropsFigure.setTotalFluxStacked(self.actualScanNumber)
             self.__nextScanSlot()
             
-    
+    @QtCore.Slot()
     def __deleteFromStackSlot(self):
         self.data.deleteFromStack(self.actualScanNumber)
         self.scanStacker.newOtherPropsFigure.setTotalFluxDiscarded(self.actualScanNumber)
         self.__plotScanNo(self.actualScanNumber)
 
+    @QtCore.Slot()
     def __finishPol(self):
         # data
         
@@ -353,6 +369,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
         self.polEnd.setFluxLabel(calCoeff)
 
+    @QtCore.Slot()
     def __discardScan(self):
         self.data.discardFromStack(self.actualScanNumber)
         self.scanStacker.newOtherPropsFigure.setTotalFluxDiscarded(self.actualScanNumber)
@@ -362,6 +379,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         else:
             self.__nextScanSlot()
 
+    @QtCore.Slot()
     def __setPolyFitMode(self):
         self.scanStacker.polyFitMode = True
         self.scanStacker.removeChannelsMode = False
@@ -378,6 +396,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__updateLabel()
         print("-----> Polynomial fit mode is ACTIVE!")
 
+    @QtCore.Slot()
     def __setRemoveChansMode(self):
         self.scanStacker.polyFitMode = False
         self.scanStacker.removeChannelsMode = True
@@ -396,6 +415,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__updateLabel()
         print("-----> Channel removal mode is ACTIVE!")
     
+    @QtCore.Slot()
     def __setAutoReductionMode(self):
         self.scanStacker.polyFitMode = False
         self.scanStacker.removeChannelsMode = False
@@ -410,39 +430,45 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__updateLabel()
         print("-----> Auto reduction mode is ACTIVE!")
     
+    @QtCore.Slot()
     def __shrtPolyWrapper(self):
         if self.scanStacker.isVisible():
             self.__setPolyFitMode()
         elif self.polEnd.isVisible():
             self.polEnd.setPolyFitMode()
     
+    @QtCore.Slot()
     def __shrtRemWrapper(self):
         if self.scanStacker.isVisible():
             self.__setRemoveChansMode()
         elif self.polEnd.isVisible():
             self.polEnd.setRemoveChansMode()
 
+    @QtCore.Slot()
     def __shrtAutoWrapper(self):
         if self.scanStacker.isVisible():
             self.__setAutoReductionMode()
         elif self.polEnd.isVisible():
             self.polEnd.setZoomMode()
         
-
+    @QtCore.Slot()
     def __fitAndPlot(self):
         self.scanStacker.setFitDone()
         self.__plotScanNo(self.actualScanNumber)
     
+    @QtCore.Slot()
     def __removeAndPlot(self):
         self.data.removeChannels(self.actualBBC, self.actualScanNumber, self.scanStacker.removeChannelsTab)
         self.scanStacker.setRemoveDone()
         self.__plotScanNo(self.actualScanNumber)
     
+    @QtCore.Slot()
     def __cancelRemoval(self):
         self.data.cancelRemoval(self.actualBBC, self.actualScanNumber)
         self.scanStacker.setRemoveDone()
         self.__plotScanNo(self.actualScanNumber)
     
+    @QtCore.Slot()
     def __fitToFinalSpectum(self):
         if len(self.polEnd.fitBoundChannels) != 0:
             ftBds = self.data.convertVelsToChannels(self.actualBBC-1, self.polEnd.fitBoundChannels)
@@ -454,6 +480,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.setFitDone()
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
     
+    @QtCore.Slot()
     def __removeOnFinalSpectrum(self):
         if (len(self.polEnd.removeChannelsTab)) != 0:
             rmBds = self.data.convertVelsToChannels(self.actualBBC-1, self.polEnd.removeChannelsTab)
@@ -461,11 +488,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.setRemoveDone()
         self.polEnd.plotSpectrumWOAutoRange(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
     
+    @QtCore.Slot()
     def __cancelChangesOnFinalSpectrum(self):
         self.data.cancelChangesFinal()
         self.polEnd.setRemoveDone()
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
 
+    @QtCore.Slot()
     def __goToNextPol(self):
         if not self.polEnd.isVisible():
             return
@@ -498,6 +527,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # ---------
         self.scanStacker.newOtherPropsFigure.setTotalFluxDefaultBrush()
     
+    @QtCore.Slot()
     def __finishDataReduction(self):
         self.data.bbcs_used = self.BBCs
         # save fits file
@@ -520,12 +550,14 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.finishW.setYlabel("Antenna temperature")
         self.finishW.setVisible(True)
     
+    @QtCore.Slot()
     def __closeApp(self):
         if self.finishW.isVisible():
             print("-----> This is the end. Bye!")
             print("-----------------------------------------")
             sys.exit()
 
+    @QtCore.Slot()
     def __returnToScanEdit(self):
         #UI
         self.polEnd.setVisible(False)
@@ -533,18 +565,22 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.layout.addWidget(self.scanStacker, 0, 1)
         self.scanStacker.setVisible(True)
     
+    @QtCore.Slot()
     def __cancelFitOrderChange(self):
         self.orderChanger.setVisible(False)
     
+    @QtCore.Slot()
     def __changeFitOrder(self):
         self.data.setFitOrder(self.orderChanger.getValue())
         self.orderChanger.setVisible(False)
         self.__plotScanNo(self.actualScanNumber)
     
+    @QtCore.Slot()
     def __showFitOrderWidget(self):
         self.orderChanger.setText(self.data.fitOrder)
         self.orderChanger.setVisible(True)
 
+    @QtCore.Slot()
     def __bbcLhcHandler(self, index):
         for i in range(len(self.changeBBCLHCActions)):
             if i != index:
@@ -561,6 +597,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.__plotTimeInfo()
         print(f'-----> BBC for LHC set to {index+1}')
 
+    @QtCore.Slot()
     def __bbcRhcHandler(self, index):
         for i in range(len(self.changeBBCRHCActions)):
             if i != index:
@@ -577,6 +614,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.__plotTimeInfo()
         print(f'-----> BBC for RHC set to {index+1}')
     
+    @QtCore.Slot()
     def __uncalibrateData(self):
         if self.calibrated:
             spectr = self.data.uncalibrate(self.lhcReduction)
@@ -588,6 +626,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         else:
             return
 
+    @QtCore.Slot()
     def __calibrateData(self):
         if not self.calibrated:
             spectr = self.data.calibrate(self.lhcReduction)
@@ -602,6 +641,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         else:
             return
 
+    @QtCore.Slot()
     def __showManualCalCoeffWidget(self):
         if self.lhcReduction:
             self.calCoeffChanger.setText(self.data.calCoeffLHC)
@@ -610,6 +650,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # --
         self.calCoeffChanger.setVisible(True)
 
+    @QtCore.Slot()
     def __setCalCoeffManually(self):
         # --
         date = self.data.obs.mjd
@@ -638,51 +679,62 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     '''
     FOR SHORTCUTS
     '''
+    @QtCore.Slot()
     def __updatePlotAfterFitOrderChange(self):
         if self.scanStacker.isVisible():
             self.__plotScanNo(self.actualScanNumber)
         elif self.polEnd.isVisible():
             self.__fitToFinalSpectum()
 
+    @QtCore.Slot()
     def __setAutoRangeOnPolEndPlot(self):
         '''
         Sets auto range on polEndPlot
         '''
         if self.polEnd.isVisible():
             self.polEnd.setDefaultRange()
-
+    @QtCore.Slot()
     def __setFirstOrderPoly(self):
         self.data.setFitOrder(1)
         self.__updatePlotAfterFitOrderChange()
+    @QtCore.Slot()
     def __setsecondOrderPoly(self):
         self.data.setFitOrder(2)
         self.__updatePlotAfterFitOrderChange()
+    @QtCore.Slot()
     def __setThirdOrderPoly(self):
         self.data.setFitOrder(3)
         self.__updatePlotAfterFitOrderChange()
+    @QtCore.Slot()
     def __setFourthOrderPoly(self):
         self.data.setFitOrder(4)
         self.__updatePlotAfterFitOrderChange()
+    @QtCore.Slot()
     def __setFifthOrderPoly(self):
         self.data.setFitOrder(5)
         self.__updatePlotAfterFitOrderChange()
+    @QtCore.Slot()
     def __setSixthOrderPoly(self):
         self.data.setFitOrder(6)
         self.__updatePlotAfterFitOrderChange()
+    @QtCore.Slot()
     def __setSeventhOrderPoly(self):
         self.data.setFitOrder(7)
         self.__updatePlotAfterFitOrderChange()
+    @QtCore.Slot()
     def __setEightOrderPoly(self):
         self.data.setFitOrder(8)
         self.__updatePlotAfterFitOrderChange()
+    @QtCore.Slot()
     def __setNinthOrderPoly(self):
         self.data.setFitOrder(9)
         self.__updatePlotAfterFitOrderChange()
+    @QtCore.Slot()
     def __setTenthOrderPoly(self):
         self.data.setFitOrder(10)
         self.__updatePlotAfterFitOrderChange()
     
-    
+    @QtCore.Slot()
     def doAutoReduction(self):
         '''
         This method is to do automated data reduction

@@ -17,8 +17,8 @@ class polEndWidget(QtWidgets.QWidget):
         super().__init__()
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
-        self.newPolEndFig = polEndFigurePG()
-        self.calCoeffFig = calTabFigure()
+        self.newPolEndFig = polEndFigurePG(self)
+        self.calCoeffFig = calTabFigure(self)
         self.__declareNecessaryButtons()
         self.__placeNecessaryButtons()
         self.__setOtherBeginnerSettings()
@@ -134,6 +134,7 @@ class polEndWidget(QtWidgets.QWidget):
     '''
     PRIVATE SLOTS:
     '''
+    @QtCore.Slot()
     def setPolyFitMode(self):
         self.polyFitMode = True
         self.removeChannelsMode = False
@@ -146,6 +147,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.performFit.setEnabled(True)
         self.newPolEndFig.pSpec.setMouseEnabled(x=False, y=False)
         print("-----> Polynomial fit mode is ACTIVE!")
+    @QtCore.Slot()
     def setRemoveChansMode(self):
         self.polyFitMode = False
         self.removeChannelsMode = True
@@ -158,6 +160,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.performFit.setEnabled(False)
         self.newPolEndFig.pSpec.setMouseEnabled(x=False, y=False)
         print("-----> Channel removal mode is ACTIVE!")
+    @QtCore.Slot()
     def setZoomMode(self):
         self.polyFitMode = False
         self.removeChannelsMode = False
@@ -170,6 +173,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.performFit.setEnabled(False)
         self.newPolEndFig.pSpec.setMouseEnabled(x=True, y=True)
         print("-----> Zoom mode is ACTIVE!")
+    @QtCore.Slot()
     def setDefaultRange(self):
         '''
         This method sets default range of the spectrum plot
@@ -241,8 +245,8 @@ class polEndWidget(QtWidgets.QWidget):
             self.newPolEndFig.setLabelY("F = " + str(round(calCoeff,2)) + ' * Ta')
 
 class polEndFigurePG(templateFigurePG):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.__setUpNewFigure()
         self.__makeCrossHair()
         
@@ -298,8 +302,8 @@ class polEndFigurePG(templateFigurePG):
         self.xCross.setValue(x)
 
 class calTabFigure(templateFigurePG):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.__setUpNewFigure()
         #self.setVisible(True)
     def __setUpNewFigure(self):
