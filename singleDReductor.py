@@ -23,23 +23,6 @@ from mainWindowWidget import mainWindowWidget
 from dataClass import dataContainter
 # --------------------
 
-# --- APPERANCE CUSTOMIZATION ---
-palette = QtGui.QPalette()
-palette.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
-palette.setColor(QtGui.QPalette.WindowText, QtGui.Qt.white)
-palette.setColor(QtGui.QPalette.Base, QtGui.QColor(25, 25, 25))
-palette.setColor(QtGui.QPalette.AlternateBase, QtGui.QColor(53, 53, 53))
-palette.setColor(QtGui.QPalette.ToolTipBase, QtGui.Qt.black)
-palette.setColor(QtGui.QPalette.ToolTipText, QtGui.Qt.white)
-palette.setColor(QtGui.QPalette.Text, QtGui.Qt.white)
-palette.setColor(QtGui.QPalette.Button, QtGui.QColor(53, 53, 53))
-palette.setColor(QtGui.QPalette.ButtonText, QtGui.Qt.white)
-palette.setColor(QtGui.QPalette.BrightText, QtGui.Qt.red)
-palette.setColor(QtGui.QPalette.Link, QtGui.QColor(42, 130, 218))
-palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
-palette.setColor(QtGui.QPalette.HighlightedText, QtGui.Qt.black)
-# -------------------------------
-
 def ohHelp():
     print("-----> Usage:")
     print("\tpython3 singleDReductor.py your_archive.tar.bz2 [OPTIONS]")
@@ -77,8 +60,6 @@ if __name__ == "__main__":
         print("-----------------------------------------")
         sys.exit()    
     app = QtWidgets.QApplication(sys.argv)
-    app.setStyle("Fusion")
-    app.setPalette(palette)
 
     if '-v' in sys.argv or '--version' in sys.argv:
         onVersion()

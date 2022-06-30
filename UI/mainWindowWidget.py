@@ -424,6 +424,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.removeChannels.setChecked(False)
         self.scanStacker.cancelRemoval.setEnabled(False)
         self.scanStacker.performPolyFit.setEnabled(False)
+        self.scanStacker.performRemoval.setEnabled(False)
         self.scanStacker.automaticReduction.setChecked(True)
         self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(True)
         self.mode = 'AUTO'
