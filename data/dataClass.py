@@ -338,7 +338,7 @@ class dataContainter:
                 tab_paths = [confile[i]['lhcCaltab'], confile[i]['rhcCaltab']]
                 freq_ranges = [ float(confile[i]['minFreq']), float(confile[i]['maxFreq'])]
                 self.caltabs.append(caltab(i, tab_paths, freq_ranges))
-                print("-----> Caltab loaded: %d (%f - %f GHz)" % (i, freq_ranges[0], freq_ranges[1]))
+                print("-----> Caltab loaded: %s (%f - %f GHz)" % (i, freq_ranges[0], freq_ranges[1]))
                 print("-----> LHC:", confile[i]['lhcCaltab'])
                 print("-----> RHC:", confile[i]['rhcCaltab'])
             print("-----------------------------------------")

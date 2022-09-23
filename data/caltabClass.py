@@ -33,7 +33,6 @@ class caltab():
         
         # RHC
         self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt(filename[1], usecols=(0,1), unpack=True)
-        rm('tmpCalTab')
         self.lhcMJDTab += 50000.0
         self.rhcMJDTab += 50000.0
 
