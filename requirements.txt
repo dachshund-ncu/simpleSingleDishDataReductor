@@ -3,5 +3,3 @@ pyqtgraph
 mpmath
 astropy
 barycorrpy
-validators
-requests

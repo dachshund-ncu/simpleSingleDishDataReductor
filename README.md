@@ -16,10 +16,6 @@ Designed to work with data, obtained from 32m NCU radio telescope autocorrelator
 
 - barycorrpy
 
-- validators
-
-- requests
-
 ### Installation of the needed packages ###
 ```bash
 python3 -m pip install --upgrade pip
