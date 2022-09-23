@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
-This is MAIN fo simpleSingleDishDataRecuctot
+This is MAIN fo simpleSingleDishDataRecuctor
 Author: Michał Durjasz
 E-mail: md@astro.umk.pl
 
@@ -15,7 +15,7 @@ from PySide2 import QtWidgets, QtGui
 import os
 
 # managing source dirname to properly import custom classes:
-scr_directory = os.path.dirname(__file__) + '/'
+scr_directory = os.path.dirname(os.path.abspath(__file__)) + '/'
 sys.path.append(scr_directory)
 sys.path.append(scr_directory + "UI")
 sys.path.append(scr_directory + "data")
