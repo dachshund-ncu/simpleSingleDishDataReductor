@@ -20,9 +20,15 @@ Designed to work with data, obtained from 32m NCU radio telescope autocorrelator
 
 - requests
 
+### Installation of the needed packages ###
+```bash
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
+```
 
 ### Usage ###
-Very simple. You have to just type singleReductor.py your_archive_name.tar.bz2
-
+```bash
+python3 singleDReductor.py your_archive_name.tar.bz2
+```
 ### Output ###
 Files that go outside are in .fits format. Filename: sourcename_MJD.fits
