@@ -77,7 +77,7 @@ class mergedScan:
         for i in removeTab:
             minChan = i[0]-1
             maxChan = i[1]-1
-            print(f'------> Removing from channels {minChan} to {maxChan}')
+            print('------> Removing from channels %d to %d' % (minChan, maxChan))
             for j in range(minChan, maxChan,1):
                 self.pols[BBC-1][j] = self.__interpolate(BBC, minChan, maxChan, j)
     

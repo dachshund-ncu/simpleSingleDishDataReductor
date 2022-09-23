@@ -1,0 +1,7 @@
+PySide2
+pyqtgraph
+mpmath
+astropy
+brycorrpy
+validators
+requests
