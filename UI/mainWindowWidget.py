@@ -596,7 +596,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.actualScanNumber = 0
             self.__plotScanNo(self.actualScanNumber)
             self.__plotTimeInfo()
-        print(f'-----> BBC for LHC set to {index+1}')
+        print('-----> BBC for LHC set to %d' % (index+1))
 
     @QtCore.Slot()
     def __bbcRhcHandler(self, index):
@@ -613,7 +613,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.actualScanNumber = 0
             self.__plotScanNo(self.actualScanNumber)
             self.__plotTimeInfo()
-        print(f'-----> BBC for RHC set to {index+1}')
+        print('-----> BBC for RHC set to %d' % (index+1))
     
     @QtCore.Slot()
     def __uncalibrateData(self):
@@ -756,9 +756,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         for i in range(len(validationTable)):
             if validationTable[i]:
                 self.data.addToStack(i)
-                print(f"-----> Scan no. {i+1} added")
+                print("-----> Scan no. %d added" % (i+1))
             else:
-                print(f"-----> Scan no. {i+1} discarded")
+                print("-----> Scan no. %d discarded"% (i+1))
         print("Automated pol. reduction ended succesfully")
         print("-----------------------------------------")
         return True

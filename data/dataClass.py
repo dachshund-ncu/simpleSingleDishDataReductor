@@ -165,7 +165,7 @@ class dataContainter:
 
     def addToStack(self, scanIndex):
         if self.__checkIfStacked(scanIndex):
-            print(f"-----> scan no. {scanIndex+1} is already stacked!")
+            print("-----> scan no. %d is already stacked!" % (scanIndex+1))
             return
         self.scans_proceed[scanIndex] = 'ADDED'
         x,y,residuals, = self.fitChebyForScan(self.actualBBC, self.fitOrder, scanIndex)
@@ -185,7 +185,7 @@ class dataContainter:
 
     def deleteFromStack(self, scanIndex):
         if not self.__checkIfStacked(scanIndex):
-            print(f"-----> scan no. {scanIndex+1} was not stacked, so it cannot be removed!")
+            print("-----> scan no. %d was not stacked, so it cannot be removed!" % (scanIndex+1))
             return
         i = self.scansInStack.index(scanIndex)
         self.scansInStack.pop(i)
@@ -285,7 +285,7 @@ class dataContainter:
         for i in channelsToRemove:
             minChan = i[0]
             maxChan = i[1]
-            print(f'------> Removing from channels {minChan} to {maxChan}')
+            print('------> Removing from channels %d to %d' % (minChan, maxChan))
             for j in range(minChan, maxChan, 1):
                 self.finalFitRes[j] = self.__interpolateFinal(minChan, maxChan, j)
 
@@ -302,7 +302,7 @@ class dataContainter:
         return a * j + b
     
     def cancelChangesFinal(self):
-        print(f'------> cancelling all of the changes!')
+        print('------> cancelling all of the changes!')
         self.finalFitRes = self.meanStack.copy()
     
     def clearStack(self, pol='LHC'):
@@ -338,7 +338,7 @@ class dataContainter:
                 tab_paths = [confile[i]['lhcCaltab'], confile[i]['rhcCaltab']]
                 freq_ranges = [ float(confile[i]['minFreq']), float(confile[i]['maxFreq'])]
                 self.caltabs.append(caltab(i, tab_paths, freq_ranges))
-                print(f"-----> Caltab loaded: {i} ({freq_ranges[0]} - {freq_ranges[1]} GHz)")
+                print("-----> Caltab loaded: %d (%f - %f GHz)" % (i, freq_ranges[0], freq_ranges[1]))
                 print("-----> LHC:", confile[i]['lhcCaltab'])
                 print("-----> RHC:", confile[i]['rhcCaltab'])
             print("-----------------------------------------")
@@ -369,14 +369,14 @@ class dataContainter:
         
     def printCalibrationMessage(self, calCoeffLHC, calCoeffRHC, epoch, lhc=True):
         print('-----------------------------------------')
-        print(f'-----> CALIBRATION PROMPT:')
+        print('-----> CALIBRATION PROMPT:')
         if self.properCaltabIndex == -1:
-            print(f'-----> Did not fint any suitable caltab!')
+            print('-----> Did not fint any suitable caltab!')
             print('-----------------------------------------')
             return
-        print(f'-----> Using {self.caltabs[self.properCaltabIndex].label} to calibrate the data')
-        print(f'-----> (LHC): Coefficient is {calCoeffLHC} for MJD {int(epoch)}')
-        print(f'-----> (RHC): Coefficient is {calCoeffRHC} for MJD {int(epoch)}')
+        print('-----> Using %s to calibrate the data' % (self.caltabs[self.properCaltabIndex].label))
+        print('-----> (LHC): Coefficient is %f for MJD %d ' % (calCoeffLHC, int(epoch)))
+        print('-----> (RHC): Coefficient is %f for MJD %d ' % (calCoeffRHC, int(epoch)))
         if lhc==True:
             maxEpoch = self.caltabs[self.properCaltabIndex].lhcMJDTab.max()
             minEpoch = self.caltabs[self.properCaltabIndex].lhcMJDTab.min()
@@ -385,11 +385,11 @@ class dataContainter:
             minEpoch = self.caltabs[self.properCaltabIndex].rhcMJDTab.min()
 
         if epoch < maxEpoch and epoch > minEpoch:
-            print(f'-----> Epoch is placed between MJD {minEpoch} and {maxEpoch}')
-            print(f'-----> Looks OK')
+            print('-----> Epoch is placed between MJD %d  and %d' % (minEpoch, maxEpoch))
+            print('-----> Looks OK')
         else:
-            print(f'-----> Epoch is placed OUTSIDE caltab (MJD from {minEpoch} to {maxEpoch})')
-            print(f'-----> Check CAREFULLY if this is ok.')
+            print('-----> Epoch is placed OUTSIDE caltab (MJD from %d to %d)'  % (minEpoch, maxEpoch))
+            print('-----> Check CAREFULLY if this is ok.')
         print('-----------------------------------------')
     
     def calibrate(self, lhc = True):
@@ -429,7 +429,7 @@ class dataContainter:
     def saveReducedDataToFits(self):
         # -- filename --
         fname = self.obs.scans[0].sourcename + '_' + str(round(self.obs.mjd,3)).replace(".", "") + ".fits"
-        print(f"-----> Saving results to file {fname}...")
+        print("-----> Saving results to file %s..." % (fname))
         # -- data tables --
         polLHC = np.array(self.finalLHC, dtype=np.float64)
         polRHC = np.array(self.finalRHC, dtype=np.float64)

@@ -248,7 +248,7 @@ class newScanStackingFigure(templateFigurePG):
 
     def mouseClicked(self, event):
         mp = self.pTop.vb.mapSceneToView(event.scenePos())
-        print(f"Clicked: {mp.x()}")
+        print("Clicked: %f" % (mp.x()))
 
     def __setUpNewFigure(self):
         #self.newScanFigure()
