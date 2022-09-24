@@ -27,7 +27,7 @@ from sys import argv, exit
 from os import path
 # ---------
 # -- barycorrpy --
-import barycorrpy
+from PyAstronomy.pyasl import helcorr
 # ----------------
 
 class scan:
@@ -362,13 +362,16 @@ class scan:
         # -- liczymy prędkość wokół barycentrum + rotacja wokół własnej osi --
         # rzutowane na źródło
         # metoda wykonuje precesję sama z siebie, toteż podajemy współrzędne na epokę 2000 przed precesją
+        
+        #OBSOLETE:
+        self.baryvel, hjd = helcorr(obs_long = dl_geog, obs_lat = szer_geog, obs_alt = height, ra2000 = self.RA*15, dec2000 = self.DEC, jd=self.tee.jd) #self.tee to obiekt czasu (astropy.time)
+        #05.06.2022: we stopped using HELCORR, 'cause it utilizes obsolete doppset method
+
         '''
-        OBSOLETE:
-        #self.baryvel, hjd = helcorr(obs_long = dl_geog, obs_lat = szer_geog, obs_alt = height, ra2000 = self.RA*15, dec2000 = self.DEC, jd=self.tee.jd) #self.tee to obiekt czasu (astropy.time)
-        05.06.2022: we stopped using HELCORR, 'cause it utilizes obsolete doppset method
+        #bar = barycorrpy.get_BC_vel(self.tee, ra = self.RA * 15, dec = self.DEC, lat = szer_geog, longi=dl_geog, alt = height, epoch=2000)
+        We utilize the helcorr method in python3.5 branch 'cause barycorrpy does not work
         '''
-        bar = barycorrpy.get_BC_vel(self.tee, ra = self.RA * 15, dec = self.DEC, lat = szer_geog, longi=dl_geog, alt = height, epoch=2000)
-        self.baryvel = bar[0][0] / 1000.0
+        #self.baryvel = bar[0][0] / 1000.0
         # -- liczymy prędkość w lokalnym standardzie odniesienia --
         # rzutowane na źródło
         self.lsrvel = self.__lsr_motion(source_JNOW_RA, source_JNOW_DEC, self.decimalyear)

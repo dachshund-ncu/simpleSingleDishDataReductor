@@ -2,4 +2,4 @@ PySide2
 pyqtgraph
 mpmath
 astropy
-barycorrpy
+PyAstronomy
