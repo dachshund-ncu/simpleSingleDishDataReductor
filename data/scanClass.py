@@ -52,7 +52,9 @@ class scan:
     def read_header_and_data(self):
         # -- wczytujemy plik do pamięci --
         try:
-            a = loadtxt(self.fname, dtype=str, delimiter='\n')
+            fle = open(self.fname, 'r+')
+            a = fle.readlines()
+            fle.close() 
         except FileNotFoundError:
             print("-----> File \"%s\" does not exist! Exiting..." % self.fname)
             print("-----------------------------------------")
