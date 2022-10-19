@@ -11,6 +11,7 @@ from PySide2 import QtCore, QtWidgets, QtGui
 from customButton import cButton
 from moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
+from customLeftBarWidget import cWidget
 
 class scanStackingWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -67,7 +68,7 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.newOtherPropsFigure.dotTF.setData([time[1]], [totalFluxDot])
     
     def __declareNecessaryButtons(self):
-        self.leftWidget = QtWidgets.QWidget()
+        self.leftWidget = cWidget()#QtWidgets.QWidget()
         self.vboxLeftWidget = QtWidgets.QVBoxLayout(self.leftWidget)
         self.vboxLeftWidget.setMargin(0)
         self.vboxScanOperationsFrame = QtWidgets.QVBoxLayout()

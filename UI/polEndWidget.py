@@ -7,6 +7,7 @@ from PySide2 import QtCore, QtWidgets, QtGui
 from customButton import cButton
 from moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
+from customLeftBarWidget import cWidget
 
 class polEndWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -54,7 +55,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.calCoeffFig.plotUsedCalCoeff(x,y)
 
     def __declareNecessaryButtons(self):
-        self.leftWidget = QtWidgets.QWidget()
+        self.leftWidget = cWidget()#QtWidgets.QWidget()
         self.vboxLeftWidget = QtWidgets.QVBoxLayout(self.leftWidget)
         self.vboxLeftWidget.setMargin(0)
 

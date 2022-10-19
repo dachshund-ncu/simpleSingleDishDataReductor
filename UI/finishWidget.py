@@ -6,6 +6,7 @@ fihishing widget
 from PySide2 import QtWidgets
 from customButton import cButton
 from moreEfficentFigureTemplate import templateFigurePG
+from customLeftBarWidget import cWidget
 
 class finishWidgetP(QtWidgets.QWidget):
     def __init__(self):
@@ -19,11 +20,15 @@ class finishWidgetP(QtWidgets.QWidget):
         self.__placeEv()
     
     def __declareButtons(self):
+        self.leftWidget = cWidget()
+        self.leftWLayout = QtWidgets.QVBoxLayout(self.leftWidget)
         self.vboxMainOperationsFrame = QtWidgets.QVBoxLayout()
         self.mainOperatiosFrame = QtWidgets.QGroupBox("Main operations")
         self.mainOperatiosFrame.setLayout(self.vboxMainOperationsFrame)
         # --
         self.endDataReduction = cButton("End data reduction")
+        # --
+        self.leftWLayout.addWidget(self.mainOperatiosFrame)
         # --
         self.vboxMainOperationsFrame.addWidget(self.endDataReduction)
         # --
@@ -31,7 +36,7 @@ class finishWidgetP(QtWidgets.QWidget):
         self.endDataReduction.setMinimumSize(0, 0)
     
     def __placeEv(self):
-        self.layout.addWidget(self.mainOperatiosFrame, 0,0)
+        self.layout.addWidget(self.leftWidget, 0,0)
         self.layout.addWidget(self.fig, 0,1)
         self.layout.setColumnStretch(0,1)
         self.layout.setColumnStretch(1,5)
