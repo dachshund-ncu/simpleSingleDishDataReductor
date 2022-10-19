@@ -302,6 +302,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if 'autoReductionMode' is activated, it will try to perform it with discarding standard adding to stack procedure
         if auto procedure fails for some reason, it will do standard task anyway
         '''
+        if not self.scanStacker.isVisible():
+            return
         if self.scanStacker.autoRedMode:
             flag = self.doAutoReduction()
             if flag:
