@@ -24,9 +24,6 @@ import astropy.units as u
 # -- sys --
 from sys import argv, exit
 from os import path
-# ---------
-# -- barycorrpy --
-from PyAstronomy.pyasl import helcorr
 # ----------------
 from scanClass import scan
 from mergedScanClass import mergedScan
