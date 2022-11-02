@@ -11,6 +11,7 @@ from fitOrderChangeWidget import changeOrder
 from manualCalCoeffSetter import changeCalCoeffWindow
 import numpy as np
 import sys
+import os
 import functools as fctls
 
 # -- class definition starts here --
@@ -121,6 +122,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.changeBbcLhc.addAction(i)
         for i in self.changeBBCRHCActions:
             self.changeBbcRhc.addAction(i)
+        # --
+        self.reportFaultyAction = QtWidgets.QAction("Report faulty obervation")
+        self.advancedMenu.addAction(self.reportFaultyAction)
 
     def __setCheckedBBCActions(self):
         '''
@@ -166,6 +170,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.changeOrderAction.triggered.connect(self.__showFitOrderWidget)
         self.orderChanger.cancel.clicked.connect(self.__cancelFitOrderChange)
         self.orderChanger.apply.clicked.connect(self.__changeFitOrder)
+        self.reportFaultyAction.triggered.connect(self.__reportFaultyObservation)
         # -- finish widget --
         self.finishW.endDataReduction.clicked.connect(self.__closeApp)
         # -- fit shortcuts --
@@ -190,6 +195,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.shrtfitPolyMode.activated.connect(self.__shrtPolyWrapper)
         self.shrtAutoRedMode.activated.connect(self.__shrtAutoWrapper)
         self.setDefaultRangeOnPolEndShrt.activated.connect(self.__setAutoRangeOnPolEndPlot)
+       
+        
+        
         # --- Menu  - selecting BBCs ---
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
@@ -536,6 +544,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # save fits file
         print("-----------------------------------------")
         self.data.saveReducedDataToFits()
+        self.saveToProceededFile()
         print("-----> Done!")
         print("-----------------------------------------")
         # disappear
@@ -553,12 +562,15 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.finishW.setYlabel("Antenna temperature")
         self.finishW.setVisible(True)
     
+    def __forceClose(self):
+        print("-----> This is the end. Bye!")
+        print("-----------------------------------------")
+        sys.exit()
+
     @QtCore.Slot()
     def __closeApp(self):
         if self.finishW.isVisible():
-            print("-----> This is the end. Bye!")
-            print("-----------------------------------------")
-            sys.exit()
+            self.__forceClose()
 
     @QtCore.Slot()
     def __returnToScanEdit(self):
@@ -775,3 +787,22 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         #rms = 0.15
         #snr = 3.5
         self.scanStacker.setLabel(self.mode, self.data.fitOrder, round(rms,3), self.actualScanNumber+1, len(self.data.obs.mergedScans), round(snr,3), tsys, self.actualBBC)
+    
+    @QtCore.Slot()
+    def __reportFaultyObservation(self):
+        '''
+        Sends the faulty observation to the file, specified in the directory below
+        '''
+        dir = "/home/michu/projects/simpleSingleDishDataReductor"
+        with open(os.path.join(dir, "faulty.csv"), 'a+') as fle:
+            fle.write(f"\n{self.data.obs.scans[0].sourcename},  {self.data.startEpoch}")
+        self.saveToProceededFile()
+        self.__forceClose()
+
+    def saveToProceededFile(self):
+        '''
+        Saves observation to the dataBase of proceeded observations
+        '''
+        dir = "/home/michu/projects/simpleSingleDishDataReductor"
+        with open(os.path.join(dir, "proceeded.csv"), 'a+') as fle:
+            fle.write(f"\n{self.data.obs.scans[0].sourcename},  {self.data.startEpoch}")
