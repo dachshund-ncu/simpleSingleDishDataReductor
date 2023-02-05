@@ -26,7 +26,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         '''
         self.calibrate = calibrate
         self.calibrated = False
-        self.BBCs = [1,4]
+        self.BBCs = [1,2]
         self.bbcindex = 0
         self.__declareAndPlaceButtons()
         self.__declareAndPlaceCustomWidgets()
