@@ -98,9 +98,23 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.prevScan = cButton("<-")
         self.finishPol = cButton("Finish LHC")
         # labels
-        self.label = QtWidgets.QLabel("This is a template label")
-        font = QtGui.QFont("Arial", 12, QtGui.QFont.Bold)
-        self.label.setFont(font)
+        # -- scan properties --
+        self.grid_labels = QtWidgets.QGridLayout() # grid for labels
+        self.props_labels = [QtWidgets.QLabel(f"label {i}") for i in range(10)]
+        font = QtGui.QFont("Arial", 12)
+        [self.props_labels[i].setFont(font) for i in range(len(self.props_labels))]
+        # -- BBC --
+        self.bbc_labels = [QtWidgets.QLabel(f"label {i}") for i in range(8)]
+        [self.bbc_labels[i].setFont(font) for i in range(len(self.bbc_labels))]
+
+
+        # labels placing
+        for i in range(len(self.props_labels)):
+            self.grid_labels.addWidget(self.props_labels[i], int(i/2), int(i%2))
+        
+        for i in range(len(self.bbc_labels)):
+            self.grid_labels.addWidget(self.bbc_labels[i], int(i/2) + 5, int(i%2))
+
         # buttons placing
         self.nextPrevScanLayout.addWidget(self.prevScan)
         self.nextPrevScanLayout.addWidget(self.nextScan)
@@ -128,7 +142,7 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.newScanFigure, 0, 1, 2,1)
         self.layout.addWidget(self.newStackedFigure, 2, 1, 1, 1)
         self.layout.addWidget(self.newOtherPropsFigure, 0, 2, 2, 1)
-        self.layout.addWidget(self.label, 2,2, 1,1)
+        self.layout.addLayout(self.grid_labels, 2,2, 1,1)
         self.layout.setColumnStretch(0,1)
         self.layout.setColumnStretch(1,3)
         self.layout.setColumnStretch(2,2)
@@ -217,25 +231,49 @@ class scanStackingWidget(QtWidgets.QWidget):
         self.removeChannelsTab = []
 
     def setLabel(self, mode, polyOrder, fitRms, scanNo, scanMax, SNR, TSys, BBC_number):
+        '''
+        Simple sets label accordong to scan properties
+        TODO: refactoring needed!!!
+        '''
+
         if fitRms > 999999.0:
             fitRms = 'inf'
 
         for i in range(len(TSys)):
             if TSys[i] > 1000.0:
                 TSys[i] = 1000.0
-        text = ''
-        text += 'Mode: ' + mode + '\n'
-        text += 'Scan: ' + str(int(scanNo)) + ' / ' + str(int(scanMax)) + '\n'
-        text += 'Polyn. fit order: ' + str(int(polyOrder)) + '\n'
-        text += 'Fit RMS: ' + str(fitRms) + '\n'
-        text += 'Signal-to-noise ratio: ' + str(SNR) + ' \n \n'
-        for i in range(len(TSys)):
-            if i == BBC_number-1:
-                text += 'BBC ' + str(i+1) + ' ' + str(round(TSys[i], 2)) + ' K  <--- this is used\n'
+        # --- properties ---
+        self.props_labels[0].setText('Mode:')
+        self.props_labels[1].setText(mode)
+        self.props_labels[2].setText('Scan:')
+        self.props_labels[3].setText(str(int(scanNo)) + ' / ' + str(int(scanMax)))
+        self.props_labels[4].setText('Polyn. fit order:')
+        self.props_labels[5].setText(str(int(polyOrder)))
+        self.props_labels[6].setText('Fit RMS:')
+        self.props_labels[7].setText(str(fitRms))
+        self.props_labels[8].setText('Signal-to-noise ratio:')
+        self.props_labels[9].setText(str(SNR))
+
+        # --- bbc ---
+        BBC_n = BBC_number-1 # convert to array indice 
+        font_chosen = QtGui.QFont("Arial", 12, QtGui.QFont.Bold)
+        font_not_chosen = QtGui.QFont("Arial", 12)
+        indices = [int(BBC_n*2), int(BBC_n*2) + 1]
+
+        for i in range(len(self.bbc_labels)):
+            if i%2 == 0:
+                self.bbc_labels[i].setText(f"BBC {int(i/2)+1}")
             else:
-                text += 'BBC ' + str(i+1) + ' ' + str(round(TSys[i], 2)) + ' K \n'
-        
-        self.label.setText(text)
+                self.bbc_labels[i].setText(f"{round(TSys[int(i/2)],2)} K")
+            if i in indices:
+                self.bbc_labels[i].setFont(font_chosen)
+            else:
+                self.bbc_labels[i].setFont(font_not_chosen)
+            
+            if TSys[int(i/2)] > 990:
+                self.bbc_labels[i].setStyleSheet("background-color: red")
+            else:
+                self.bbc_labels[i].setStyleSheet("background-color: transparent")
 
 class newScanStackingFigure(templateFigurePG):
     def __init__(self, parent=None):
