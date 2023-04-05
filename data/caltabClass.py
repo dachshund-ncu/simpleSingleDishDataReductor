@@ -36,18 +36,19 @@ class caltab():
             r = requests.get(filename[0], allow_redirects=True)
             open('tmpCalTab', 'wb').write(r.content)
             self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt('tmpCalTab', usecols=(0,1), unpack=True)
+            rm('tmpCalTab')
         else:
             self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt(filename[0], usecols=(0,1), unpack=True)
-        rm('tmpCalTab')
+        
         
         # RHC
         if valid.url(filename[1]):
             r = requests.get(filename[1], allow_redirects=True)
             open('tmpCalTab', 'wb').write(r.content)
             self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt('tmpCalTab', usecols=(0,1), unpack=True)
+            rm('tmpCalTab')
         else:
             self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt(filename[1], usecols=(0,1), unpack=True)
-        rm('tmpCalTab')
         self.lhcMJDTab += 50000.0
         self.rhcMJDTab += 50000.0
 
