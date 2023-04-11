@@ -6,7 +6,7 @@ There can be numerous caltab instances, so this should be taken into account
 import numpy as np
 import validators as valid
 import requests
-from os import remove as rm
+import os
 
 class caltab():
     def __init__(self, label = None, filename=None, freqRange = None):
@@ -20,8 +20,9 @@ class caltab():
         '''
         if not (filename is None):
             self.freqRange = freqRange
-            self.__loadCaltab(filename)
+            self.filenames = filename
             self.label=label
+            self.__loadCaltab(self.filenames)
             
     def __loadCaltab(self, filename):
         '''
@@ -36,7 +37,7 @@ class caltab():
             r = requests.get(filename[0], allow_redirects=True)
             open('tmpCalTab', 'wb').write(r.content)
             self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt('tmpCalTab', usecols=(0,1), unpack=True)
-            rm('tmpCalTab')
+            os.remove('tmpCalTab')
         else:
             self.lhcMJDTab, self.lhcCoeffsTab = np.loadtxt(filename[0], usecols=(0,1), unpack=True)
         
@@ -46,11 +47,28 @@ class caltab():
             r = requests.get(filename[1], allow_redirects=True)
             open('tmpCalTab', 'wb').write(r.content)
             self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt('tmpCalTab', usecols=(0,1), unpack=True)
-            rm('tmpCalTab')
+            os.remove('tmpCalTab')
         else:
             self.rhcMJDTab, self.rhcCoeffsTab = np.loadtxt(filename[1], usecols=(0,1), unpack=True)
         self.lhcMJDTab += 50000.0
         self.rhcMJDTab += 50000.0
+
+        self.__print_message_upon_loading()
+    
+    def __print_message_upon_loading(self):
+        '''
+        Simply prints message upon loading
+        '''
+        print(f"-----> Caltab loaded: {self.label} ({self.freqRange[0]} - {self.freqRange[1]} Ghz)")
+        print(f"-----> LHC: {self.filenames[0]}")
+        print(f"-----> RHC: {self.filenames[1]}")
+
+    def save_caltab(self, directory: str):
+        '''
+        Saves the caltabs to the target directory
+        '''
+        np.savetxt(os.path.join(directory, 'CALTAB_L1'), np.column_stack((self.lhcMJDTab-50000.0, self.lhcCoeffsTab)))
+        np.savetxt(os.path.join(directory, 'CALTAB_R1'), np.column_stack((self.rhcMJDTab-50000.0, self.rhcCoeffsTab)))
 
     def findCoeffs(self, date):
         '''

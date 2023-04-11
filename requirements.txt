@@ -5,3 +5,4 @@ astropy
 barycorrpy
 validators
 requests
+platformdirs

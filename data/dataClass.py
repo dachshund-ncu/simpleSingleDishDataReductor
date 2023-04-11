@@ -9,16 +9,17 @@ import os
 import numpy as np
 import configparser
 from astropy.io import fits
+import platformdirs
 
 class dataContainter:
     def __init__(self, absolutePath, tarName = None, onOff = False):
         self.isOnOff = onOff
         '''
-        CALTAB LOADING BLOCK
+        CHECK CONFIGURATION FILES
         '''
-        self.configDir = absolutePath
-        self.caltabs = []
-        self.__tryToLoadCaltabs()
+        self.DE_CAT = absolutePath
+        self.configDir = platformdirs.user_config_dir('ssddr')
+        self.__load_caltabs_wrapper()
 
         '''
         Initializes dataContainer class
@@ -63,6 +64,50 @@ class dataContainter:
         self.calCoeffLHC = 1.0
         self.calCoeffRHC = 1.0
 
+    def __load_caltabs_wrapper(self):
+        '''
+        Loads the config files from the directory
+        - check if directory exists
+            if not:
+             - make a directory
+             - download / copy caltabs to it
+        '''
+        self.caltabs = []
+        if not os.path.exists(self.configDir):
+            os.mkdir(self.configDir)
+        self.__tryToLoadCaltabs()
+        if self.caltabsLoaded:
+            self.__copy_caltabs_to_config(self.configDir)
+        else:
+            self.__read_caltabs_from_config(self.configDir)
+    
+    def __read_caltabs_from_config(self, directory: str):
+        '''
+        Simply reads the caltab from config files
+        '''
+        dirs = []
+        for root, dir, file in os.walk(directory):
+            for dir_single in dir:
+                dirs.append(os.path.join(directory, dir_single))
+        
+        for directory_single in dirs:
+            self.caltabs.append(caltab(os.path.basename(directory_single), 
+                                       [os.path.join(directory_single, 'CALTAB_L1'), os.path.join(directory_single, 'CALTAB_R1')],
+                                        np.loadtxt(os.path.join(directory_single, 'freq_ranges')) ) )
+        self.caltabsLoaded = True
+        
+    def __copy_caltabs_to_config(self, directory):
+        '''
+        Copies the caltabs to the .config/ssddr directory
+        '''
+        for c in self.caltabs:
+            target_dir = os.path.join(directory, c.label)
+            if not os.path.exists(target_dir):
+                os.mkdir(target_dir)
+            c.save_caltab(target_dir)
+            with open(os.path.join(target_dir, 'freq_ranges'), 'w+') as freq_file:
+                freq_file.write(f"{c.freqRange[0]}\n")
+                freq_file.write(f"{c.freqRange[1]}")
 
     def fitChebyForScan(self, bbc, order, scannr):
         '''
@@ -332,15 +377,15 @@ class dataContainter:
         try:
             print("-----> Loading caltabs...")
             confile = configparser.ConfigParser()
-            confile.read(self.configDir + 'caltabPaths.ini')
+            confile.read(os.path.join(self.DE_CAT,'caltabPaths.ini'))
             for i in confile.sections():
                 label = i
                 tab_paths = [confile[i]['lhcCaltab'], confile[i]['rhcCaltab']]
                 freq_ranges = [ float(confile[i]['minFreq']), float(confile[i]['maxFreq'])]
                 self.caltabs.append(caltab(i, tab_paths, freq_ranges))
-                print(f"-----> Caltab loaded: {i} ({freq_ranges[0]} - {freq_ranges[1]} GHz)")
-                print("-----> LHC:", confile[i]['lhcCaltab'])
-                print("-----> RHC:", confile[i]['rhcCaltab'])
+                # print(f"-----> Caltab loaded: {i} ({freq_ranges[0]} - {freq_ranges[1]} GHz)")
+                # print("-----> LHC:", confile[i]['lhcCaltab'])
+                # print("-----> RHC:", confile[i]['rhcCaltab'])
             print("-----------------------------------------")
             self.caltabsLoaded = True
         except:
