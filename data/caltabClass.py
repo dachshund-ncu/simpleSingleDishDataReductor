@@ -89,3 +89,16 @@ class caltab():
             return True
         else:
             return False
+    
+    def getMinEpoch(self) -> int:
+        '''
+        Returns min epoch
+        '''
+        min_epochs = [self.lhcMJDTab.min(), self.rhcMJDTab.min()]
+        return int(min(min_epochs))
+    def getMaxEpoch(self) -> int:
+        '''
+        Returns min epoch
+        '''
+        max_epochs = [self.lhcMJDTab.max(), self.rhcMJDTab.max()]
+        return int(max(max_epochs))

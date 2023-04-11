@@ -40,15 +40,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.timeInfoAlreadyPlotted = False
             self.__plotTimeInfo()
             self.__plotScanNo(self.actualScanNumber)
-            if not data.caltabsLoaded:
-                self.calibrate = False
-            if self.data.properCaltabIndex == -1:
-                self.calibrate = False
         self.__declareMenu()
         self.__setCheckedBBCActions()
         self.__connectButtonsToSlots()
         self.__setPolyFitMode()
         self.setVisible(True)
+        if self.data is not None and len(self.data.caltabs) < 1:
+            self.display_caltab_prompt()
         
 
     def __declareAndPlaceButtons(self):
@@ -121,14 +119,16 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.changeBbcLhc.addAction(i)
         for i in self.changeBBCRHCActions:
             self.changeBbcRhc.addAction(i)
+        # -- caltab loading
+        self.download_caltabs_a = QtWidgets.QAction("Download caltabs")
+        self.advancedMenu.addAction(self.download_caltabs_a)
 
     def __setCheckedBBCActions(self):
         '''
         This method sets checked actions for BBCs
         We want only the 1 BBC per pol to be checked
         We manage that by executing the code below
-        self.BBCs is the list of used BBCs: by default these are [1,4]
-
+        self.BBCs is the list of used BBCs: by default these are [1,2]
         '''
         self.changeBBCLHCActions[self.BBCs[0]-1].setChecked(True)
         self.changeBBCRHCActions[self.BBCs[1]-1].setChecked(True)
@@ -190,6 +190,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.shrtfitPolyMode.activated.connect(self.__shrtPolyWrapper)
         self.shrtAutoRedMode.activated.connect(self.__shrtAutoWrapper)
         self.setDefaultRangeOnPolEndShrt.activated.connect(self.__setAutoRangeOnPolEndPlot)
+        self.download_caltabs_a.triggered.connect(self.download_caltabs)
         # --- Menu  - selecting BBCs ---
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
@@ -272,6 +273,35 @@ class mainWindowWidget(QtWidgets.QMainWindow):
                 self.scanStacker.newOtherPropsFigure.setDataForIndex(i, self.data.mergedTimeTab[i], self.data.totalFluxTab[self.actualBBC-1][i])
         self.timeInfoAlreadyPlotted = True
 
+    def display_caltab_prompt(self):
+        '''
+        Displays caltab propt if there is no caltab loaded
+        '''
+        msgBox = QtWidgets.QMessageBox()
+        downloadBtn = msgBox.addButton("Download caltabs", QtWidgets.QMessageBox.ActionRole)
+        cancelBtn = msgBox.addButton(QtWidgets.QMessageBox.Abort)
+        msgBox.setText("Seems there are no downloaded caltabs. Would you like to download them?")
+        msgBox.exec()
+        if msgBox.clickedButton() == downloadBtn:
+            self.download_caltabs()
+        elif msgBox.clickedButton() == cancelBtn:
+            return
+    
+    def __display_download_caltabs_propmpt(self, isSuccess: bool):
+        '''
+        Meant to be triggered only after the caltabs are downloaded
+        Use with caution
+        '''
+
+        msgBox = QtWidgets.QMessageBox()
+        if isSuccess:
+            text = "Downloaded caltabs:"
+            for c in self.data.caltabs:
+                text += f"\n{c.label}, MJD {c.getMinEpoch()} -->  {c.getMaxEpoch()}"
+        else:
+            text = "Failed to download caltabs. Check internet connection or \"caltabPaths.ini\""
+        msgBox.setText(text)
+        msgBox.exec()
     '''
     Methods below are being used as SLOTS
     '''
@@ -344,7 +374,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.setPolyFitMode()
         # data handling
         calCoeff = 1
-        if self.calibrate:
+        if self.calibrate and self.data.properCaltabIndex < len(self.data.caltabs):
             date = self.data.obs.mjd
             self.data.findCalCoefficients()
             if self.lhcReduction:
@@ -765,6 +795,15 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         print("-----------------------------------------")
         return True
     
+    @QtCore.Slot()
+    def download_caltabs(self):
+        '''
+        Downloads caltabs
+        '''
+        self.data.download_caltabs()
+        self.__display_download_caltabs_propmpt(self.data.caltabsLoaded)
+        if self.polEnd.isVisible:
+            self.__finishPol()
     def __updateLabel(self):
         rms = self.data.calculateFitRMS(self.data.polyTabResiduals)
         snr = self.data.calculateSNR()

@@ -17,6 +17,7 @@ class dataContainter:
         '''
         CHECK CONFIGURATION FILES
         '''
+        self.caltabs = []
         self.DE_CAT = absolutePath
         self.configDir = platformdirs.user_config_dir('ssddr')
         self.__load_caltabs_wrapper()
@@ -64,23 +65,38 @@ class dataContainter:
         self.calCoeffLHC = 1.0
         self.calCoeffRHC = 1.0
 
+    def download_caltabs(self):
+        '''
+        Downloads caltabs from the server
+        '''
+        self.caltabs_backup = self.caltabs
+        self.caltabs = []
+        if self.__tryToLoadCaltabs():
+            self.__copy_caltabs_to_config(os.path.join(self.configDir, 'caltabs'))
+            self.properCaltabIndex = self.findProperCaltabIndex()
+            return True
+        else:
+            self.caltabs = self.caltabs_backup
+            return False
+        
     def __load_caltabs_wrapper(self):
         '''
-        Loads the config files from the directory
-        - check if directory exists
-            if not:
-             - make a directory
-             - download / copy caltabs to it
+        Loads the caltab files upon startup
         '''
         self.caltabs = []
         if not os.path.exists(self.configDir):
             os.mkdir(self.configDir)
-        self.__tryToLoadCaltabs()
-        if self.caltabsLoaded:
-            self.__copy_caltabs_to_config(self.configDir)
+            os.mkdir(os.path.join(self.configDir, 'caltabs'))
+        print(f"-----> Searching for caltabs in {os.path.join(self.configDir, 'caltabs')}...")
+        self.__read_caltabs_from_config(os.path.join(self.configDir, 'caltabs'))
+        if len(self.caltabs) == 0:
+            self.caltabsLoaded = False
+            print(f"-----> No caltabs found. I suggest to try download them.")
+            print(f"--------> Just go to advanced -> download caltabs")
         else:
-            self.__read_caltabs_from_config(self.configDir)
-    
+            self.caltabsLoaded = True
+        print("-----------------------------------------")
+
     def __read_caltabs_from_config(self, directory: str):
         '''
         Simply reads the caltab from config files
@@ -94,7 +110,6 @@ class dataContainter:
             self.caltabs.append(caltab(os.path.basename(directory_single), 
                                        [os.path.join(directory_single, 'CALTAB_L1'), os.path.join(directory_single, 'CALTAB_R1')],
                                         np.loadtxt(os.path.join(directory_single, 'freq_ranges')) ) )
-        self.caltabsLoaded = True
         
     def __copy_caltabs_to_config(self, directory):
         '''
@@ -374,29 +389,28 @@ class dataContainter:
         return I, V, self.finalLHC, self.finalRHC
     
     def __tryToLoadCaltabs(self):
+        '''
+        Tries to load caltab from a server
+        adresses are loaded from the config file
+        '''
         try:
-            print("-----> Loading caltabs...")
             confile = configparser.ConfigParser()
             confile.read(os.path.join(self.DE_CAT,'caltabPaths.ini'))
             for i in confile.sections():
-                label = i
                 tab_paths = [confile[i]['lhcCaltab'], confile[i]['rhcCaltab']]
                 freq_ranges = [ float(confile[i]['minFreq']), float(confile[i]['maxFreq'])]
                 self.caltabs.append(caltab(i, tab_paths, freq_ranges))
-                # print(f"-----> Caltab loaded: {i} ({freq_ranges[0]} - {freq_ranges[1]} GHz)")
-                # print("-----> LHC:", confile[i]['lhcCaltab'])
-                # print("-----> RHC:", confile[i]['rhcCaltab'])
-            print("-----------------------------------------")
             self.caltabsLoaded = True
+            return True
         except:
-            print("-----> Error loading caltabs")
             self.caltabsLoaded = False
+            return False
     
     def findProperCaltabIndex(self):
         '''
         Assumes the data is loaded
         '''
-        properIndex = -1
+        properIndex = int(1e9)
         for i in range(len(self.caltabs)):
             if self.caltabs[i].inRange(self.obs.scans[0].rest[0] / 1000.0):
                 properIndex = i
