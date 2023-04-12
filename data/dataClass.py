@@ -416,16 +416,27 @@ class dataContainter:
                 properIndex = i
         return properIndex
     
-    def findCalCoefficients(self):
+    def findCalCoefficients(self) -> bool:
+        '''
+        Finds proper caltab coefficient, based on mean epoch of the acquired data
+        returns:
+            True - if the caltab is longer than current epoch
+            False - if the caltab is shorter
+        '''
         date = self.obs.mjd
-        if self.properCaltabIndex == -1:
+        if self.properCaltabIndex == int(1e9):
             self.calCoeffLHC = 1.0
             self.calCoeffRHC = 1.0
+            return True
         else:
             self.calCoeffLHC = self.caltabs[self.properCaltabIndex].findCoeffs(date)[0]
             self.calCoeffRHC = self.caltabs[self.properCaltabIndex].findCoeffs(date)[1]
-        self.printCalibrationMessage(self.calCoeffLHC, self.calCoeffRHC, date, lhc=True)
-        
+            self.printCalibrationMessage(self.calCoeffLHC, self.calCoeffRHC, date, lhc=True)
+            if self.caltabs[self.properCaltabIndex].getMaxEpoch() < date:
+                return False
+            else:
+                return True
+
     def printCalibrationMessage(self, calCoeffLHC, calCoeffRHC, epoch, lhc=True):
         print('-----------------------------------------')
         print(f'-----> CALIBRATION PROMPT:')

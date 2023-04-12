@@ -46,7 +46,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__setPolyFitMode()
         self.setVisible(True)
         if self.data is not None and len(self.data.caltabs) < 1:
-            self.display_caltab_prompt()
+            self.display_caltab_prompt("Seems there are no downloaded caltabs. Would you like to download them?")
         
 
     def __declareAndPlaceButtons(self):
@@ -273,14 +273,14 @@ class mainWindowWidget(QtWidgets.QMainWindow):
                 self.scanStacker.newOtherPropsFigure.setDataForIndex(i, self.data.mergedTimeTab[i], self.data.totalFluxTab[self.actualBBC-1][i])
         self.timeInfoAlreadyPlotted = True
 
-    def display_caltab_prompt(self):
+    def display_caltab_prompt(self, text: str) -> None:
         '''
         Displays caltab propt if there is no caltab loaded
         '''
         msgBox = QtWidgets.QMessageBox()
         downloadBtn = msgBox.addButton("Download caltabs", QtWidgets.QMessageBox.ActionRole)
         cancelBtn = msgBox.addButton(QtWidgets.QMessageBox.Abort)
-        msgBox.setText("Seems there are no downloaded caltabs. Would you like to download them?")
+        msgBox.setText(text)
         msgBox.exec()
         if msgBox.clickedButton() == downloadBtn:
             self.download_caltabs()
@@ -374,9 +374,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.setPolyFitMode()
         # data handling
         calCoeff = 1
+        flag_cal = False
         if self.calibrate and self.data.properCaltabIndex < len(self.data.caltabs):
             date = self.data.obs.mjd
-            self.data.findCalCoefficients()
+            flag_cal = self.data.findCalCoefficients()
             if self.lhcReduction:
                 ctabx = self.data.caltabs[self.data.properCaltabIndex].lhcMJDTab
                 ctaby = self.data.caltabs[self.data.properCaltabIndex].lhcCoeffsTab
@@ -392,15 +393,18 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.calibrated = True
             self.polEnd.cancelCalibrations.setEnabled(True)
             self.polEnd.useCalibrations.setEnabled(False)
+
         else:
             self.polEnd.cancelCalibrations.setEnabled(False)
             self.polEnd.useCalibrations.setEnabled(False)
         
+
         self.data.calculateSpectrumFromStack()
         spectr = self.data.calibrate(lhc=self.lhcReduction)
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
         self.polEnd.setFluxLabel(calCoeff)
-
+        if not flag_cal and self.calibrate:
+            self.display_caltab_prompt(f"Seems that the calibration tables are too short. \nLast epoch in {self.data.caltabs[self.data.properCaltabIndex].label} is {self.data.caltabs[self.data.properCaltabIndex].getMaxEpoch()}, while epoch of this obs. is {round(self.data.obs.mjd,3)}.\nWould tou like to download them?")
     @QtCore.Slot()
     def __discardScan(self):
         self.data.discardFromStack(self.actualScanNumber)
@@ -802,8 +806,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         '''
         self.data.download_caltabs()
         self.__display_download_caltabs_propmpt(self.data.caltabsLoaded)
-        if self.polEnd.isVisible:
+        if self.polEnd.isVisible():
             self.__finishPol()
+
     def __updateLabel(self):
         rms = self.data.calculateFitRMS(self.data.polyTabResiduals)
         snr = self.data.calculateSNR()
