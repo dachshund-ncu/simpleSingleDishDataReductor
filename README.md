@@ -20,6 +20,8 @@ Designed to work with data, obtained from 32m NCU radio telescope autocorrelator
 
 - requests
 
+- platformdirs
+
 ### Installation of the needed packages ###
 ```bash
 python3 -m pip install --upgrade pip
