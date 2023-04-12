@@ -5,6 +5,7 @@ Single dish radio telescope data reductor.
 Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in frequency-switch mode). It makes use of the QT interface and pyqtgraph plotting library to interactively visualize the data.
 
 ### Requirements ###
+Bear in mind, that this package requires AT LEAST python 3.8
 
 - PySide2
 
@@ -21,6 +22,7 @@ Designed to work with data, obtained from 32m NCU radio telescope autocorrelator
 - requests
 
 - platformdirs
+
 
 ### Installation of the needed packages ###
 ```bash
