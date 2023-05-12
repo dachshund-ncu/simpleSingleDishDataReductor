@@ -84,9 +84,9 @@ class dataContainter:
         Loads the caltab files upon startup
         '''
         self.caltabs = []
-        if not os.path.exists(self.configDir):
-            os.mkdir(self.configDir)
-            os.mkdir(os.path.join(self.configDir, 'caltabs'))
+        caldir = os.path.join(self.configDir, 'caltabs')
+        if not os.path.exists(caldir):
+            os.makedirs(caldir, exist_ok=True)
         print(f"-----> Searching for caltabs in {os.path.join(self.configDir, 'caltabs')}...")
         self.__read_caltabs_from_config(os.path.join(self.configDir, 'caltabs'))
         if len(self.caltabs) == 0:
