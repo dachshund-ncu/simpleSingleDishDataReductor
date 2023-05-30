@@ -7,7 +7,7 @@ Designed to work with data, obtained from 32m NCU radio telescope autocorrelator
 ### Requirements ###
 Bear in mind, that this package requires AT LEAST python 3.8
 
-- PySide2
+- PyQt5
 
 - pyqtgraph
 
