@@ -7,7 +7,7 @@ Class, that holds the scan stacking widget:
 '''
 
 #from tkinter import Y
-from PySide2 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 from customButton import cButton
 from moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
@@ -70,7 +70,7 @@ class scanStackingWidget(QtWidgets.QWidget):
     def __declareNecessaryButtons(self):
         self.leftWidget = cWidget()#QtWidgets.QWidget()
         self.vboxLeftWidget = QtWidgets.QVBoxLayout(self.leftWidget)
-        self.vboxLeftWidget.setMargin(0)
+        self.vboxLeftWidget.setContentsMargins(0,0,0,0)
         self.vboxScanOperationsFrame = QtWidgets.QVBoxLayout()
         self.ScanOperationsFrame = QtWidgets.QGroupBox("Scan operations")
         self.ScanOperationsFrame.setLayout(self.vboxScanOperationsFrame)

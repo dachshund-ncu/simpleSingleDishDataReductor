@@ -2,7 +2,7 @@
 VERY smol widget, that holds simple UI for changing fit order
 '''
 
-from PySide2 import QtWidgets
+from PyQt5 import QtWidgets
 from customButton import cButton
 
 class changeOrder(QtWidgets.QWidget):

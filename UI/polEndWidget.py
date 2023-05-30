@@ -3,7 +3,7 @@ This class holds widget for polarization reduction end
 '''
 
 
-from PySide2 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 from customButton import cButton
 from moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
@@ -57,7 +57,7 @@ class polEndWidget(QtWidgets.QWidget):
     def __declareNecessaryButtons(self):
         self.leftWidget = cWidget()#QtWidgets.QWidget()
         self.vboxLeftWidget = QtWidgets.QVBoxLayout(self.leftWidget)
-        self.vboxLeftWidget.setMargin(0)
+        self.vboxLeftWidget.setContentsMargins(0,0,0,0)
 
         self.vboxStokesFrame = QtWidgets.QVBoxLayout()
         self.stokesFrame = QtWidgets.QGroupBox("Stokes handling")
@@ -135,7 +135,7 @@ class polEndWidget(QtWidgets.QWidget):
     '''
     PRIVATE SLOTS:
     '''
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def setPolyFitMode(self):
         self.polyFitMode = True
         self.removeChannelsMode = False
@@ -148,7 +148,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.performFit.setEnabled(True)
         self.newPolEndFig.pSpec.setMouseEnabled(x=False, y=False)
         print("-----> Polynomial fit mode is ACTIVE!")
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def setRemoveChansMode(self):
         self.polyFitMode = False
         self.removeChannelsMode = True
@@ -161,7 +161,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.performFit.setEnabled(False)
         self.newPolEndFig.pSpec.setMouseEnabled(x=False, y=False)
         print("-----> Channel removal mode is ACTIVE!")
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def setZoomMode(self):
         self.polyFitMode = False
         self.removeChannelsMode = False
@@ -174,7 +174,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.performFit.setEnabled(False)
         self.newPolEndFig.pSpec.setMouseEnabled(x=True, y=True)
         print("-----> Zoom mode is ACTIVE!")
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def setDefaultRange(self):
         '''
         This method sets default range of the spectrum plot

@@ -3,7 +3,7 @@ Class that holds custom buyyon
 Just to avoid repeating code
 '''
 
-from PySide2 import QtWidgets
+from PyQt5 import QtWidgets
 '''
 QPushButton#evilButton {
     background-color: red;

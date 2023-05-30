@@ -1,4 +1,4 @@
-PySide2
+PyQt5
 pyqtgraph
 mpmath
 astropy

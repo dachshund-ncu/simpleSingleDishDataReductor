@@ -11,7 +11,7 @@ https://www.flaticon.com/free-icons/radar
 '''
 # -- IMPORT BLOCK --
 import sys
-from PySide2 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui
 import os
 
 # managing source dirname to properly import custom classes:

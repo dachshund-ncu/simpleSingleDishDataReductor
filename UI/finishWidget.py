@@ -3,7 +3,7 @@ This class holds last widget of them all:
 fihishing widget
 '''
 
-from PySide2 import QtWidgets
+from PyQt5 import QtWidgets
 from customButton import cButton
 from moreEfficentFigureTemplate import templateFigurePG
 from customLeftBarWidget import cWidget

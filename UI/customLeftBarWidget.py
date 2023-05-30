@@ -1,7 +1,7 @@
 '''
 Class that holds slightly modified QWidget
 '''
-from PySide2 import QtWidgets
+from PyQt5 import QtWidgets
 
 class cWidget(QtWidgets.QWidget):
     def __init__(self, parent = None):
