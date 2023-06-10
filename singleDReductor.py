@@ -38,7 +38,7 @@ def onVersion():
     print("-----> This is \"Simple Single Dish Data Reductior\"")
     print("-----> Author: Michał Durjasz, Nicolaus Copernicus Univesity, Poland")
     print("-----> E-mail: md@astro.umk.pl")
-    print("-----> Version: 1.1")
+    print("-----> Version: 1.11")
     print("-----------------------------------------")
     sys.exit()
 

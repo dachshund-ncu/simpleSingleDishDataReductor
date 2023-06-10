@@ -2,7 +2,7 @@
 
 # simpleSingleDishDataReductor
 Single dish radio telescope data reductor. 
-Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in frequency-switch mode). It makes use of the QT interface and pyqtgraph plotting library to interactively visualize the data.
+Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in both frequency-switch and on-off mode). It makes use of the QT interface and pyqtgraph plotting library to interactively visualize the data.
 
 ### Requirements ###
 Bear in mind, that this package requires AT LEAST python 3.8
@@ -31,8 +31,13 @@ python3 -m pip install -r requirements.txt
 ```
 
 ### Usage ###
-```bash
-python3 singleDReductor.py your_archive_name.tar.bz2
+```
+python3 singleDReductor.py your_archive.tar.bz2 [OPTIONS]
+	OPTIONS:
+	-h, --help    | show this help message and exit
+	-v, --version | show version and exit
+	-n, --nocal   | do not use calibration tables
+	-f, --onoff   | do an on-off reduction instead of a frequency-switch
 ```
 ### Output ###
 Files that go outside are in .fits format. Filename: sourcename_MJD.fits
