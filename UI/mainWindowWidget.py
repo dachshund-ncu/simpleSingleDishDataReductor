@@ -404,7 +404,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
         self.polEnd.setFluxLabel(calCoeff)
         if not flag_cal and self.calibrate:
-            self.display_caltab_prompt(f"Seems that the calibration tables are too short. \nLast epoch in {self.data.caltabs[self.data.properCaltabIndex].label} is {self.data.caltabs[self.data.properCaltabIndex].getMaxEpoch()}, while epoch of this obs. is {round(self.data.obs.mjd,3)}.\nWould tou like to download them?")
+            self.display_caltab_prompt(f"Seems that the calibration tables are too short. \nLast epoch in {self.data.caltabs[self.data.properCaltabIndex].label} is {self.data.caltabs[self.data.properCaltabIndex].getMaxEpoch()}, while epoch of this obs. is {round(self.data.obs.mjd,3)}.\nWould you like to download them?")
     @QtCore.pyqtSlot()
     def __discardScan(self):
         self.data.discardFromStack(self.actualScanNumber)
