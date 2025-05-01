@@ -1,2 +1,4 @@
 # ignore ALL __PYCACHE__
 *__pycache__
+.idea
+.venv

@@ -13,87 +13,59 @@ https://www.flaticon.com/free-icons/radar
 import sys
 from PyQt5 import QtWidgets, QtGui
 import os
-
-# managing source dirname to properly import custom classes:
-scr_directory = os.path.dirname(__file__) + '/'
-sys.path.append(scr_directory)
-sys.path.append(scr_directory + "UI")
-sys.path.append(scr_directory + "data")
-from mainWindowWidget import mainWindowWidget
-from dataClass import dataContainter
+from UI.mainWindowWidget import mainWindowWidget
+from data.dataClass import dataContainter
+import argparse
+import json
 # --------------------
 
-def ohHelp():
-    print("-----> Usage:")
-    print("\tpython3 singleDReductor.py your_archive.tar.bz2 [OPTIONS]")
-    print("\tOPTIONS:")
-    print("\t-h, --help    | show this help message and exit")
-    print("\t-v, --version | show version and exit")
-    print("\t-n, --nocal   | do not use calibration tables")
-    print("\t-f, --onoff   | do an on-off reduction instead of a frequency-switch")
-    print("-----------------------------------------")
-    sys.exit()
-
-def onVersion():
-    print("-----> This is \"Simple Single Dish Data Reductior\"")
-    print("-----> Author: Michał Durjasz, Nicolaus Copernicus Univesity, Poland")
-    print("-----> E-mail: md@astro.umk.pl")
-    print("-----> Version: 1.11")
-    print("-----------------------------------------")
-    sys.exit()
+DE_CAT = os.path.dirname(__file__)
+CONFIG = json.load(
+    open(
+        os.path.join(DE_CAT, "config.json"),
+        "r+"))
 
 
-if __name__ == "__main__":
+def construct_greeting(args: argparse.Namespace):
+    print("-----> Welcome to the SSDDR!")
+    if args.nocal:
+        print("-----> --nocal option used. Calibration tables will not be applied")
+    if args.onoff:
+        print("-----> --onoff option used. The data will be processed in on-off method")
+
+
+def main():
     """
     This is main of the SSDDR
-    - we print here welcome message and wake to life objects, used in the process of data reduction
-    - we also need to program invocation around -nocal option    
     """
+    # -- parse arguments --
+    parser = argparse.ArgumentParser(description=f"Data reduction tool for 32-m NCU RT spectral data. Version {CONFIG["version"]}.")
+    parser.add_argument("-n", "--nocal", action="store_true", help="do not use calibration tables")
+    parser.add_argument("-f", "--onoff", action="store_true", help="do an on-off reduction instead of a frequency-switch")
+    parser.add_argument("filename")
+    args = parser.parse_args()
 
-    print("-----------------------------------------")
-    print("-----> Welcome to SSDDR (Simple Single Dish Data Reductor)!")
-    print("-----------------------------------------")
-    if (len(sys.argv) > 1):
-        pass
-    else:
-        print("-----> Bad usage! You need to pass .tar.bz2 archive as a program argument!")
-        print("-----------------------------------------")
-        sys.exit()    
+    # -- construct greeting --
+    construct_greeting(args)
+
+    # -- start app --
     app = QtWidgets.QApplication(sys.argv)
+    data = dataContainter(
+        software_path = DE_CAT,
+        target_filename = args.filename,
+        onOff=args.onoff)
+    widget = mainWindowWidget(
+        data,
+        calibrate = not args.nocal)
 
-    if '-v' in sys.argv or '--version' in sys.argv:
-        onVersion()
-    elif '-h' in sys.argv or '--help' in sys.argv:
-        ohHelp()
-
-    if '-f' in sys.argv or '--onoff' in sys.argv:
-        onOff = True
-    else:
-        onOff = False
-
-    if '--nocal' in sys.argv or '-n' in sys.argv:
-        '''
-        We need to program this app for two cases:
-        ./singleDreductor.py archive.tar.bz2 --nocal
-        and
-        ./singleDreductor.py --nocal archive.tar.bz2
-        '''
-        if '--nocal' in sys.argv:
-            nocalIndex = sys.argv.index('--nocal')
-        elif '-n' in sys.argv:
-            nocalIndex = sys.argv.index('-n')
-
-        if nocalIndex == 1:
-            data = dataContainter(scr_directory, sys.argv[2], onOff)
-        else:
-            data = dataContainter(scr_directory, sys.argv[1], onOff)
-        widget = mainWindowWidget(app, data, calibrate=False)
-    else:
-        data = dataContainter(scr_directory, sys.argv[1], onOff)
-        widget = mainWindowWidget(app, data, calibrate=True)
-    
-    widget.setWindowIcon(QtGui.QIcon(scr_directory + "icons/satellite-dish.png"))
+    # -- set window properties
+    widget.setWindowIcon(QtGui.QIcon(os.path.join(DE_CAT, "icons", "satellite-dish.png")))
     widget.setWindowTitle("Data reduction: " + data.obs.scans[0].sourcename + " " + data.obs.scans[0].isotime)
     widget.resize(1366, 720)
     widget.show()
+
+    # -- go --
     app.exec_()
+
+if __name__ == "__main__":
+    main()

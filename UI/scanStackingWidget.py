@@ -8,10 +8,10 @@ Class, that holds the scan stacking widget:
 
 #from tkinter import Y
 from PyQt5 import QtCore, QtWidgets, QtGui
-from customButton import cButton
-from moreEfficentFigureTemplate import templateFigurePG
+from .customButton import cButton
+from .moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
-from customLeftBarWidget import cWidget
+from .customLeftBarWidget import cWidget
 
 class scanStackingWidget(QtWidgets.QWidget):
     def __init__(self):

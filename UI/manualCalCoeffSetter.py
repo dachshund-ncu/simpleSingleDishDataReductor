@@ -3,7 +3,7 @@ VERY smol widget, that holds simple UI for changing cal coefficient
 '''
 
 from PyQt5 import QtWidgets
-from customButton import cButton
+from .customButton import cButton
 class changeCalCoeffWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()

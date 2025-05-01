@@ -4,9 +4,9 @@ fihishing widget
 '''
 
 from PyQt5 import QtWidgets
-from customButton import cButton
-from moreEfficentFigureTemplate import templateFigurePG
-from customLeftBarWidget import cWidget
+from .customButton import cButton
+from .moreEfficentFigureTemplate import templateFigurePG
+from .customLeftBarWidget import cWidget
 
 class finishWidgetP(QtWidgets.QWidget):
     def __init__(self):

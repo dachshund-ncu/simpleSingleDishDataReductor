@@ -3,8 +3,8 @@ Class, that holds the whole data
 '''
 
 import tarfile
-from scanObservation import observation
-from caltabClass import caltab
+from .scanObservation import observation
+from .caltabClass import caltab
 import os
 import numpy as np
 import configparser
@@ -12,13 +12,16 @@ from astropy.io import fits
 import platformdirs
 
 class dataContainter:
-    def __init__(self, absolutePath, tarName = None, onOff = False):
+    def __init__(self,
+                 software_path: str,
+                 target_filename: str | None = None,
+                 onOff: bool = False):
         self.isOnOff = onOff
         '''
         CHECK CONFIGURATION FILES
         '''
         self.caltabs = []
-        self.DE_CAT = absolutePath
+        self.DE_CAT = software_path
         self.configDir = platformdirs.user_config_dir('ssddr')
         self.__load_caltabs_wrapper()
 
@@ -35,8 +38,8 @@ class dataContainter:
             [1224, 2872],
             [3272, 4086]
         ]
-        if(tarName != None):
-            self.__openTheArchive(tarName)
+        if target_filename is not None:
+            self.__openTheArchive(target_filename)
             self.__processData()
             self.zTab = self.__getZData()
             self.tsysTab = self.__getTsysData()

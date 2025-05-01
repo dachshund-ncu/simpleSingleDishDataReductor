@@ -4,11 +4,11 @@ Author: Michał Durjasz
 Date: 8.03.2022
 '''
 from PyQt5 import QtWidgets, QtGui, QtCore
-from scanStackingWidget import scanStackingWidget
-from polEndWidget import polEndWidget
-from finishWidget import finishWidgetP
-from fitOrderChangeWidget import changeOrder
-from manualCalCoeffSetter import changeCalCoeffWindow
+from .scanStackingWidget import scanStackingWidget
+from .polEndWidget import polEndWidget
+from .finishWidget import finishWidgetP
+from .fitOrderChangeWidget import changeOrder
+from .manualCalCoeffSetter import changeCalCoeffWindow
 import numpy as np
 import sys
 import functools as fctls
@@ -16,7 +16,10 @@ import functools as fctls
 # -- class definition starts here --
 class mainWindowWidget(QtWidgets.QMainWindow):
     # -- init --
-    def __init__(self, parent, data = None, calibrate=True):
+    def __init__(
+            self,
+            data = None,
+            calibrate=True):
         super().__init__()
         self.setVisible(False)
         '''
