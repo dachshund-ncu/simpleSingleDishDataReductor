@@ -200,8 +200,39 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         for i in range(len(self.changeBBCRHCActions)):
             self.changeBBCRHCActions[i].triggered.connect(fctls.partial(self.__bbcRhcHandler, i))
 
+    def plot_spectral_data(
+            self,
+            plot_dictionary,
+            fit_bound_channel_pairs: list[list[int]],
+            x_data: np.ndarray,
+            y_data: np.ndarray):
+        category_d = {
+            "continuum": 0,
+            "rfi": 1,
+            "emission": 2,
+            "edge": 3
+        }
+        # get list of categories
+        categories = np.full(len(y_data), category_d["rfi"])
+        for channel_pair in fit_bound_channel_pairs:
+            categories[channel_pair[0]:channel_pair[1]] = category_d["continuum"]
+
+        # set data for keys
+        y_data_dict = {}
+        for key in plot_dictionary.keys():
+            tmp_y = y_data.copy()
+            tmp_y[categories != category_d[key]] = np.nan
+            y_data_dict[key] = tmp_y
+
+        # plot data
+        for key in plot_dictionary.keys():
+            plot_dictionary[key].setData(
+                x_data,
+                y_data_dict[key]
+            )
+
     def __plotScanNo(self, scanNumber):
-        '''
+        """
         It plots scan of the number, given in the argument
         WHAT IT DOES:
         -> fits the polynomial (right before plottng)
@@ -210,7 +241,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         --> zoomed merged scan + poly fit
         --> resulting spectrum
         -> also marks, which Z, Tsys and Total Flux we are at
-        '''
+        """
         if self.lhcReduction:
             self.actualBBC = self.BBCs[0]
             self.data.setActualBBC(self.actualBBC)
@@ -221,13 +252,30 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if scanNumber > len(self.data.obs.mergedScans):
             return
         # ------------
-        noOfChannels = len(self.data.obs.mergedScans[scanNumber].pols[0])
-        channelTab = np.linspace(1, noOfChannels, noOfChannels)
-        self.scanStacker.newScanFigure.fullYScanPlot.setData(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
-        self.scanStacker.newScanFigure.zoomedYScanPlot.setData(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
+
         # ------------
         if len(self.scanStacker.fitBoundsChannels) != 0:
             self.data.fitBoundsChannels = self.scanStacker.fitBoundsChannels
+        # ------------
+
+        noOfChannels = len(self.data.obs.mergedScans[scanNumber].pols[0])
+        channelTab = np.linspace(1, noOfChannels, noOfChannels)
+        # self.scanStacker.newScanFigure.fullYScanPlot.setData(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
+        # self.scanStacker.newScanFigure.zoomedYScanPlots["continuum"].setData(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
+        self.plot_spectral_data(
+            plot_dictionary = self.scanStacker.newScanFigure.fullYScanPlots,
+            fit_bound_channel_pairs = self.data.fitBoundsChannels,
+            x_data = channelTab,
+            y_data = self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1]
+        )
+        self.plot_spectral_data(
+            plot_dictionary = self.scanStacker.newScanFigure.zoomedYScanPlots,
+            fit_bound_channel_pairs = self.data.fitBoundsChannels,
+            x_data = channelTab,
+            y_data = self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1]
+        )
+        # ------------
+
         #print(self.data.fitBoundsChannels)
         polyTabX, polyTabY, polyTabResiduals = self.data.fitChebyForScan(self.actualBBC, self.data.fitOrder, scanNumber)
         self.scanStacker.newScanFigure.fitChebyPlot.setData(polyTabX, polyTabY)

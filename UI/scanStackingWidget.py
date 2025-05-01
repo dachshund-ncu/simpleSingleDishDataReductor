@@ -12,6 +12,7 @@ from .customButton import cButton
 from .moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
 from .customLeftBarWidget import cWidget
+import numpy as np
 
 class scanStackingWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -300,10 +301,27 @@ class newScanStackingFigure(templateFigurePG):
         self.pZoom.showGrid(x=True, y=True, alpha=0.8)
         # PENS 
         cyan = (255,255,255)
-        red = (255, 127, 80)
+        red2 = (255, 127, 80)
+        grey = (137, 137, 137)
+        green = (191, 255, 0)
+        red = (255, 0, 0)
+        blue = (0, 0, 255)
         # --
-        self.fullYScanPlot = self.pTop.plot([0,1], pen=cyan)
-        self.zoomedYScanPlot = self.pZoom.plot([0,1], pen=cyan)
+
+        self.fullYScanPlots = {
+            "continuum": self.pTop.plot([0, 1], pen=grey),
+            "emission": self.pTop.plot([0, 1], pen=green),
+            "rfi": self.pTop.plot([0, 1], pen=red2),
+            "edge": self.pTop.plot([0, 1], pen=blue)
+        }
+
+        self.zoomedYScanPlots = {
+            "continuum": self.pZoom.plot([0,1], pen = grey),
+            "emission": self.pZoom.plot([0,1], pen = green),
+            "rfi": self.pZoom.plot([0,1], pen = red2),
+            "edge": self.pZoom.plot([0,1], pen = blue)
+        }
+
         self.fitChebyPlot = self.pZoom.plot([0,1], pen=pg.mkPen(red, width=2))
         # --
         self.pTop.disableAutoRange()
@@ -363,9 +381,25 @@ class newScanStackingFigure(templateFigurePG):
     def drawData(self):
         self.__autoscaleZoomedPlotY()
         self.autoscale()
-    
+
+    def gather_data_from_plot_d(self):
+        # gather data from all plots
+        x = []
+        y = []
+        for key in self.fullYScanPlots.keys():
+            tmp_x, tmp_y = self.fullYScanPlots[key].getData()
+            x.extend(tmp_x)
+            y.extend(tmp_y)
+        x = np.asarray(x)
+        y = np.asarray(y)
+        # replace nans with 9
+        x[np.isnan(x)] = 0.0
+        y[np.isnan(y)] = 0.0
+        return x,y
+
+
     def autoscale(self):
-        x,y = self.fullYScanPlot.getData()
+        x,y = self.gather_data_from_plot_d()
         diff = abs(y.max() - y.min())
         maxRange = y.max() + 0.05 * diff
         minRange = y.min() - 0.05 * diff
