@@ -17,6 +17,7 @@ from UI.mainWindowWidget import mainWindowWidget
 from data.dataClass import dataContainter
 import argparse
 import json
+from UI.icons import satellite_dish
 # --------------------
 
 DE_CAT = os.path.dirname(__file__)
@@ -59,7 +60,7 @@ def main():
         calibrate = not args.nocal)
 
     # -- set window properties
-    widget.setWindowIcon(QtGui.QIcon(os.path.join(DE_CAT, "icons", "satellite-dish.png")))
+    widget.setWindowIcon(satellite_dish)
     widget.setWindowTitle("Data reduction: " + data.obs.scans[0].sourcename + " " + data.obs.scans[0].isotime)
     widget.resize(1366, 720)
     widget.show()

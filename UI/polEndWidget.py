@@ -4,10 +4,10 @@ This class holds widget for polarization reduction end
 
 
 from PyQt5 import QtCore, QtWidgets, QtGui
-from .customButton import cButton
+from .ui_elements.customButton import custom_button
 from .moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
-from .customLeftBarWidget import cWidget
+from .ui_elements.customLeftBarWidget import cWidget
 
 class polEndWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -76,19 +76,19 @@ class polEndWidget(QtWidgets.QWidget):
         self.calHandling.setLayout(self.vboxCalHandling)
 
         # buttons
-        self.goToNextPol = cButton("Go to next Pol") 
-        self.backToPol = cButton("Return to scan edit")
-        self.cancelCalibrations = cButton("Cancel calibrations")
-        self.useCalibrations = cButton("Use calibrations")
-        self.setManualCal =  cButton("Set cal coeff manually")
+        self.goToNextPol = custom_button("Go to next Pol")
+        self.backToPol = custom_button("Return to scan edit")
+        self.cancelCalibrations = custom_button("Cancel calibrations")
+        self.useCalibrations = custom_button("Use calibrations")
+        self.setManualCal =  custom_button("Set cal coeff manually")
 
-        self.removeChannels = cButton("Remove channels")
-        self.fitPolynomial = cButton("Fit Polynomial")
-        self.performFit = cButton("Perform Fit")
-        self.performRemoval = cButton("Perform removal")
-        self.reverseChanges = cButton("Abandon changes")
-        self.zoomButton = cButton("Zoom")
-        self.setDefaultRangeButton = cButton("Set default range")
+        self.removeChannels = custom_button("Remove channels")
+        self.fitPolynomial = custom_button("Fit Polynomial")
+        self.performFit = custom_button("Perform Fit")
+        self.performRemoval = custom_button("Perform removal")
+        self.reverseChanges = custom_button("Abandon changes")
+        self.zoomButton = custom_button("Zoom")
+        self.setDefaultRangeButton = custom_button("Set default range")
         # buttons placing
         self.vboxStokesFrame.addWidget(self.goToNextPol)
         self.vboxStokesFrame.addWidget(self.backToPol)

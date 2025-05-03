@@ -4,11 +4,15 @@ Author: Michał Durjasz
 Date: 8.03.2022
 '''
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtCore import QRect
+
 from .scanStackingWidget import scanStackingWidget
 from .polEndWidget import polEndWidget
 from .finishWidget import finishWidgetP
 from .fitOrderChangeWidget import changeOrder
 from .manualCalCoeffSetter import changeCalCoeffWindow
+from .ui_elements.custom_menu import CustomMenu
+from .icons import bars_icon
 import numpy as np
 import sys
 import functools as fctls
@@ -32,7 +36,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.BBCs = [1,2]
         self.bbcindex = 0
         self.__declareAndPlaceButtons()
-        self.__declareAndPlaceCustomWidgets()
+
         self.lhcReduction = True
         self.mode = 'Polynomial fit'
         if data != None:
@@ -41,12 +45,16 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.actualBBC = self.BBCs[0]
             self.maximumScanNumber = len(data.obs.mergedScans)
             self.timeInfoAlreadyPlotted = False
+        self.__declareMenu()
+        self.__declareAndPlaceCustomWidgets()
+        if data != None:
             self.__plotTimeInfo()
             self.__plotScanNo(self.actualScanNumber)
-        self.__declareMenu()
+
         self.__setCheckedBBCActions()
         self.__connectButtonsToSlots()
         self.__setPolyFitMode()
+        self.setStyleSheet("background-color: #121212;")
         self.setVisible(True)
         if self.data is not None and len(self.data.caltabs) < 1:
             self.display_caltab_prompt("Seems there are no downloaded caltabs. Would you like to download them?")
@@ -87,10 +95,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.setDefaultRangeOnPolEndShrt = QtWidgets.QShortcut(QtGui.QKeySequence('b'), self)
 
     def __declareAndPlaceCustomWidgets(self):
-        '''
+        """
         Declares custom widgets, defined in separate files
         Only self.scanStacker should be visible at the start of the program
-        '''
+        """
         self.scanStacker = scanStackingWidget()
         self.polEnd = polEndWidget()
         self.finishW = finishWidgetP()
@@ -99,18 +107,20 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
     
     def __declareMenu(self):
-        '''
+        """
         This method solely declares and places menu in the top of the Main Window
-        '''
+        """
         #--
-        self.menu = self.menuBar()
-        self.advancedMenu = self.menu.addMenu("&Advanced")
+        self.menu = CustomMenu()
+        self.menu.setToolTip("Advanced")
+        self.menu.setStyleSheet(CustomMenu.get_style_sheet())
+
         # --
         self.changeOrderAction = QtWidgets.QAction("Change fit order")
         # --
-        self.advancedMenu.addAction(self.changeOrderAction)
-        self.changeBbcLhc = self.advancedMenu.addMenu("BBC for LHC")
-        self.changeBbcRhc = self.advancedMenu.addMenu("BBC for RHC")
+        self.menu.addAction(self.changeOrderAction)
+        self.changeBbcLhc = self.menu.addMenu("BBC for LHC")
+        self.changeBbcRhc = self.menu.addMenu("BBC for RHC")
         self.changeBBCLHCActions = []
         self.changeBBCRHCActions = []
         for i in range(len(self.data.obs.mergedScans[0].pols)):
@@ -124,26 +134,36 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.changeBbcRhc.addAction(i)
         # -- caltab loading
         self.download_caltabs_a = QtWidgets.QAction("Download caltabs")
-        self.advancedMenu.addAction(self.download_caltabs_a)
+        self.menu.addAction(self.download_caltabs_a)
+
+    def showMenu(self):
+        action_widget = self.scanStacker.scanTbar.widgetForAction(self.scanStacker.openMenu)
+        if action_widget:
+            rect = action_widget.rect()
+            center_bottom = rect.center()
+            center_bottom.setY(rect.bottom())
+            point = action_widget.mapToGlobal(center_bottom)
+            self.menu.exec_(point)
 
     def __setCheckedBBCActions(self):
-        '''
+        """
         This method sets checked actions for BBCs
         We want only the 1 BBC per pol to be checked
         We manage that by executing the code below
         self.BBCs is the list of used BBCs: by default these are [1,2]
-        '''
+        """
         self.changeBBCLHCActions[self.BBCs[0]-1].setChecked(True)
         self.changeBBCRHCActions[self.BBCs[1]-1].setChecked(True)
         
 
     def __connectButtonsToSlots(self):
-        '''
+        """
         This method connects buttons and actions to the corresponding slots
-        '''
+        """
         # -- scan stacker --
-        self.scanStacker.nextScan.clicked.connect(self.__nextScanSlot)
-        self.scanStacker.prevScan.clicked.connect(self.__prevScanSlot)
+        self.scanStacker.nextScan.triggered.connect(self.__nextScanSlot)
+        self.scanStacker.prevScan.triggered.connect(self.__prevScanSlot)
+        self.scanStacker.openMenu.triggered.connect(self.showMenu)
         self.scanStacker.addToStack.clicked.connect(self.__addToStackSlot)
         self.scanStacker.removeFromStack.clicked.connect(self.__deleteFromStackSlot)
         self.scanStacker.finishPol.clicked.connect(self.__finishPol)

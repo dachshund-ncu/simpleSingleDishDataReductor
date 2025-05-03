@@ -4,9 +4,9 @@ fihishing widget
 '''
 
 from PyQt5 import QtWidgets
-from .customButton import cButton
+from .ui_elements.customButton import custom_button
 from .moreEfficentFigureTemplate import templateFigurePG
-from .customLeftBarWidget import cWidget
+from .ui_elements.customLeftBarWidget import cWidget
 
 class finishWidgetP(QtWidgets.QWidget):
     def __init__(self):
@@ -26,7 +26,7 @@ class finishWidgetP(QtWidgets.QWidget):
         self.mainOperatiosFrame = QtWidgets.QGroupBox("Main operations")
         self.mainOperatiosFrame.setLayout(self.vboxMainOperationsFrame)
         # --
-        self.endDataReduction = cButton("End data reduction")
+        self.endDataReduction = custom_button("End data reduction")
         # --
         self.leftWLayout.addWidget(self.mainOperatiosFrame)
         # --
