@@ -223,7 +223,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def plot_spectral_data(
             self,
             plot_dictionary,
-            fit_bound_channel_pairs: list[list[int]],
+            categories: np.ndarray,
             x_data: np.ndarray,
             y_data: np.ndarray):
         category_d = {
@@ -232,24 +232,36 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             "emission": 2,
             "edge": 3
         }
-        # get list of categories
-        categories = np.full(len(y_data), category_d["rfi"])
-        for channel_pair in fit_bound_channel_pairs:
-            categories[channel_pair[0]:channel_pair[1]] = category_d["continuum"]
-
         # set data for keys
         y_data_dict = {}
         for key in plot_dictionary.keys():
             tmp_y = y_data.copy()
             tmp_y[categories != category_d[key]] = np.nan
             y_data_dict[key] = tmp_y
-
         # plot data
         for key in plot_dictionary.keys():
             plot_dictionary[key].setData(
                 x_data,
                 y_data_dict[key]
             )
+
+    def __getCategoriesFromBounds(
+            self,
+            bounds: list[list[int]],
+            x_data: np.ndarray):
+        category_d = {
+            "continuum": 0,
+            "rfi": 1,
+            "emission": 2,
+            "edge": 3
+        }
+        # get list of categories
+        categories = np.full(len(x_data), category_d["rfi"])
+        for channel_pair in bounds:
+            if channel_pair[0] < 0: channel_pair[0] = 0
+            if channel_pair[1] > x_data[-1]: channel_pair[1] = int(x_data[-1])
+            categories[channel_pair[0]:channel_pair[1]] = category_d["continuum"]
+        return categories
 
     def __plotScanNo(self, scanNumber):
         """
@@ -284,13 +296,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # self.scanStacker.newScanFigure.zoomedYScanPlots["continuum"].setData(channelTab, self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1])
         self.plot_spectral_data(
             plot_dictionary = self.scanStacker.newScanFigure.fullYScanPlots,
-            fit_bound_channel_pairs = self.data.fitBoundsChannels,
+            categories = self.__getCategoriesFromBounds(self.data.fitBoundsChannels, channelTab),
             x_data = channelTab,
             y_data = self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1]
         )
         self.plot_spectral_data(
             plot_dictionary = self.scanStacker.newScanFigure.zoomedYScanPlots,
-            fit_bound_channel_pairs = self.data.fitBoundsChannels,
+            categories = self.__getCategoriesFromBounds(self.data.fitBoundsChannels, channelTab),
             x_data = channelTab,
             y_data = self.data.obs.mergedScans[scanNumber].pols[self.actualBBC-1]
         )
