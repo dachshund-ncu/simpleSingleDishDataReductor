@@ -609,8 +609,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
         if self.lhcReduction:
             self.data.clearStack(pol='LHC')
-            self.scanStacker.finishPol.setText("Finish RHC")
-            self.polEnd.goToNextPol.setText("Finish reduction")
+            self.scanStacker.finishPol.setText("  Finish RHC")
+            self.polEnd.goToNextPol.setText("  Finish reduction")
             self.lhcReduction = False
             self.scanStacker.autoThreshold = -1e11
         else:

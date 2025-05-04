@@ -15,6 +15,8 @@ class finishWidgetP(QtWidgets.QWidget):
         super().__init__()
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
+        self.layout.setSpacing(10)
+        self.layout.setContentsMargins(0,0,0,0)
         #self.fig = finishFigure()
         self.fig = newFinishFigure(self)
         #self.NT = NavigationToolbar(self.fig, self)

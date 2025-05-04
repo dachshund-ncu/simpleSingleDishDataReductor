@@ -32,6 +32,8 @@ class scanStackingWidget(custom_widget):
         custom_widget.__init__(self)
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
+        self.layout.setSpacing(10)
+        self.layout.setContentsMargins(0,0,0,0)
         self.newScanFigure = newScanStackingFigure()
         self.newStackedFigure = stackedSpectrumFigure()
         self.newOtherPropsFigure = otherPropsFigure()
