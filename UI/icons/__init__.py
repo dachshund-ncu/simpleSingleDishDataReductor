@@ -18,6 +18,13 @@ minus_solid_icon = QIcon(os.path.join(icon_cat, "minus-solid.svg"))
 flag_icon = QIcon(os.path.join(icon_cat, "flag-checkered-solid.svg"))
 play_icon = QIcon(os.path.join(icon_cat, "play-solid.svg"))
 bars_icon = QIcon(os.path.join(icon_cat, "bars-solid.svg"))
+rotate_icon = QIcon(os.path.join(icon_cat, "rotate-left-solid.svg"))
+paper_plane = QIcon(os.path.join(icon_cat, "paper-plane-regular.svg"))
+weight_red = QIcon(os.path.join(icon_cat, "weight-scale-solid-red.svg"))
+weight_white = QIcon(os.path.join(icon_cat, "weight-scale-solid-white.svg"))
+gears_icon = QIcon(os.path.join(icon_cat, "gears-solid.svg"))
+magn_glass_icon = QIcon(os.path.join(icon_cat, "magnifying-glass-plus-solid.svg"))
+house_icon = QIcon(os.path.join(icon_cat, "house-solid.svg"))
 
 
 __all__ = [
@@ -35,5 +42,12 @@ __all__ = [
     "minus_solid_icon",
     "flag_icon",
     "play_icon",
-    "bars_icon"
+    "bars_icon",
+    "rotate_icon",
+    "paper_plane",
+    "weight_red",
+    "weight_white",
+    "gears_icon",
+    "magn_glass_icon",
+    "house_icon"
 ]
