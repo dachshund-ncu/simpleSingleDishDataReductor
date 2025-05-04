@@ -4,8 +4,9 @@ Data utworzenia: 05.03.2022
 Właściciel: Michał Durjasz
 '''
 
-from scanClass import scan
+from .scanClass import scan
 import numpy as np
+
 class mergedScan:
     
     def __init__(self, scan1, scan2):

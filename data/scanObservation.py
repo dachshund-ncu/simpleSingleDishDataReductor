@@ -25,8 +25,8 @@ import astropy.units as u
 from sys import argv, exit
 from os import path
 # ----------------
-from scanClass import scan
-from mergedScanClass import mergedScan
+from .scanClass import scan
+from .mergedScanClass import mergedScan
 
 ''' 
 DEBUG

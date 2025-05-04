@@ -4,40 +4,50 @@ fihishing widget
 '''
 
 from PyQt5 import QtWidgets
-from customButton import cButton
-from moreEfficentFigureTemplate import templateFigurePG
-from customLeftBarWidget import cWidget
+from .ui_elements.customButton import custom_button
+from .moreEfficentFigureTemplate import templateFigurePG
+from .ui_elements.customLeftBarWidget import cWidget
+from .ui_elements.custom_widget import CustomWidgetSemiTransparent
+from .icons import *
 
 class finishWidgetP(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
+        self.layout.setSpacing(10)
+        self.layout.setContentsMargins(0,0,0,0)
         #self.fig = finishFigure()
         self.fig = newFinishFigure(self)
         #self.NT = NavigationToolbar(self.fig, self)
         self.__declareButtons()
+        self.__addIconsToButtons()
+        self.__wrapFiguresInWidgets()
         self.__placeEv()
     
     def __declareButtons(self):
         self.leftWidget = cWidget()
         self.leftWLayout = QtWidgets.QVBoxLayout(self.leftWidget)
-        self.vboxMainOperationsFrame = QtWidgets.QVBoxLayout()
-        self.mainOperatiosFrame = QtWidgets.QGroupBox("Main operations")
-        self.mainOperatiosFrame.setLayout(self.vboxMainOperationsFrame)
+        self.leftWidget.setContentsMargins(0,0,0,0)
         # --
-        self.endDataReduction = cButton("End data reduction")
+        self.endDataReduction = custom_button("  End data reduction")
         # --
-        self.leftWLayout.addWidget(self.mainOperatiosFrame)
-        # --
-        self.vboxMainOperationsFrame.addWidget(self.endDataReduction)
-        # --
-        self.endDataReduction.setMaximumSize(10000, 10000)
-        self.endDataReduction.setMinimumSize(0, 0)
-    
+        self.leftWLayout.addWidget(self.endDataReduction)
+        self.leftWLayout.addStretch()
+
+    def __addIconsToButtons(self):
+        self.endDataReduction.setIcon(flag_icon)
+
+    def __wrapFiguresInWidgets(self):
+        self.figWidget = CustomWidgetSemiTransparent()
+        layoutTmp = QtWidgets.QVBoxLayout(self.figWidget)
+        layoutTmp.setContentsMargins(0,0,0,0)
+        layoutTmp.addWidget(self.fig)
+
+
     def __placeEv(self):
         self.layout.addWidget(self.leftWidget, 0,0)
-        self.layout.addWidget(self.fig, 0,1)
+        self.layout.addWidget(self.figWidget, 0,1)
         self.layout.setColumnStretch(0,1)
         self.layout.setColumnStretch(1,5)
     

@@ -4,10 +4,13 @@ This class holds widget for polarization reduction end
 
 
 from PyQt5 import QtCore, QtWidgets, QtGui
-from customButton import cButton
-from moreEfficentFigureTemplate import templateFigurePG
+from .ui_elements.customButton import custom_button
+from .moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
-from customLeftBarWidget import cWidget
+from .ui_elements.customLeftBarWidget import cWidget
+from .ui_elements.horizontal_separator import CustomHorizontalSeparator
+from .ui_elements.custom_widget import CustomWidgetSemiTransparent
+from .icons import *
 
 class polEndWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -18,9 +21,13 @@ class polEndWidget(QtWidgets.QWidget):
         super().__init__()
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
+        self.layout.setSpacing(10)
+        self.layout.setContentsMargins(0,0,0,0)
         self.newPolEndFig = polEndFigurePG(self)
         self.calCoeffFig = calTabFigure(self)
+        self.__wrapFiguresInWidgets()
         self.__declareNecessaryButtons()
+        self.__addIconsToButtons()
         self.__placeNecessaryButtons()
         self.__setOtherBeginnerSettings()
 
@@ -58,58 +65,68 @@ class polEndWidget(QtWidgets.QWidget):
         self.leftWidget = cWidget()#QtWidgets.QWidget()
         self.vboxLeftWidget = QtWidgets.QVBoxLayout(self.leftWidget)
         self.vboxLeftWidget.setContentsMargins(0,0,0,0)
-
-        self.vboxStokesFrame = QtWidgets.QVBoxLayout()
-        self.stokesFrame = QtWidgets.QGroupBox("Stokes handling")
-        self.stokesFrame.setLayout(self.vboxStokesFrame)
-
-        self.vboxDataEditFrame = QtWidgets.QVBoxLayout()
-        self.dataEditFrame = QtWidgets.QGroupBox("Data edit")
-        self.dataEditFrame.setLayout(self.vboxDataEditFrame)
-
-        self.vboxModesHandling = QtWidgets.QVBoxLayout()
-        self.modesHandlingFrame = QtWidgets.QGroupBox("Modes")
-        self.modesHandlingFrame.setLayout(self.vboxModesHandling)
-
-        self.vboxCalHandling = QtWidgets.QVBoxLayout()
-        self.calHandling = QtWidgets.QGroupBox("Calibration handling")
-        self.calHandling.setLayout(self.vboxCalHandling)
-
         # buttons
-        self.goToNextPol = cButton("Go to next Pol") 
-        self.backToPol = cButton("Return to scan edit")
-        self.cancelCalibrations = cButton("Cancel calibrations")
-        self.useCalibrations = cButton("Use calibrations")
-        self.setManualCal =  cButton("Set cal coeff manually")
-
-        self.removeChannels = cButton("Remove channels")
-        self.fitPolynomial = cButton("Fit Polynomial")
-        self.performFit = cButton("Perform Fit")
-        self.performRemoval = cButton("Perform removal")
-        self.reverseChanges = cButton("Abandon changes")
-        self.zoomButton = cButton("Zoom")
-        self.setDefaultRangeButton = cButton("Set default range")
+        self.goToNextPol = custom_button("  Go to next Pol")
+        self.backToPol = custom_button("  Return to scan edit")
+        self.cancelCalibrations = custom_button("  Cancel calibrations")
+        self.useCalibrations = custom_button("  Use calibrations")
+        self.setManualCal =  custom_button("  Set cal coeff manually")
+        self.removeChannels = custom_button("  Remove channels")
+        self.fitPolynomial = custom_button("  Fit Polynomial")
+        self.performFit = custom_button("  Perform Fit")
+        self.performRemoval = custom_button("  Perform removal")
+        self.reverseChanges = custom_button("  Abandon changes")
+        self.zoomButton = custom_button("  Zoom")
+        self.setDefaultRangeButton = custom_button("  Set default range")
         # buttons placing
-        self.vboxStokesFrame.addWidget(self.goToNextPol)
-        self.vboxStokesFrame.addWidget(self.backToPol)
+        self.vboxLeftWidget.addWidget(self.goToNextPol)
+        self.vboxLeftWidget.addWidget(self.backToPol)
+        self.vboxLeftWidget.addSpacing(8)
+        self.vboxLeftWidget.addWidget(CustomHorizontalSeparator())
+        self.vboxLeftWidget.addSpacing(8)
+        self.vboxLeftWidget.addWidget(self.fitPolynomial)
+        self.vboxLeftWidget.addWidget(self.removeChannels)
+        self.vboxLeftWidget.addWidget(self.zoomButton)
+        self.vboxLeftWidget.addSpacing(8)
+        self.vboxLeftWidget.addWidget(CustomHorizontalSeparator())
+        self.vboxLeftWidget.addSpacing(8)
+        self.vboxLeftWidget.addWidget(self.useCalibrations)
+        self.vboxLeftWidget.addWidget(self.cancelCalibrations)
+        self.vboxLeftWidget.addWidget(self.setManualCal)
+        self.vboxLeftWidget.addSpacing(8)
+        self.vboxLeftWidget.addWidget(CustomHorizontalSeparator())
+        self.vboxLeftWidget.addSpacing(8)
+        self.vboxLeftWidget.addWidget(self.performFit)
+        self.vboxLeftWidget.addWidget(self.performRemoval)
+        self.vboxLeftWidget.addWidget(self.reverseChanges)
+        self.vboxLeftWidget.addWidget(self.setDefaultRangeButton)
+        self.vboxLeftWidget.addStretch()
 
-        self.vboxDataEditFrame.addWidget(self.performFit)
-        self.vboxDataEditFrame.addWidget(self.performRemoval)
-        self.vboxDataEditFrame.addWidget(self.reverseChanges)
-        self.vboxDataEditFrame.addWidget(self.setDefaultRangeButton)
+    def __addIconsToButtons(self):
+        self.backToPol.setIcon(rotate_icon)
+        self.goToNextPol.setIcon(paper_plane)
+        self.useCalibrations.setIcon(weight_white)
+        self.cancelCalibrations.setIcon(weight_red)
+        self.performRemoval.setIcon(minus_solid_icon)
+        self.reverseChanges.setIcon(ban_icon)
+        self.performFit.setIcon(play_icon)
+        self.setManualCal.setIcon(gears_icon)
+        self.fitPolynomial.setIcon(chart_line_icon)
+        self.removeChannels.setIcon(eraser_icon)
+        self.zoomButton.setIcon(magn_glass_icon)
+        self.setDefaultRangeButton.setIcon(house_icon)
 
-        self.vboxCalHandling.addWidget(self.useCalibrations)
-        self.vboxCalHandling.addWidget(self.cancelCalibrations)
-        self.vboxCalHandling.addWidget(self.setManualCal)
+    def __wrapFiguresInWidgets(self):
+        self.newPolEndFigWidget = CustomWidgetSemiTransparent()
+        layoutTMP = QtWidgets.QVBoxLayout(self.newPolEndFigWidget)
+        layoutTMP.setContentsMargins(0,0,0,0)
+        layoutTMP.addWidget(self.newPolEndFig)
+        # --
+        self.calCoeffFigWidget = CustomWidgetSemiTransparent()
+        layoutTMP = QtWidgets.QVBoxLayout(self.calCoeffFigWidget)
+        layoutTMP.setContentsMargins(0, 0, 0, 0)
+        layoutTMP.addWidget(self.calCoeffFig)
 
-        self.vboxModesHandling.addWidget(self.fitPolynomial)
-        self.vboxModesHandling.addWidget(self.removeChannels)
-        self.vboxModesHandling.addWidget( self.zoomButton)
-
-        self.vboxLeftWidget.addWidget(self.stokesFrame)
-        self.vboxLeftWidget.addWidget(self.dataEditFrame)
-        self.vboxLeftWidget.addWidget(self.modesHandlingFrame)
-        self.vboxLeftWidget.addWidget(self.calHandling)
 
     def __placeNecessaryButtons(self):
         #self.layout.addWidget(self.stokesFrame, 0,0)
@@ -117,8 +134,8 @@ class polEndWidget(QtWidgets.QWidget):
         #self.layout.addWidget(self.dataEditFrame, 2,0)
         #self.layout.addWidget(self.modesHandlingFrame, 3,0)
         self.layout.addWidget(self.leftWidget, 0,0, 4, 1)
-        self.layout.addWidget(self.newPolEndFig, 0,1,3,4)
-        self.layout.addWidget(self.calCoeffFig, 3,1,1,4)
+        self.layout.addWidget(self.newPolEndFigWidget, 0,1,3,4)
+        self.layout.addWidget(self.calCoeffFigWidget, 3,1,1,4)
 
         [self.layout.setRowStretch(i, 1) for i in range(self.layout.rowCount())]
         [self.layout.setColumnStretch(i, 1) for i in range(self.layout.columnCount())]
@@ -176,10 +193,10 @@ class polEndWidget(QtWidgets.QWidget):
         print("-----> Zoom mode is ACTIVE!")
     @QtCore.pyqtSlot()
     def setDefaultRange(self):
-        '''
+        """
         This method sets default range of the spectrum plot
-        should be attatcheed to the button and shortcut 'b' 
-        '''
+        should be attatcheed to the button and shortcut 'b'
+        """
         self.newPolEndFig.autoRangeSpectrumPlot()
 
     def __onClick(self, event):
@@ -256,7 +273,7 @@ class polEndFigurePG(templateFigurePG):
 
     def __setUpNewFigure(self):
         self.pSpec = self.addPlot()
-        self.pSpec.showGrid(x=True, y=True, alpha=0.8)
+        self.pSpec.showGrid(x=True, y=True, alpha=0.2)
         cyan = (255,255,255)
         self.spectrumPlot = self.pSpec.plot([0,1], pen=cyan, name="specPlot")
         self.pSpec.setMouseEnabled(x=False, y=False)
@@ -309,7 +326,7 @@ class calTabFigure(templateFigurePG):
         #self.setVisible(True)
     def __setUpNewFigure(self):
         self.pCalCoeffs = self.addPlot()
-        self.pCalCoeffs.showGrid(x=True, y=True, alpha=0.8)
+        self.pCalCoeffs.showGrid(x=True, y=True, alpha=0.2)
         # --
         cyan = (255,255,255)
         limePen = (255,0,0)
