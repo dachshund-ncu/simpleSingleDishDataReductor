@@ -26,7 +26,7 @@ CONFIG = json.load(
         os.path.join(DE_CAT, "config.json"),
         "r+"))
 
-
+print(CONFIG)
 def construct_greeting(args: argparse.Namespace):
     print("-----> Welcome to the SSDDR!")
     if args.nocal:
@@ -40,7 +40,7 @@ def main():
     This is main of the SSDDR
     """
     # -- parse arguments --
-    parser = argparse.ArgumentParser(description=f"Data reduction tool for 32-m NCU RT spectral data. Version {CONFIG["version"]}.")
+    parser = argparse.ArgumentParser(description=f"Data reduction tool for 32-m NCU RT spectral data. Version {CONFIG['version']}.")
     parser.add_argument("-n", "--nocal", action="store_true", help="do not use calibration tables")
     parser.add_argument("-f", "--onoff", action="store_true", help="do an on-off reduction instead of a frequency-switch")
     parser.add_argument("filename")
