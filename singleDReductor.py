@@ -26,7 +26,6 @@ CONFIG = json.load(
         os.path.join(DE_CAT, "config.json"),
         "r+"))
 
-print(CONFIG)
 def construct_greeting(args: argparse.Namespace):
     print("-----> Welcome to the SSDDR!")
     if args.nocal:
