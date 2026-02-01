@@ -39,8 +39,7 @@ class dataContainter:
             [3272, 4086]
         ]
         if target_filename is not None:
-            self.__openTheArchive(target_filename)
-            self.__processData()
+            self.obs = observation(target_filename, self.isOnOff)
             self.zTab = self.__getZData()
             self.tsysTab = self.__getTsysData()
             self.totalFluxTab = self.__getTotalFluxData()
@@ -163,16 +162,7 @@ class dataContainter:
                 os.remove(os.path.join(self.tmpDirName, i))
         # ------------------------------------------
         archive.extractall(path='./' + self.tmpDirName)
-    
-    def __processData(self):
-        '''
-        processes the tared data
-        '''
-        self.obs = observation(self.tmpDirName, self.scansList, self.isOnOff)
-        for i in self.fullScansList:
-            os.remove(self.tmpDirName + "/" + i)
-        os.rmdir(self.tmpDirName)
-    
+
     def calculateFitRMS(self, data):
         sum = 0.0
         no = 0
