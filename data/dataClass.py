@@ -3,8 +3,8 @@ Class, that holds the whole data
 '''
 
 import tarfile
-from .scanObservation import observation
 from .caltabClass import caltab
+from ncu_salsa_rt4 import ScanSet as observation
 import os
 import numpy as np
 import configparser
