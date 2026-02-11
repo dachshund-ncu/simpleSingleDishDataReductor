@@ -13,11 +13,11 @@ https://www.flaticon.com/free-icons/radar
 import sys
 from PyQt5 import QtWidgets, QtGui
 import os
-from UI.mainWindowWidget import mainWindowWidget
-from data.dataClass import dataContainter
+from .UI.mainWindowWidget import mainWindowWidget
+from .UI.icons import satellite_dish
+from .data.dataClass import dataContainter
 import argparse
 import json
-from UI.icons import satellite_dish
 # --------------------
 
 DE_CAT = os.path.dirname(__file__)

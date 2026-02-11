@@ -131,7 +131,7 @@ class dataContainter:
         Fits polynomial for specified BBC, with specified order and for 
         specified scan, returns tables X and Y with polynomial and fit residuals
         '''
-        polyTabX, polyTabY, self.polyTabResiduals = self.obs.mergedScans[scannr].fitCheby(bbc, order, self.fitBoundsChannels)
+        polyTabX, polyTabY, self.polyTabResiduals = self.obs.mergedScans[scannr].fit_cheby(bbc, order, self.fitBoundsChannels)
         if not self.isOnOff:
             return polyTabX, polyTabY, self.__halveResiduals(self.polyTabResiduals)
         else:
