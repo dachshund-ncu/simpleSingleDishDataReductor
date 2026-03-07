@@ -509,8 +509,8 @@ wheels = [
 
 [[package]]
 name = "ncu-salsa-rt4"
-version = "0.1.0"
-source = { git = "ssh://git@github.com/dachshund-ncu/ncu-salsa-rt4.git?branch=main#bd3490719bf1fd378b01afe583e590d051b8c4db" }
+version = "0.1.1"
+source = { git = "ssh://git@github.com/dachshund-ncu/ncu-salsa-rt4.git?branch=main#11ef4a2f07462e4fb40568c89681fd327dbd89bb" }
 dependencies = [
     { name = "astropy", version = "6.1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "astropy", version = "7.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
