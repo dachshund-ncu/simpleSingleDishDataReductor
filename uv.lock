@@ -510,7 +510,7 @@ wheels = [
 [[package]]
 name = "ncu-salsa-rt4"
 version = "0.1.1"
-source = { git = "ssh://git@github.com/dachshund-ncu/ncu-salsa-rt4.git?branch=main#11ef4a2f07462e4fb40568c89681fd327dbd89bb" }
+source = { git = "https://github.com/dachshund-ncu/ncu-salsa-rt4.git?branch=main#392535a0936fb7f6e463a7bf3c6af63dd86f5968" }
 dependencies = [
     { name = "astropy", version = "6.1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "astropy", version = "7.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -1114,7 +1114,7 @@ requires-dist = [
     { name = "astropy" },
     { name = "barycorrpy" },
     { name = "mpmath" },
-    { name = "ncu-salsa-rt4", git = "ssh://git@github.com/dachshund-ncu/ncu-salsa-rt4.git?branch=main" },
+    { name = "ncu-salsa-rt4", git = "https://github.com/dachshund-ncu/ncu-salsa-rt4.git?branch=main" },
     { name = "platformdirs" },
     { name = "pyqt5" },
     { name = "pyqtgraph" },

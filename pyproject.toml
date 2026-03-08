@@ -33,7 +33,9 @@ ssddr = "simpleSingleDishDataReductor.__main__:main"
 packages = ["src/simpleSingleDishDataReductor"]
 
 [tool.uv.sources]
-ncu-salsa-rt4 = { git = "ssh://git@github.com/dachshund-ncu/ncu-salsa-rt4.git", branch = "main" }
+#ncu-salsa-rt4 = { git = "ssh://git@github.com/dachshund-ncu/ncu-salsa-rt4.git", branch = "main" }
+ncu-salsa-rt4 = { git = "https://github.com/dachshund-ncu/ncu-salsa-rt4.git", branch = "main" }
+
 
 [dependency-groups]
 dev = [

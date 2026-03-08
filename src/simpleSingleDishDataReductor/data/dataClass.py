@@ -39,7 +39,7 @@ class dataContainter:
             [3272, 4086]
         ]
         if target_filename is not None:
-            self.obs = observation(target_filename, self.isOnOff)
+            self.obs = observation(target_filename, self.isOnOff, debug=True)
             self.zTab = self.__getZData()
             self.tsysTab = self.__getTsysData()
             self.totalFluxTab = self.__getTotalFluxData()
