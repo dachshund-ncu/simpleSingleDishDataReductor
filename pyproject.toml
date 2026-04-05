@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "simpleSingleDishDataReductor"
-version = "0.1.0"
+version = "1.13"
 description = "A simple single dish data reduction tool."
 authors = [
     { name = "Michał Durjasz", email = "md@astro.umk.pl" }
