@@ -12,16 +12,18 @@ class CustomToolbar(QToolBar):
                 color: white; /* text color */
                 padding: 4px; /* padding */
                 font-size: 15px; /* font size */
-                border-radius: 8px; /* border radius */
+                border-radius: 6px; /* border radius */
                 text-align:left;
                 font-family: silka;
             }
 
             QToolButton:hover {
                 background-color: rgba(255,255,255,12%);
+                border: 1px solid rgba(255,255,255,50%);
             }
             QToolButton:pressed {
                 background-color: rgba(255,255,255,15%);
+                border: 1px solid rgba(255,255,255,50%);
             }
             QToolButton:checked {
                 background-color: rgba(255,255,255,20%);

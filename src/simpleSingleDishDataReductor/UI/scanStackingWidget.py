@@ -16,7 +16,6 @@ from .ui_elements.custom_widget import custom_widget, CustomWidgetSemiTransparen
 from .ui_elements.customButton import custom_button
 from .ui_elements.custom_label import custom_label
 from .ui_elements.horizontal_separator import CustomHorizontalSeparator
-from .ui_elements.custom_menu import CustomMenu
 from .ui_elements.custom_toolbar import CustomToolbar
 from .scanStackerElements import newScanStackingFigure, stackedSpectrumFigure, otherPropsFigure
 from .icons import *

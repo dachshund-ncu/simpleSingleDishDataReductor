@@ -113,7 +113,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         #--
         self.menu = CustomMenu()
         self.menu.setToolTip("Advanced")
-        self.menu.setStyleSheet(CustomMenu.get_style_sheet())
+        # self.menu.setStyleSheet(CustomMenu.get_style_sheet())
 
         # --
         self.changeOrderAction = QtWidgets.QAction("Change fit order")

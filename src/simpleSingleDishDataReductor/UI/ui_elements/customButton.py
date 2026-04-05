@@ -20,16 +20,18 @@ class custom_button(QtWidgets.QPushButton):
                 padding: 6px 10px;
                 text-align: left;
                 font-size: 14px;
-                border-radius: 8px;
+                border-radius: 6px;
                 font-family: silka;
                 margin-top: 0px;
                 margin-bottom: 0px;
             }
             QPushButton:hover {
                 background-color: rgba(255,255,255,12%);
+                border: 1px solid rgba(255,255,255,50%);
             }
             QPushButton:pressed {
                 background-color: rgba(255,255,255,15%);
+                border: 1px solid rgba(255,255,255,50%);
             }
             QPushButton:checked {
                 background-color: #C2185B;
