@@ -59,7 +59,7 @@ class dataContainter:
         self.scansInStack = []
         
         self.meanStack: list | np.ndarray = []
-        self.finalFitRes = []
+        self.finalFitRes: list | np.ndarray = []
         self.finalRHC = []
         self.finalLHC = []
         # --------------------
@@ -150,7 +150,7 @@ class dataContainter:
         try:
             import json
             save_dict = {
-                f"BBC_{self.actualBBC}": self.meanStack.tolist(),
+                f"BBC_{self.actualBBC}": self.finalFitRes.tolist(),
             }
             fname = self.obs.scans[0].sourcename + '_' + str(round(self.obs.mjd,3)).replace(".", "") + f"_BBC_{self.actualBBC}.json"
             with open(fname, "w") as json_file:
