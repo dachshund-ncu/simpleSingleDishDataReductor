@@ -24,20 +24,25 @@ Bear in mind, that this package requires AT LEAST python 3.8
 - platformdirs
 
 
-### Installation of the needed packages ###
+### Installation ###
 ```bash
-python3 -m pip install --upgrade pip
-python3 -m pip install -r requirements.txt
+python3 -m pip install .
 ```
 
 ### Usage ###
 ```
-python3 singleDReductor.py your_archive.tar.bz2 [OPTIONS]
-	OPTIONS:
-	-h, --help    | show this help message and exit
-	-v, --version | show version and exit
-	-n, --nocal   | do not use calibration tables
-	-f, --onoff   | do an on-off reduction instead of a frequency-switch
+usage: python3 -m simpleSingleDishDataReductor [-h] [-n] [-f] filename
+
+Data reduction tool for 32-m NCU RT spectral data. Version 1.14.
+
+positional arguments:
+  filename
+
+options:
+  -h, --help   show this help message and exit
+  -n, --nocal  do not use calibration tables
+  -f, --onoff  do an on-off reduction instead of a frequency-switch
 ```
+
 ### Output ###
 Files that go outside are in .fits format. Filename: sourcename_MJD.fits
