@@ -126,6 +126,26 @@ class dataContainter:
                 freq_file.write(f"{c.freqRange[0]}\n")
                 freq_file.write(f"{c.freqRange[1]}")
 
+    def save_scans_to_json(self) -> str | None:
+        """
+        Simply save opened and processed scans to the .json file
+        Returns saved filename (if succesful) or None (if failed)
+        """
+        try:
+            import json
+            data_to_save: list[dict] = []
+            for scan_index, scan_pair in enumerate(self.obs.mergedScans):
+                for bbc_index, singular_scan in enumerate(scan_pair.pols):
+                    data_to_save.append({
+                        f"BBC_{bbc_index+1}": singular_scan.tolist()
+                    })
+            fname = self.obs.scans[0].sourcename + '_' + str(round(self.obs.mjd,3)).replace(".", "") + "_scans.json"
+            with open(fname, 'w') as json_file:
+                json.dump(data_to_save, json_file, indent=4)
+            return fname
+        except:
+            return None
+
     def fitChebyForScan(self, bbc, order, scannr):
         '''
         Fits polynomial for specified BBC, with specified order and for 

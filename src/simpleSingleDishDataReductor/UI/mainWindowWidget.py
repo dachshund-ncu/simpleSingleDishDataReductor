@@ -134,7 +134,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.changeBbcRhc.addAction(i)
         # -- caltab loading
         self.download_caltabs_a = QtWidgets.QAction("Download caltabs")
+        self.save_scans_to_json_a = QtWidgets.QAction("Save scans to json")
         self.menu.addAction(self.download_caltabs_a)
+        self.menu.addAction(self.save_scans_to_json_a)
 
     def showMenu(self):
         action_widget = self.scanStacker.scanTbar.widgetForAction(self.scanStacker.openMenu)
@@ -214,6 +216,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.shrtAutoRedMode.activated.connect(self.__shrtAutoWrapper)
         self.setDefaultRangeOnPolEndShrt.activated.connect(self.__setAutoRangeOnPolEndPlot)
         self.download_caltabs_a.triggered.connect(self.download_caltabs)
+        self.save_scans_to_json_a.triggered.connect(self.__save_scans_to_json)
         # --- Menu  - selecting BBCs ---
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
@@ -369,7 +372,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.download_caltabs()
         elif msgBox.clickedButton() == cancelBtn:
             return
-    
+
+    def display_message(self, text: str) -> None:
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setWindowTitle("Message")
+        msgBox.setText(text)
+        msgBox.exec()
+
     def __display_download_caltabs_propmpt(self, isSuccess: bool):
         '''
         Meant to be triggered only after the caltabs are downloaded
@@ -488,6 +497,17 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.setFluxLabel(calCoeff)
         if not flag_cal and self.calibrate:
             self.display_caltab_prompt(f"Seems that the calibration tables are too short. \nLast epoch in {self.data.caltabs[self.data.properCaltabIndex].label} is {self.data.caltabs[self.data.properCaltabIndex].getMaxEpoch()}, while epoch of this obs. is {round(self.data.obs.mjd,3)}.\nWould you like to download them?")
+
+    @QtCore.pyqtSlot()
+    def __save_scans_to_json(self):
+        """
+        Simply save loaded scans to txt file
+        """
+        if self.data is None:
+            return
+        saved_filename = self.data.save_scans_to_json()
+        self.display_message(text=f"Saved scans to file:{saved_filename}")
+
     @QtCore.pyqtSlot()
     def __discardScan(self):
         self.data.discardFromStack(self.actualScanNumber)
