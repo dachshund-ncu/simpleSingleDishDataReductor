@@ -135,10 +135,10 @@ class dataContainter:
             import json
             data_to_save: list[dict] = []
             for scan_index, scan_pair in enumerate(self.obs.mergedScans):
+                dict_to_save = {}
                 for bbc_index, singular_scan in enumerate(scan_pair.pols):
-                    data_to_save.append({
-                        f"BBC_{bbc_index+1}": singular_scan.tolist()
-                    })
+                    dict_to_save[f"BBC_{bbc_index+1}"] = singular_scan.tolist()
+                data_to_save.append(dict_to_save)
             fname = self.obs.scans[0].sourcename + '_' + str(round(self.obs.mjd,3)).replace(".", "") + "_scans.json"
             with open(fname, 'w') as json_file:
                 json.dump(data_to_save, json_file, indent=4)
