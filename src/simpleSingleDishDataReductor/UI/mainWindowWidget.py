@@ -217,6 +217,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.setDefaultRangeOnPolEndShrt.activated.connect(self.__setAutoRangeOnPolEndPlot)
         self.download_caltabs_a.triggered.connect(self.download_caltabs)
         self.save_scans_to_json_a.triggered.connect(self.__save_scans_to_json)
+        self.polEnd.save_to_json_btn.clicked.connect(self.__save_final_spectrum_to_json)
+
         # --- Menu  - selecting BBCs ---
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))
@@ -507,6 +509,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             return
         saved_filename = self.data.save_scans_to_json()
         self.display_message(text=f"Saved scans to file:{saved_filename}")
+
+    @QtCore.pyqtSlot()
+    def __save_final_spectrum_to_json(self):
+        if self.data is None:
+            return
+        saved_filename  = self.data.save_final_spectrum_to_json()
+        self.display_message(text=f"Saved final spectrum to file:{saved_filename}")
 
     @QtCore.pyqtSlot()
     def __discardScan(self):

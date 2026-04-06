@@ -58,7 +58,7 @@ class dataContainter:
         self.stack = []
         self.scansInStack = []
         
-        self.meanStack = []
+        self.meanStack: list | np.ndarray = []
         self.finalFitRes = []
         self.finalRHC = []
         self.finalLHC = []
@@ -144,6 +144,20 @@ class dataContainter:
                 json.dump(data_to_save, json_file, indent=4)
             return fname
         except:
+            return None
+
+    def save_final_spectrum_to_json(self) -> str | None:
+        try:
+            import json
+            save_dict = {
+                f"BBC_{self.actualBBC}": self.meanStack.tolist(),
+            }
+            fname = self.obs.scans[0].sourcename + '_' + str(round(self.obs.mjd,3)).replace(".", "") + f"_BBC_{self.actualBBC}.json"
+            with open(fname, "w") as json_file:
+                json.dump(save_dict, json_file, indent=4)
+            return fname
+        except Exception as e:
+            print(e)
             return None
 
     def fitChebyForScan(self, bbc, order, scannr):

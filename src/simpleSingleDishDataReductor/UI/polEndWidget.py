@@ -78,6 +78,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.reverseChanges = custom_button("  Abandon changes")
         self.zoomButton = custom_button("  Zoom")
         self.setDefaultRangeButton = custom_button("  Set default range")
+        self.save_to_json_btn = custom_button("Save to JSON")
         # buttons placing
         self.vboxLeftWidget.addWidget(self.goToNextPol)
         self.vboxLeftWidget.addWidget(self.backToPol)
@@ -101,6 +102,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.vboxLeftWidget.addWidget(self.reverseChanges)
         self.vboxLeftWidget.addWidget(self.setDefaultRangeButton)
         self.vboxLeftWidget.addStretch()
+        self.vboxLeftWidget.addWidget(self.save_to_json_btn)
 
     def __addIconsToButtons(self):
         self.backToPol.setIcon(rotate_icon)
