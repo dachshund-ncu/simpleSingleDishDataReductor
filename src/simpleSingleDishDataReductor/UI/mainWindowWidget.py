@@ -32,6 +32,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         Also we will initialize data reduction by plotting data, if we can:
         '''
         self.calibrate = calibrate
+        print(self.calibrate)
         self.calibrated = False
         self.BBCs = [3,2]
         self.bbcindex = 0
@@ -451,8 +452,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def __finishPol(self):
-        # data
-        
         # UI
         self.scanStacker.setVisible(False)
         self.layout.removeWidget(self.scanStacker)
@@ -497,8 +496,15 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         spectr = self.data.calibrate(lhc=self.lhcReduction)
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
         self.polEnd.setFluxLabel(calCoeff)
+        if self.data.properCaltabIndex >= len(self.data.caltabs) and self.calibrate:
+            self.display_message(f"Did not find caltab, that match rest frequency of {round(self.data.obs.scans[0].rest[0] / 1000.0, 5)} GHz")
+            return
         if not flag_cal and self.calibrate:
-            self.display_caltab_prompt(f"Seems that the calibration tables are too short. \nLast epoch in {self.data.caltabs[self.data.properCaltabIndex].label} is {self.data.caltabs[self.data.properCaltabIndex].getMaxEpoch()}, while epoch of this obs. is {round(self.data.obs.mjd,3)}.\nWould you like to download them?")
+            self.display_caltab_prompt(
+                f"Seems that the calibration tables are too short."
+                + f"\nLast epoch in {self.data.caltabs[self.data.properCaltabIndex].label} "
+                + f"is {self.data.caltabs[self.data.properCaltabIndex].getMaxEpoch()}, "
+                + f"while epoch of this obs. is {round(self.data.obs.mjd,3)}.\nWould you like to download them?")
 
     @QtCore.pyqtSlot()
     def __save_scans_to_json(self):
