@@ -1,7 +1,7 @@
 from .moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt6 import QtGui
+from PyQt6 import QtCore
 import numpy as np
 
 class newScanStackingFigure(templateFigurePG):
@@ -80,7 +80,7 @@ class newScanStackingFigure(templateFigurePG):
         self.xZoomCross.setValue(x)
 
     def drawVline(self, pos, wcolor):
-        penw = pg.mkPen(color=wcolor, width=3, style=QtCore.Qt.DashLine)
+        penw = pg.mkPen(color=wcolor, width=3, style=QtCore.Qt.PenStyle.DashLine)
         self.vlineTabTop.append(pg.InfiniteLine(pos=pos, angle=90.0, pen=penw))
         self.vlineTabZoom.append(pg.InfiniteLine(pos=pos, angle=90.0, pen=penw))
         self.pTop.addItem(self.vlineTabTop[len(self.vlineTabTop) - 1])

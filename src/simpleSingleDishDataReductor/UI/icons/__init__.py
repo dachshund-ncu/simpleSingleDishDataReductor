@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QIcon
+from PyQt6.QtGui import QIcon
 import os
 icon_cat = os.path.dirname(__file__)
 # -- generate icons --

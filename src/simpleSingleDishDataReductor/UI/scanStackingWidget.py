@@ -7,8 +7,8 @@ Class, that holds the scan stacking widget:
 """
 
 #from tkinter import Y
-from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtWidgets import QAction
+from PyQt6 import QtWidgets, QtGui
+from PyQt6.QtGui import QAction
 
 from .icons import rectangle_xmark_icon
 from .ui_elements.customLeftBarWidget import cWidget
@@ -19,7 +19,7 @@ from .ui_elements.horizontal_separator import CustomHorizontalSeparator
 from .ui_elements.custom_toolbar import CustomToolbar
 from .scanStackerElements import newScanStackingFigure, stackedSpectrumFigure, otherPropsFigure
 from .icons import *
-import pyqtgraph as pg
+
 
 class scanStackingWidget(custom_widget):
     def __init__(self, parent=None):
@@ -28,7 +28,7 @@ class scanStackingWidget(custom_widget):
         -> will initialize the layout
         -> will declare necessary widgets and place them correctly
         """
-        custom_widget.__init__(self)
+        super().__init__(parent)
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
         self.layout.setSpacing(10)
@@ -98,7 +98,6 @@ class scanStackingWidget(custom_widget):
         self.automaticReduction = custom_button("  Automatic mode")
         self.nextScan = QAction("")
         self.prevScan = QAction("")
-        self.openMenu = QAction("")
         self.finishPol = custom_button("  Finish LHC")
         # labels
         # -- scan properties --
@@ -117,12 +116,10 @@ class scanStackingWidget(custom_widget):
         # buttons placing
         def spacer():
             s = QtWidgets.QWidget()
-            s.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                            QtWidgets.QSizePolicy.Preferred)
+            s.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
+                            QtWidgets.QSizePolicy.Policy.Preferred)
             return s
         self.scanTbar.addAction(self.prevScan)
-        self.scanTbar.addWidget(spacer())
-        self.scanTbar.addAction(self.openMenu)
         self.scanTbar.addWidget(spacer())
         self.scanTbar.addAction(self.nextScan)
 
@@ -158,8 +155,6 @@ class scanStackingWidget(custom_widget):
         self.cancelRemoval.setIcon(ban_icon)
         self.performPolyFit.setIcon(play_icon)
         self.finishPol.setIcon(flag_icon)
-        self.openMenu.setIcon(bars_icon)
-
 
     def __placeNecessaryButtons(self):
         # layouts placing
@@ -303,7 +298,7 @@ class scanStackingWidget(custom_widget):
 
         # --- bbc ---
         BBC_n = BBC_number-1 # convert to array indice 
-        font_chosen = QtGui.QFont("Arial", 12, QtGui.QFont.Bold)
+        font_chosen = QtGui.QFont("Arial", 12, QtGui.QFont.Weight.Bold)
         font_not_chosen = QtGui.QFont("Arial", 12)
         indices = [int(BBC_n*2), int(BBC_n*2) + 1]
 

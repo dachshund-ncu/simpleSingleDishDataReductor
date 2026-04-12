@@ -14,7 +14,7 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "PyQt5",
+    "PyQt6",
     "pyqtgraph",
     "mpmath",
     "astropy",

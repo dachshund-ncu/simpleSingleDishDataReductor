@@ -1,7 +1,7 @@
 """
 VERY smol widget, that holds simple UI for changing cal coefficient
 """
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 from .ui_elements.customButton import custom_button
 
 

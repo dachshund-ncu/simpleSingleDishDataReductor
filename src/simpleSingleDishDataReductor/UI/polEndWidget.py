@@ -3,7 +3,7 @@ This class holds widget for polarization reduction end
 '''
 
 
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt6 import QtCore, QtWidgets, QtGui
 from .ui_elements.customButton import custom_button
 from .moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg

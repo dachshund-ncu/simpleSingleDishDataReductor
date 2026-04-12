@@ -3,9 +3,9 @@ Class that holds custom buyyon
 Just to avoid repeating code
 '''
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
-from PyQt5 import QtGui
+from PyQt6 import QtWidgets
+from PyQt6 import QtCore
+from PyQt6 import QtGui
 
 class custom_button(QtWidgets.QPushButton):
     def __init__(self, *args):

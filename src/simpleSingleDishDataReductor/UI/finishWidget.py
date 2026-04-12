@@ -3,7 +3,7 @@ This class holds last widget of them all:
 fihishing widget
 '''
 
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 from .ui_elements.customButton import custom_button
 from .moreEfficentFigureTemplate import templateFigurePG
 from .ui_elements.customLeftBarWidget import cWidget

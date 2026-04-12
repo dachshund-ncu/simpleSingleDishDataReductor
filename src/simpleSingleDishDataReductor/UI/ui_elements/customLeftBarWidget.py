@@ -1,13 +1,13 @@
 """
 Class that holds slightly modified QWidget
 """
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
+from PyQt6 import QtWidgets
+from PyQt6 import QtCore
 
 class cWidget(QtWidgets.QWidget):
     def __init__(self, *args):
         QtWidgets.QWidget.__init__(self, *args)
-        self.setAttribute(QtCore.Qt.WA_StyledBackground, True)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet('''
         QWidget{
              background-color: rgba(255, 255, 255, 0%);

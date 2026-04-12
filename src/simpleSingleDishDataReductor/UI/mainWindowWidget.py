@@ -3,8 +3,10 @@ Class, that holds the Main Window of the program
 Author: Michał Durjasz
 Date: 8.03.2022
 '''
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtCore import QRect
+from PyQt6 import QtWidgets, QtGui, QtCore
+from PyQt6.QtWidgets import QMenuBar
+
+from simpleSingleDishDataReductor.UI.ui_elements import custom_menu
 
 from .scanStackingWidget import scanStackingWidget
 from .polEndWidget import polEndWidget
@@ -26,13 +28,58 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             calibrate=True):
         super().__init__()
         self.setVisible(False)
+        style_sheet = R'''
+            QMainWindow {
+                background-color: #121212;
+            }
+            QMenuBar {
+                background-color: transparent;
+            }
+            QMenuBar::item{
+                background-color: transparent;
+                padding: 8px; /* padding */
+                border-radius: 2px; /* border radius */
+                font-size: 12px; /* font size */
+                text-align: left;
+                font-family: silka;
+                color: white; /* text color */
+            }
+            QMenuBar::item:selected {
+                background-color: #353535;
+            }
+            QMenu {
+                background-color: #353535;
+                color: white; /* text color */
+                padding: 4px; /* padding */
+                font-size: 12px; /* font size */
+                border-radius: 2px; /* border radius */
+                text-align: left;
+                font-family: silka;
+                border: 1px solid rgba(255,255,255, 25%);
+            }
+            QAction{
+                color: white; /* text color */
+                padding: 4px; /* padding */
+                font-size: 15px; /* font size */
+                border-radius: 2px; /* border radius */
+                text-align: left;
+                font-family: silka;
+            }
+            QMenu::item {
+                background-color: #353535;
+                padding: 8px 12px;
+                border-radius: 2px; /* border radius */
+            }
+            QMenu::item:selected {
+                background-color: rgba(255,255,255,9%);
+                border: 1px solid rgba(255,255,255,25%);
+            }
+            QMenu::item:checked {
+                background-color: #C2185B;
+            }
         '''
-        This is an initialising method. In it, we will place buttons
-        and other widgets correctly, by using private methods below:
-        Also we will initialize data reduction by plotting data, if we can:
-        '''
+        self.setStyleSheet(style_sheet)
         self.calibrate = calibrate
-        print(self.calibrate)
         self.calibrated = False
         self.BBCs = [3,2]
         self.bbcindex = 0
@@ -55,7 +102,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__setCheckedBBCActions()
         self.__connectButtonsToSlots()
         self.__setPolyFitMode()
-        self.setStyleSheet("background-color: #121212;")
+
         self.setVisible(True)
         if self.data is not None and len(self.data.caltabs) < 1:
             self.display_caltab_prompt("Seems there are no downloaded caltabs. Would you like to download them?")
@@ -73,27 +120,27 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.setCentralWidget(self.window)
         self.layout = QtWidgets.QGridLayout(self.window)
         # shortcuts
-        self.firstOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('1'), self)
-        self.secondOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('2'), self)
-        self.thirdOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('3'), self)
-        self.fourthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('4'), self)
-        self.fifthtOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('5'), self)
-        self.sixthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('6'), self)
-        self.seventhOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('7'), self)
-        self.eighthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('8'), self)
-        self.ninthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('9'), self)
-        self.tenthOrderFit = QtWidgets.QShortcut(QtGui.QKeySequence('t'), self)
+        self.firstOrderFit = QtGui.QShortcut(QtGui.QKeySequence('1'), self)
+        self.secondOrderFit = QtGui.QShortcut(QtGui.QKeySequence('2'), self)
+        self.thirdOrderFit = QtGui.QShortcut(QtGui.QKeySequence('3'), self)
+        self.fourthOrderFit = QtGui.QShortcut(QtGui.QKeySequence('4'), self)
+        self.fifthtOrderFit = QtGui.QShortcut(QtGui.QKeySequence('5'), self)
+        self.sixthOrderFit = QtGui.QShortcut(QtGui.QKeySequence('6'), self)
+        self.seventhOrderFit = QtGui.QShortcut(QtGui.QKeySequence('7'), self)
+        self.eighthOrderFit = QtGui.QShortcut(QtGui.QKeySequence('8'), self)
+        self.ninthOrderFit = QtGui.QShortcut(QtGui.QKeySequence('9'), self)
+        self.tenthOrderFit = QtGui.QShortcut(QtGui.QKeySequence('t'), self)
 
-        self.shrtAddToStack = QtWidgets.QShortcut(QtGui.QKeySequence('k'), self)
-        self.shrtDiscardToStack = QtWidgets.QShortcut(QtGui.QKeySequence('d'), self)
-        self.shrtNextScan = QtWidgets.QShortcut(QtGui.QKeySequence('right'), self)
-        self.shrtPrevScan = QtWidgets.QShortcut(QtGui.QKeySequence('left'), self)
-        self.shrtNextPol = QtWidgets.QShortcut(QtGui.QKeySequence('n'), self)
-        self.shrtEndRed = QtWidgets.QShortcut(QtGui.QKeySequence('p'), self)
-        self.shrtremoveChansMode = QtWidgets.QShortcut(QtGui.QKeySequence('r'), self)
-        self.shrtfitPolyMode = QtWidgets.QShortcut(QtGui.QKeySequence('f'), self)
-        self.shrtAutoRedMode = QtWidgets.QShortcut(QtGui.QKeySequence('i'), self)
-        self.setDefaultRangeOnPolEndShrt = QtWidgets.QShortcut(QtGui.QKeySequence('b'), self)
+        self.shrtAddToStack = QtGui.QShortcut(QtGui.QKeySequence('k'), self)
+        self.shrtDiscardToStack = QtGui.QShortcut(QtGui.QKeySequence('d'), self)
+        self.shrtNextScan = QtGui.QShortcut(QtGui.QKeySequence('right'), self)
+        self.shrtPrevScan = QtGui.QShortcut(QtGui.QKeySequence('left'), self)
+        self.shrtNextPol = QtGui.QShortcut(QtGui.QKeySequence('n'), self)
+        self.shrtEndRed = QtGui.QShortcut(QtGui.QKeySequence('p'), self)
+        self.shrtremoveChansMode = QtGui.QShortcut(QtGui.QKeySequence('r'), self)
+        self.shrtfitPolyMode = QtGui.QShortcut(QtGui.QKeySequence('f'), self)
+        self.shrtAutoRedMode = QtGui.QShortcut(QtGui.QKeySequence('i'), self)
+        self.setDefaultRangeOnPolEndShrt = QtGui.QShortcut(QtGui.QKeySequence('b'), self)
 
     def __declareAndPlaceCustomWidgets(self):
         """
@@ -106,47 +153,52 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.orderChanger = changeOrder()
         self.calCoeffChanger = changeCalCoeffWindow()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
-    
+
     def __declareMenu(self):
         """
-        This method solely declares and places menu in the top of the Main Window
+        This method declares the menu and adds it to the window's Menu Bar
         """
-        #--
-        self.menu = CustomMenu()
-        self.menu.setToolTip("Advanced")
-        # self.menu.setStyleSheet(CustomMenu.get_style_sheet())
+        # Create the menu bar (or get the existing one)
+        menubar: QMenuBar | None = self.menuBar()
+        self.menu = CustomMenu("Advanced", self)
+        self.menu.setTitle("Advanced")  # Set the visible name on the bar
+        self.menu.setToolTip("Advanced settings")
 
-        # --
-        self.changeOrderAction = QtWidgets.QAction("Change fit order")
-        # --
+        # -- Change Fit Order Action
+        self.changeOrderAction = QtGui.QAction("Change fit order", self)
         self.menu.addAction(self.changeOrderAction)
+
+        # -- Submenus for BBC
         self.changeBbcLhc = self.menu.addMenu("BBC for LHC")
         self.changeBbcRhc = self.menu.addMenu("BBC for RHC")
+
         self.changeBBCLHCActions = []
         self.changeBBCRHCActions = []
+
+        # Populate Submenus
         for i in range(len(self.data.obs.mergedScans[0].pols)):
-            self.changeBBCLHCActions.append(QtWidgets.QAction("BBC " + str(i+1)))
-            self.changeBBCRHCActions.append(QtWidgets.QAction("BBC " + str(i+1)))
-            self.changeBBCLHCActions[i].setCheckable(True)
-            self.changeBBCRHCActions[i].setCheckable(True)
-        for i in self.changeBBCLHCActions:
-            self.changeBbcLhc.addAction(i)
-        for i in self.changeBBCRHCActions:
-            self.changeBbcRhc.addAction(i)
-        # -- caltab loading
-        self.download_caltabs_a = QtWidgets.QAction("Download caltabs")
-        self.save_scans_to_json_a = QtWidgets.QAction("Save scans to json")
+            lhc_action = QtGui.QAction(f"BBC {i + 1}", self)
+            rhc_action = QtGui.QAction(f"BBC {i + 1}", self)
+
+            lhc_action.setCheckable(True)
+            rhc_action.setCheckable(True)
+
+            self.changeBBCLHCActions.append(lhc_action)
+            self.changeBBCRHCActions.append(rhc_action)
+
+            self.changeBbcLhc.addAction(lhc_action)
+            self.changeBbcRhc.addAction(rhc_action)
+
+        # -- Caltab and JSON loading
+        self.menu.addSeparator()  # Visual separation
+        self.download_caltabs_a = QtGui.QAction("Download caltabs", self)
+        self.save_scans_to_json_a = QtGui.QAction("Save scans to json", self)
+
         self.menu.addAction(self.download_caltabs_a)
         self.menu.addAction(self.save_scans_to_json_a)
 
-    def showMenu(self):
-        action_widget = self.scanStacker.scanTbar.widgetForAction(self.scanStacker.openMenu)
-        if action_widget:
-            rect = action_widget.rect()
-            center_bottom = rect.center()
-            center_bottom.setY(rect.bottom())
-            point = action_widget.mapToGlobal(center_bottom)
-            self.menu.exec_(point)
+        # CRITICAL STEP: Add your menu object to the Menu Bar
+        menubar.addMenu(self.menu)
 
     def __setCheckedBBCActions(self):
         """
@@ -166,7 +218,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # -- scan stacker --
         self.scanStacker.nextScan.triggered.connect(self.__nextScanSlot)
         self.scanStacker.prevScan.triggered.connect(self.__prevScanSlot)
-        self.scanStacker.openMenu.triggered.connect(self.showMenu)
+        # self.scanStacker.openMenu.triggered.connect(self.showMenu)
         self.scanStacker.addToStack.clicked.connect(self.__addToStackSlot)
         self.scanStacker.removeFromStack.clicked.connect(self.__deleteFromStackSlot)
         self.scanStacker.finishPol.clicked.connect(self.__finishPol)

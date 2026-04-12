@@ -11,7 +11,7 @@ https://www.flaticon.com/free-icons/radar
 '''
 # -- IMPORT BLOCK --
 import sys
-from PyQt5 import QtWidgets, QtGui
+from PyQt6 import QtWidgets, QtGui
 import os
 from .UI.mainWindowWidget import mainWindowWidget
 from .UI.icons import satellite_dish
@@ -65,7 +65,7 @@ def main():
     widget.show()
 
     # -- go --
-    app.exec_()
+    app.exec()
 
 if __name__ == "__main__":
     main()

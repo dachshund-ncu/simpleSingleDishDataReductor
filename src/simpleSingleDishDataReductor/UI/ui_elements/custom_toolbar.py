@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QToolBar
+from PyQt6.QtWidgets import QToolBar
 
 class CustomToolbar(QToolBar):
     def __init__(self, *args):

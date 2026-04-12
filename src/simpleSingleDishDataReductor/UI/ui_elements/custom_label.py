@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QLabel
+from PyQt6.QtWidgets import QLabel
 
 class custom_label(QLabel):
     def __init__(self, *args):
