@@ -15,6 +15,7 @@ from .fitOrderChangeWidget import changeOrder
 from .manualCalCoeffSetter import changeCalCoeffWindow
 from .ui_elements.custom_menu import CustomMenu
 from .ui_elements import style_sheet
+import os
 import numpy as np
 import sys
 import functools as fctls
@@ -52,15 +53,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__declareAndPlaceButtons()
         self.__declareMenu()
         self.__declareAndPlaceCustomWidgets()
-        self.__setCheckedBBCActions()
         self.__connectButtonsToSlots()
 
-        # -- if data is passed as an argument --
-        if self.data is not None:
-            self.maximumScanNumber = len(self.data.obs.mergedScans)
-            self.__plotTimeInfo()
-            self.__plotScanNo(self.actualScanNumber)
-            self.__setPolyFitMode()
+
+        self.__display_initial_informations()
 
         self.setWindowIcon(satellite_dish)
         self.resize(1366, 720)
@@ -83,6 +79,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             software_path=software_path,
             target_filename=target_filename,
             onOff=is_on_off)
+        self.__initialize_data_reduction_parameters()
         return data
 
     def __set_window_title(self):
@@ -102,13 +99,59 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.timeInfoAlreadyPlotted = False
         self.mode: str | None = None
 
+    def __display_initial_informations(self):
+        if self.data is not None:
+            self.__reset_ui()
+            self.maximumScanNumber = len(self.data.obs.mergedScans)
+            self.__plotTimeInfo()
+            self.__plotScanNo(self.actualScanNumber)
+            self.__setPolyFitMode()
+            self.__add_bbc_menus()
+            self.__connect_bbc_menus()
+            self.__setCheckedBBCActions()
+
+    @QtCore.pyqtSlot()
+    def __load_file_from_gui(self) -> None:
+        # 'self' is usually your QMainWindow or QWidget
+        file_filter = "Observation archive (*.tar.bz2);;All files (*.*)"
+
+        # getOpenFileName returns a tuple: (absolute_path, selected_filter)
+        absolute_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            caption="Select archive (.tar.bz2)",
+            directory="",
+            filter=file_filter,
+            initialFilter="Observation archive (*.tar.bz2)"
+        )
+
+        if not absolute_path: return
+        self.target_filename = absolute_path
+        self.data = self.__load_data_from_filename(
+            software_path=self.software_path,
+            target_filename=self.target_filename,
+            is_on_off=self.is_on_off)
+        self.__display_initial_informations()
+
+    @QtCore.pyqtSlot()
+    def __reload_from_gui(self) -> None:
+        self.data = self.__load_data_from_filename(
+            software_path=self.software_path,
+            target_filename=self.target_filename,
+            is_on_off=self.is_on_off)
+        self.__display_initial_informations()
+
+
+    def __reset_ui(self) -> None:
+        self.__delete_bbc_menus()
+        pass
+
     def __declareAndPlaceButtons(self):
-        '''
+        """
         This methood will declare and place buttons correctly. There
         is also declared layout (QGrid) and primary widget(window), so watch out for that.
         Maybe it would be better to declare it separately?
         Buttons will be placed in the groupBoxes
-        '''
+        """
         # layouts
         self.window = QtWidgets.QWidget(self)
         self.setCentralWidget(self.window)
@@ -148,21 +191,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.calCoeffChanger = changeCalCoeffWindow()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
 
-    def __declare_advanced_menu(self) -> None:
-        self.advanced_menu = CustomMenu("Advanced", self)
-        self.advanced_menu.setTitle("Advanced")  # Set the visible name on the bar
-        self.advanced_menu.setToolTip("Advanced settings")
-        # Change Fit Order Action
-        self.changeOrderAction = QtGui.QAction("Change fit order", self)
-        self.advanced_menu.addAction(self.changeOrderAction)
-        # Submenus for BBC
-        self.changeBbcLhc = self.advanced_menu.addMenu("BBC for LHC")
-        self.changeBbcRhc = self.advanced_menu.addMenu("BBC for RHC")
-
-        self.changeBBCLHCActions = []
-        self.changeBBCRHCActions = []
-
-        # Populate Submenus
+    def __add_bbc_menus(self):
         if self.data is not None:
             for i in range(len(self.data.obs.mergedScans[0].pols)):
                 lhc_action = QtGui.QAction(f"BBC {i + 1}", self)
@@ -176,6 +205,41 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
                 self.changeBbcLhc.addAction(lhc_action)
                 self.changeBbcRhc.addAction(rhc_action)
+
+    def __delete_bbc_menus(self):
+        """
+        Cleans up BBC actions from the UI, disconnects triggers,
+        and clears the tracking lists.
+        """
+        # Helper to clean a specific menu and its tracking list
+        def reset_menu(menu_widget: custom_menu, actions_list):
+            for action in actions_list:
+                # 1. Explicitly remove from the menu UI
+                menu_widget.removeAction(action)
+                # 2. Break all signal/slot connections
+                action.disconnect()
+                # 3. Schedule for memory cleanup
+                action.deleteLater()
+            # 4. Clear the Python list reference
+            actions_list.clear()
+
+        # Apply to both LHC and RHC
+        reset_menu(self.changeBbcLhc, self.changeBBCLHCActions)
+        reset_menu(self.changeBbcRhc, self.changeBBCRHCActions)
+
+    def __declare_advanced_menu(self) -> None:
+        self.advanced_menu = CustomMenu("Advanced", self)
+        self.advanced_menu.setTitle("Advanced")  # Set the visible name on the bar
+        self.advanced_menu.setToolTip("Advanced settings")
+        # Change Fit Order Action
+        self.changeOrderAction = QtGui.QAction("Change fit order", self)
+        self.advanced_menu.addAction(self.changeOrderAction)
+        # Submenus for BBC
+        self.changeBbcLhc = self.advanced_menu.addMenu("BBC for LHC")
+        self.changeBbcRhc = self.advanced_menu.addMenu("BBC for RHC")
+
+        self.changeBBCLHCActions = []
+        self.changeBBCRHCActions = []
 
         # -- Caltab and JSON loading
         self.advanced_menu.addSeparator()
@@ -287,7 +351,11 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.download_caltabs_a.triggered.connect(self.download_caltabs)
         self.save_scans_to_json_a.triggered.connect(self.__save_scans_to_json)
         self.polEnd.save_to_json_btn.clicked.connect(self.__save_final_spectrum_to_json)
+        # -- connect actions --
+        self.load_file_menu_a.triggered.connect(self.__load_file_from_gui)
+        self.reload_file_menu_a.triggered.connect(self.__reload_from_gui)
 
+    def __connect_bbc_menus(self):
         # --- Menu  - selecting BBCs ---
         for i in range(len(self.changeBBCLHCActions)):
             self.changeBBCLHCActions[i].triggered.connect(fctls.partial(self.__bbcLhcHandler, i))

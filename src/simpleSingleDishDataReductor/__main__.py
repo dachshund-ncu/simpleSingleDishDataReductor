@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
+"""
 This is MAIN fo simpleSingleDishDataRecuctot
 Author: Michał Durjasz
 E-mail: md@astro.umk.pl
@@ -8,7 +8,7 @@ E-mail: md@astro.umk.pl
 attributions:
 Radar icon used in this app is created by Freepik:
 https://www.flaticon.com/free-icons/radar
-'''
+"""
 # -- IMPORT BLOCK --
 import sys
 from PyQt6 import QtWidgets, QtGui
