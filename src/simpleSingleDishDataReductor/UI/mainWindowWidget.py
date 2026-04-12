@@ -1,8 +1,8 @@
-'''
+"""
 Class, that holds the Main Window of the program
 Author: Michał Durjasz
 Date: 8.03.2022
-'''
+"""
 from PyQt6 import QtWidgets, QtGui, QtCore
 from PyQt6.QtWidgets import QMenuBar
 
@@ -133,7 +133,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__display_initial_informations()
 
     @QtCore.pyqtSlot()
-    def __reload_from_gui(self) -> None:
+    def __reload_data(self) -> None:
+        print(self.is_on_off)
         self.data = self.__load_data_from_filename(
             software_path=self.software_path,
             target_filename=self.target_filename,
@@ -167,7 +168,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.eighthOrderFit = QtGui.QShortcut(QtGui.QKeySequence('8'), self)
         self.ninthOrderFit = QtGui.QShortcut(QtGui.QKeySequence('9'), self)
         self.tenthOrderFit = QtGui.QShortcut(QtGui.QKeySequence('t'), self)
-
         self.shrtAddToStack = QtGui.QShortcut(QtGui.QKeySequence('k'), self)
         self.shrtDiscardToStack = QtGui.QShortcut(QtGui.QKeySequence('d'), self)
         self.shrtNextScan = QtGui.QShortcut(QtGui.QKeySequence('right'), self)
@@ -214,16 +214,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # Helper to clean a specific menu and its tracking list
         def reset_menu(menu_widget: custom_menu, actions_list):
             for action in actions_list:
-                # 1. Explicitly remove from the menu UI
                 menu_widget.removeAction(action)
-                # 2. Break all signal/slot connections
-                action.disconnect()
-                # 3. Schedule for memory cleanup
-                action.deleteLater()
-            # 4. Clear the Python list reference
             actions_list.clear()
-
-        # Apply to both LHC and RHC
         reset_menu(self.changeBbcLhc, self.changeBBCLHCActions)
         reset_menu(self.changeBbcRhc, self.changeBBCRHCActions)
 
@@ -241,7 +233,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.changeBBCLHCActions = []
         self.changeBBCRHCActions = []
 
+        # -- advanced tinkers --
+        self.is_on_off_action = QtGui.QAction("On-off data reduction", self)
+        self.is_on_off_action.setCheckable(True)
+        self.is_on_off_action.setChecked(self.is_on_off)
+
         # -- Caltab and JSON loading
+        self.advanced_menu.addAction(self.is_on_off_action)
         self.advanced_menu.addSeparator()
         self.download_caltabs_a = QtGui.QAction("Download caltabs", self)
         self.save_scans_to_json_a = QtGui.QAction("Save scans to json", self)
@@ -353,7 +351,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.save_to_json_btn.clicked.connect(self.__save_final_spectrum_to_json)
         # -- connect actions --
         self.load_file_menu_a.triggered.connect(self.__load_file_from_gui)
-        self.reload_file_menu_a.triggered.connect(self.__reload_from_gui)
+        self.reload_file_menu_a.triggered.connect(self.__reload_data)
+        self.is_on_off_action.triggered.connect(self.toggle_on_off)
 
     def __connect_bbc_menus(self):
         # --- Menu  - selecting BBCs ---
@@ -416,6 +415,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         --> resulting spectrum
         -> also marks, which Z, Tsys and Total Flux we are at
         """
+        if self.data is None: return
         if self.lhcReduction:
             self.actualBBC = self.BBCs[0]
             self.data.setActualBBC(self.actualBBC)
@@ -426,7 +426,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if scanNumber > len(self.data.obs.mergedScans):
             return
         # ------------
-
         # ------------
         if len(self.scanStacker.fitBoundsChannels) != 0:
             self.data.fitBoundsChannels = self.scanStacker.fitBoundsChannels
@@ -455,7 +454,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.newScanFigure.fitChebyPlot.setData(polyTabX, polyTabY)
         self.scanStacker.setFitDone()
         self.scanStacker.newStackedFigure.spectrumToStackPlot.setData(range(len(polyTabResiduals)), polyTabResiduals)
-
 
         self.scanStacker.setVline(self.data.mergedTimeTab[self.actualScanNumber])
         # --
@@ -1118,3 +1116,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             #rms = 0.15
             #snr = 3.5
             self.scanStacker.setLabel(self.mode, self.data.fitOrder, round(rms,3), self.actualScanNumber+1, len(self.data.obs.mergedScans), round(snr,3), tsys, self.actualBBC)
+
+    @QtCore.pyqtSlot()
+    def toggle_on_off(self):
+        self.is_on_off = self.is_on_off_action.isChecked()
+        self.__reload_data()
