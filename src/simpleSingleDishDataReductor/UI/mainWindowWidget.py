@@ -14,99 +14,93 @@ from .finishWidget import finishWidgetP
 from .fitOrderChangeWidget import changeOrder
 from .manualCalCoeffSetter import changeCalCoeffWindow
 from .ui_elements.custom_menu import CustomMenu
-from .icons import bars_icon
+from .ui_elements import style_sheet
 import numpy as np
 import sys
 import functools as fctls
+from simpleSingleDishDataReductor.data.dataClass import dataContainter
+from simpleSingleDishDataReductor.UI.icons import satellite_dish
+
 
 # -- class definition starts here --
 class mainWindowWidget(QtWidgets.QMainWindow):
     # -- init --
     def __init__(
             self,
-            data = None,
-            calibrate=True):
+            software_path: str | None = None,
+            target_filename: str | None = None,
+            is_on_off: bool = False,
+            calibrate: bool = True):
         super().__init__()
         self.setVisible(False)
-        style_sheet = R'''
-            QMainWindow {
-                background-color: #121212;
-            }
-            QMenuBar {
-                background-color: transparent;
-            }
-            QMenuBar::item{
-                background-color: transparent;
-                padding: 8px; /* padding */
-                border-radius: 2px; /* border radius */
-                font-size: 12px; /* font size */
-                text-align: left;
-                font-family: silka;
-                color: white; /* text color */
-            }
-            QMenuBar::item:selected {
-                background-color: #353535;
-            }
-            QMenu {
-                background-color: #353535;
-                color: white; /* text color */
-                padding: 4px; /* padding */
-                font-size: 12px; /* font size */
-                border-radius: 2px; /* border radius */
-                text-align: left;
-                font-family: silka;
-                border: 1px solid rgba(255,255,255, 25%);
-            }
-            QAction{
-                color: white; /* text color */
-                padding: 4px; /* padding */
-                font-size: 15px; /* font size */
-                border-radius: 2px; /* border radius */
-                text-align: left;
-                font-family: silka;
-            }
-            QMenu::item {
-                background-color: #353535;
-                padding: 8px 12px;
-                border-radius: 2px; /* border radius */
-            }
-            QMenu::item:selected {
-                background-color: rgba(255,255,255,9%);
-                border: 1px solid rgba(255,255,255,25%);
-            }
-            QMenu::item:checked {
-                background-color: #C2185B;
-            }
-        '''
         self.setStyleSheet(style_sheet)
+
+        # -- initialize default parameters --
+        self.__initialize_data_reduction_parameters()
+
+        # -- parameters --
+        self.software_path = software_path
+        self.target_filename = target_filename
+        self.is_on_off = is_on_off
         self.calibrate = calibrate
+        self.data = self.__load_data_from_filename(
+            software_path=self.software_path,
+            target_filename=self.target_filename,
+            is_on_off=self.is_on_off)
+
+        # -- initialize ui elements
+        self.__declareAndPlaceButtons()
+        self.__declareMenu()
+        self.__declareAndPlaceCustomWidgets()
+        self.__setCheckedBBCActions()
+        self.__connectButtonsToSlots()
+
+        # -- if data is passed as an argument --
+        if self.data is not None:
+            self.maximumScanNumber = len(self.data.obs.mergedScans)
+            self.__plotTimeInfo()
+            self.__plotScanNo(self.actualScanNumber)
+            self.__setPolyFitMode()
+
+        self.setWindowIcon(satellite_dish)
+        self.resize(1366, 720)
+        self.setVisible(True)
+
+
+        if self.data is not None and len(self.data.caltabs) < 1:
+            self.display_caltab_prompt("Seems there are no downloaded caltabs. Would you like to download them?")
+
+    def __load_data_from_filename(
+            self,
+            software_path: str | None = None,
+            target_filename: str | None = None,
+            is_on_off: bool = False) -> dataContainter | None:
+        if software_path is None:
+            return None
+        if target_filename is None:
+            return None
+        data = dataContainter(
+            software_path=software_path,
+            target_filename=target_filename,
+            onOff=is_on_off)
+        return data
+
+    def __set_window_title(self):
+        if self.data is not None:
+            self.setWindowTitle("Data reduction: " \
+                                + self.data.obs.scans[0].sourcename \
+                                + " " \
+                                + self.data.obs.scans[0].isotime)
+
+    def __initialize_data_reduction_parameters(self):
         self.calibrated = False
         self.BBCs = [3,2]
         self.bbcindex = 0
-        self.__declareAndPlaceButtons()
-
         self.lhcReduction = True
-        self.mode = 'Polynomial fit'
-        if data != None:
-            self.data = data
-            self.actualScanNumber = 0
-            self.actualBBC = self.BBCs[0]
-            self.maximumScanNumber = len(data.obs.mergedScans)
-            self.timeInfoAlreadyPlotted = False
-        self.__declareMenu()
-        self.__declareAndPlaceCustomWidgets()
-        if data != None:
-            self.__plotTimeInfo()
-            self.__plotScanNo(self.actualScanNumber)
-
-        self.__setCheckedBBCActions()
-        self.__connectButtonsToSlots()
-        self.__setPolyFitMode()
-
-        self.setVisible(True)
-        if self.data is not None and len(self.data.caltabs) < 1:
-            self.display_caltab_prompt("Seems there are no downloaded caltabs. Would you like to download them?")
-        
+        self.actualScanNumber = 0
+        self.actualBBC = self.BBCs[0]
+        self.timeInfoAlreadyPlotted = False
+        self.mode: str | None = None
 
     def __declareAndPlaceButtons(self):
         '''
@@ -154,51 +148,71 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.calCoeffChanger = changeCalCoeffWindow()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
 
-    def __declareMenu(self):
-        """
-        This method declares the menu and adds it to the window's Menu Bar
-        """
-        # Create the menu bar (or get the existing one)
-        menubar: QMenuBar | None = self.menuBar()
-        self.menu = CustomMenu("Advanced", self)
-        self.menu.setTitle("Advanced")  # Set the visible name on the bar
-        self.menu.setToolTip("Advanced settings")
-
-        # -- Change Fit Order Action
+    def __declare_advanced_menu(self) -> None:
+        self.advanced_menu = CustomMenu("Advanced", self)
+        self.advanced_menu.setTitle("Advanced")  # Set the visible name on the bar
+        self.advanced_menu.setToolTip("Advanced settings")
+        # Change Fit Order Action
         self.changeOrderAction = QtGui.QAction("Change fit order", self)
-        self.menu.addAction(self.changeOrderAction)
-
-        # -- Submenus for BBC
-        self.changeBbcLhc = self.menu.addMenu("BBC for LHC")
-        self.changeBbcRhc = self.menu.addMenu("BBC for RHC")
+        self.advanced_menu.addAction(self.changeOrderAction)
+        # Submenus for BBC
+        self.changeBbcLhc = self.advanced_menu.addMenu("BBC for LHC")
+        self.changeBbcRhc = self.advanced_menu.addMenu("BBC for RHC")
 
         self.changeBBCLHCActions = []
         self.changeBBCRHCActions = []
 
         # Populate Submenus
-        for i in range(len(self.data.obs.mergedScans[0].pols)):
-            lhc_action = QtGui.QAction(f"BBC {i + 1}", self)
-            rhc_action = QtGui.QAction(f"BBC {i + 1}", self)
+        if self.data is not None:
+            for i in range(len(self.data.obs.mergedScans[0].pols)):
+                lhc_action = QtGui.QAction(f"BBC {i + 1}", self)
+                rhc_action = QtGui.QAction(f"BBC {i + 1}", self)
 
-            lhc_action.setCheckable(True)
-            rhc_action.setCheckable(True)
+                lhc_action.setCheckable(True)
+                rhc_action.setCheckable(True)
 
-            self.changeBBCLHCActions.append(lhc_action)
-            self.changeBBCRHCActions.append(rhc_action)
+                self.changeBBCLHCActions.append(lhc_action)
+                self.changeBBCRHCActions.append(rhc_action)
 
-            self.changeBbcLhc.addAction(lhc_action)
-            self.changeBbcRhc.addAction(rhc_action)
+                self.changeBbcLhc.addAction(lhc_action)
+                self.changeBbcRhc.addAction(rhc_action)
 
         # -- Caltab and JSON loading
-        self.menu.addSeparator()  # Visual separation
+        self.advanced_menu.addSeparator()
         self.download_caltabs_a = QtGui.QAction("Download caltabs", self)
         self.save_scans_to_json_a = QtGui.QAction("Save scans to json", self)
 
-        self.menu.addAction(self.download_caltabs_a)
-        self.menu.addAction(self.save_scans_to_json_a)
+        self.advanced_menu.addAction(self.download_caltabs_a)
+        self.advanced_menu.addSeparator()
+        self.advanced_menu.addAction(self.save_scans_to_json_a)
 
-        # CRITICAL STEP: Add your menu object to the Menu Bar
-        menubar.addMenu(self.menu)
+    def __declare_file_menu(self) -> None:
+        # declare
+        self.file_menu = CustomMenu("File", self)
+        self.file_menu.setTitle("File")  # Set the visible name on the bar
+        self.file_menu.setToolTip("File options")
+        # declare actions
+        self.load_file_menu_a = QtGui.QAction("Load archive", self)
+        self.reload_file_menu_a = QtGui.QAction("Reload archive", self)
+        self.quit_file_menu_a = QtGui.QAction("Quit", self)
+        # add to menu
+        self.file_menu.addAction(self.load_file_menu_a)
+        self.file_menu.addAction(self.reload_file_menu_a)
+        self.file_menu.addSeparator()
+        self.file_menu.addAction(self.quit_file_menu_a)
+
+    def __declareMenu(self):
+        """
+        This method declares the menu and adds it to the window's Menu Bar
+        """
+        # Create the menu bar (or get the existing one)
+        menubar: QMenuBar = self.menuBar()
+        # -- advanced menu --
+        self.__declare_advanced_menu()
+        self.__declare_file_menu()
+
+        menubar.addMenu(self.file_menu)
+        menubar.addMenu(self.advanced_menu)
 
     def __setCheckedBBCActions(self):
         """
@@ -207,18 +221,20 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         We manage that by executing the code below
         self.BBCs is the list of used BBCs: by default these are [1,2]
         """
-        self.changeBBCLHCActions[self.BBCs[0]-1].setChecked(True)
-        self.changeBBCRHCActions[self.BBCs[1]-1].setChecked(True)
-        
+        if self.data is not None:
+            self.changeBBCLHCActions[self.BBCs[0]-1].setChecked(True)
+            self.changeBBCRHCActions[self.BBCs[1]-1].setChecked(True)
+
 
     def __connectButtonsToSlots(self):
         """
         This method connects buttons and actions to the corresponding slots
         """
+        # -- file menu --
+        self.quit_file_menu_a.triggered.connect(self.__close_app_from_menu)
         # -- scan stacker --
         self.scanStacker.nextScan.triggered.connect(self.__nextScanSlot)
         self.scanStacker.prevScan.triggered.connect(self.__prevScanSlot)
-        # self.scanStacker.openMenu.triggered.connect(self.showMenu)
         self.scanStacker.addToStack.clicked.connect(self.__addToStackSlot)
         self.scanStacker.removeFromStack.clicked.connect(self.__deleteFromStackSlot)
         self.scanStacker.finishPol.clicked.connect(self.__finishPol)
@@ -372,7 +388,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.setFitDone()
         self.scanStacker.newStackedFigure.spectrumToStackPlot.setData(range(len(polyTabResiduals)), polyTabResiduals)
 
-        
+
         self.scanStacker.setVline(self.data.mergedTimeTab[self.actualScanNumber])
         # --
         stackPlot = self.data.calculateSpectrumFromStack()
@@ -392,7 +408,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__updateLabel()
 
 
-    
+
     def __plotTimeInfo(self):
         '''
         It plots info about Tsys vs time and total flux vs time
@@ -403,10 +419,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         for i in self.data.tsysTab:
             tmptsys.extend(i)
             tmptime.extend(self.data.timeTab)
-            
+
         self.scanStacker.newOtherPropsFigure.tsysPlot.setData(tmptime, tmptsys)
         self.scanStacker.newOtherPropsFigure.actualTsysPlot.setData(self.data.timeTab, self.data.tsysTab[self.actualBBC-1])
-        
+
         for i in range(len(self.data.totalFluxTab[self.actualBBC-1])):
             if not self.timeInfoAlreadyPlotted:
                 self.scanStacker.newOtherPropsFigure.appendToTotalFluxPool(self.data.mergedTimeTab[i], self.data.totalFluxTab[self.actualBBC-1][i])
@@ -454,22 +470,24 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     '''
     @QtCore.pyqtSlot()
     def __nextScanSlot(self):
+        if self.data is None: return
         if self.actualScanNumber+1 < self.maximumScanNumber:
             self.actualScanNumber += 1
         else:
             self.actualScanNumber = 0
-        
+
         self.__plotScanNo(self.actualScanNumber)
-    
+
     @QtCore.pyqtSlot()
     def __prevScanSlot(self):
+        if self.data is None: return
         if self.actualScanNumber-1 >= 0:
             self.actualScanNumber -= 1
         else:
             self.actualScanNumber = self.maximumScanNumber-1
-        
+
         self.__plotScanNo(self.actualScanNumber)
-    
+
     @QtCore.pyqtSlot()
     def __addToStackSlot(self):
         '''
@@ -479,6 +497,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if 'autoReductionMode' is activated, it will try to perform it with discarding standard adding to stack procedure
         if auto procedure fails for some reason, it will do standard task anyway
         '''
+        if self.data is None: return
         if not self.scanStacker.isVisible():
             return
         if self.scanStacker.autoRedMode:
@@ -495,15 +514,17 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             #print(f'Setting stacked {self.actualScanNumber}')
             self.scanStacker.newOtherPropsFigure.setTotalFluxStacked(self.actualScanNumber)
             self.__nextScanSlot()
-            
+
     @QtCore.pyqtSlot()
     def __deleteFromStackSlot(self):
+        if self.data is None: return
         self.data.deleteFromStack(self.actualScanNumber)
         self.scanStacker.newOtherPropsFigure.setTotalFluxDiscarded(self.actualScanNumber)
         self.__plotScanNo(self.actualScanNumber)
 
     @QtCore.pyqtSlot()
     def __finishPol(self):
+        if self.data is None: return
         # UI
         self.scanStacker.setVisible(False)
         self.layout.removeWidget(self.scanStacker)
@@ -531,7 +552,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
                 ctabx = self.data.caltabs[self.data.properCaltabIndex].rhcMJDTab
                 ctaby = self.data.caltabs[self.data.properCaltabIndex].rhcCoeffsTab
                 calCoeff = self.data.calCoeffRHC
-            
+
             self.polEnd.plotCalCoeffsTable(ctabx, ctaby)
             self.polEnd.plotUsedCalCoeff(date, calCoeff)
             #self.data.printCalibrationMessage(calCoeff, date, self.lhcReduction)
@@ -542,7 +563,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         else:
             self.polEnd.cancelCalibrations.setEnabled(False)
             self.polEnd.useCalibrations.setEnabled(False)
-        
+
 
         self.data.calculateSpectrumFromStack()
         spectr = self.data.calibrate(lhc=self.lhcReduction)
@@ -563,20 +584,19 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         """
         Simply save loaded scans to txt file
         """
-        if self.data is None:
-            return
+        if self.data is None: return
         saved_filename = self.data.save_scans_to_json()
         self.display_message(text=f"Saved scans to file:{saved_filename}")
 
     @QtCore.pyqtSlot()
     def __save_final_spectrum_to_json(self):
-        if self.data is None:
-            return
+        if self.data is None: return
         saved_filename  = self.data.save_final_spectrum_to_json()
         self.display_message(text=f"Saved final spectrum to file:{saved_filename}")
 
     @QtCore.pyqtSlot()
     def __discardScan(self):
+        if self.data is None: return
         self.data.discardFromStack(self.actualScanNumber)
         self.scanStacker.newOtherPropsFigure.setTotalFluxDiscarded(self.actualScanNumber)
         if self.data.checkIfAllScansProceeded():
@@ -587,6 +607,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def __setPolyFitMode(self):
+        if self.data is None: return
         self.scanStacker.polyFitMode = True
         self.scanStacker.removeChannelsMode = False
         self.scanStacker.autoRedMode = False
@@ -604,6 +625,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def __setRemoveChansMode(self):
+        if self.data is None: return
         self.scanStacker.polyFitMode = False
         self.scanStacker.removeChannelsMode = True
         self.scanStacker.autoRedMode = False
@@ -620,9 +642,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.mode = 'Remove channels'
         self.__updateLabel()
         print("-----> Channel removal mode is ACTIVE!")
-    
+
     @QtCore.pyqtSlot()
     def __setAutoReductionMode(self):
+        if self.data is None: return
         self.scanStacker.polyFitMode = False
         self.scanStacker.removeChannelsMode = False
         self.scanStacker.autoRedMode = True
@@ -636,16 +659,18 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.mode = 'AUTO'
         self.__updateLabel()
         print("-----> Auto reduction mode is ACTIVE!")
-    
+
     @QtCore.pyqtSlot()
     def __shrtPolyWrapper(self):
+        if self.data is None: return
         if self.scanStacker.isVisible():
             self.__setPolyFitMode()
         elif self.polEnd.isVisible():
             self.polEnd.setPolyFitMode()
-    
+
     @QtCore.pyqtSlot()
     def __shrtRemWrapper(self):
+        if self.data is None: return
         if self.scanStacker.isVisible():
             self.__setRemoveChansMode()
         elif self.polEnd.isVisible():
@@ -653,59 +678,66 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def __shrtAutoWrapper(self):
+        if self.data is None: return
         if self.scanStacker.isVisible():
             self.__setAutoReductionMode()
         elif self.polEnd.isVisible():
             self.polEnd.setZoomMode()
-        
+
     @QtCore.pyqtSlot()
     def __fitAndPlot(self):
+        if self.data is None: return
         self.scanStacker.setFitDone()
         self.__plotScanNo(self.actualScanNumber)
-    
+
     @QtCore.pyqtSlot()
     def __removeAndPlot(self):
+        if self.data is None: return
         self.data.removeChannels(self.actualBBC, self.actualScanNumber, self.scanStacker.removeChannelsTab)
         self.scanStacker.setRemoveDone()
         self.__plotScanNo(self.actualScanNumber)
-    
+
     @QtCore.pyqtSlot()
     def __cancelRemoval(self):
+        if self.data is None: return
         self.data.cancelRemoval(self.actualBBC, self.actualScanNumber)
         self.scanStacker.setRemoveDone()
         self.__plotScanNo(self.actualScanNumber)
-    
+
     @QtCore.pyqtSlot()
     def __fitToFinalSpectum(self):
+        if self.data is None: return
         if len(self.polEnd.fitBoundChannels) != 0:
             ftBds = self.data.convertVelsToChannels(self.actualBBC-1, self.polEnd.fitBoundChannels)
             self.polEnd.fitBoundChannels
             self.polEnd.fitBoundChannels
             self.data.finalFitBoundChannels = ftBds
         self.data.fitChebyToFinalSpec(self.actualBBC)
-        # -- 
+        # --
         self.polEnd.setFitDone()
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
-    
+
     @QtCore.pyqtSlot()
     def __removeOnFinalSpectrum(self):
+        if self.data is None: return
         if (len(self.polEnd.removeChannelsTab)) != 0:
             rmBds = self.data.convertVelsToChannels(self.actualBBC-1, self.polEnd.removeChannelsTab)
             self.data.removeChansOnFinalSpectrum(rmBds)
         self.polEnd.setRemoveDone()
         self.polEnd.plotSpectrumWOAutoRange(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
-    
+
     @QtCore.pyqtSlot()
     def __cancelChangesOnFinalSpectrum(self):
+        if self.data is None: return
         self.data.cancelChangesFinal()
         self.polEnd.setRemoveDone()
         self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], self.data.finalFitRes)
 
     @QtCore.pyqtSlot()
     def __goToNextPol(self):
+        if self.data is None: return
         if not self.polEnd.isVisible():
             return
-
         if self.lhcReduction:
             self.data.clearStack(pol='LHC')
             self.scanStacker.finishPol.setText("  Finish RHC")
@@ -717,7 +749,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.__finishDataReduction()
             self.scanStacker.autoThreshold = -1e11
             return
-        
+
         self.bbcindex += 1
         self.actualBBC = self.BBCs[self.bbcindex]
         self.data.setActualBBC(self.actualBBC)
@@ -733,9 +765,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.setVisible(True)
         # ---------
         self.scanStacker.newOtherPropsFigure.setTotalFluxDefaultBrush()
-    
+
     @QtCore.pyqtSlot()
     def __finishDataReduction(self):
+        if self.data is None: return
         self.data.bbcs_used = self.BBCs
         # save fits file
         print("-----------------------------------------")
@@ -756,7 +789,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         else:
             self.finishW.setYlabel("Antenna temperature")
         self.finishW.setVisible(True)
-    
+
     @QtCore.pyqtSlot()
     def __closeApp(self):
         if self.finishW.isVisible():
@@ -765,30 +798,38 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             sys.exit()
 
     @QtCore.pyqtSlot()
+    def __close_app_from_menu(self):
+        sys.exit()
+
+    @QtCore.pyqtSlot()
     def __returnToScanEdit(self):
+        if self.data is None: return
         #UI
         self.polEnd.setVisible(False)
         self.layout.removeWidget(self.polEnd)
         self.layout.addWidget(self.scanStacker, 0, 1)
         self.scanStacker.setVisible(True)
-    
+
     @QtCore.pyqtSlot()
     def __cancelFitOrderChange(self):
         self.orderChanger.setVisible(False)
-    
+
     @QtCore.pyqtSlot()
     def __changeFitOrder(self):
+        if self.data is None: return
         self.data.setFitOrder(self.orderChanger.getValue())
         self.orderChanger.setVisible(False)
         self.__plotScanNo(self.actualScanNumber)
-    
+
     @QtCore.pyqtSlot()
     def __showFitOrderWidget(self):
+        if self.data is None: return
         self.orderChanger.setText(self.data.fitOrder)
         self.orderChanger.setVisible(True)
 
     @QtCore.pyqtSlot()
     def __bbcLhcHandler(self, index):
+        if self.data is None: return
         for i in range(len(self.changeBBCLHCActions)):
             if i != index:
                 self.changeBBCLHCActions[i].setChecked(False)
@@ -806,6 +847,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def __bbcRhcHandler(self, index):
+        if self.data is None: return
         for i in range(len(self.changeBBCRHCActions)):
             if i != index:
                 self.changeBBCRHCActions[i].setChecked(False)
@@ -820,9 +862,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.__plotScanNo(self.actualScanNumber)
             self.__plotTimeInfo()
         print(f'-----> BBC for RHC set to {index+1}')
-    
+
     @QtCore.pyqtSlot()
     def __uncalibrateData(self):
+        if self.data is None: return
         if self.calibrated:
             spectr = self.data.uncalibrate(self.lhcReduction)
             self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
@@ -835,6 +878,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def __calibrateData(self):
+        if self.data is None: return
         if not self.calibrated:
             spectr = self.data.calibrate(self.lhcReduction)
             self.polEnd.plotSpectrum(self.data.velTab[self.actualBBC-1], spectr)
@@ -850,6 +894,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def __showManualCalCoeffWidget(self):
+        if self.data is None: return
         if self.lhcReduction:
             self.calCoeffChanger.setText(self.data.calCoeffLHC)
         else:
@@ -859,6 +904,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def __setCalCoeffManually(self):
+        if self.data is None: return
         # --
         date = self.data.obs.mjd
         calCoeff = self.calCoeffChanger.getValue()
@@ -888,6 +934,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     '''
     @QtCore.pyqtSlot()
     def __updatePlotAfterFitOrderChange(self):
+        if self.data is None: return
         if self.scanStacker.isVisible():
             self.__plotScanNo(self.actualScanNumber)
         elif self.polEnd.isVisible():
@@ -902,61 +949,73 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.polEnd.setDefaultRange()
     @QtCore.pyqtSlot()
     def __setFirstOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(1)
         self.__updatePlotAfterFitOrderChange()
     @QtCore.pyqtSlot()
     def __setsecondOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(2)
         self.__updatePlotAfterFitOrderChange()
     @QtCore.pyqtSlot()
     def __setThirdOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(3)
         self.__updatePlotAfterFitOrderChange()
     @QtCore.pyqtSlot()
     def __setFourthOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(4)
         self.__updatePlotAfterFitOrderChange()
     @QtCore.pyqtSlot()
     def __setFifthOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(5)
         self.__updatePlotAfterFitOrderChange()
     @QtCore.pyqtSlot()
     def __setSixthOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(6)
         self.__updatePlotAfterFitOrderChange()
     @QtCore.pyqtSlot()
     def __setSeventhOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(7)
         self.__updatePlotAfterFitOrderChange()
     @QtCore.pyqtSlot()
     def __setEightOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(8)
         self.__updatePlotAfterFitOrderChange()
     @QtCore.pyqtSlot()
     def __setNinthOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(9)
         self.__updatePlotAfterFitOrderChange()
     @QtCore.pyqtSlot()
     def __setTenthOrderPoly(self):
+        if self.data is None: return
         self.data.setFitOrder(10)
         self.__updatePlotAfterFitOrderChange()
-    
+
+
     @QtCore.pyqtSlot()
     def doAutoReduction(self):
-        '''
+        """
         This method is to do automated data reduction
-        '''
+        """
+        if self.data is None: return
         if self.scanStacker.autoThreshold == -1e11:
             return False
-        
+
         validationTable = []
-        
+
         for i in self.data.totalFluxTab[self.actualBBC-1]:
             if i < self.scanStacker.autoThreshold:
                 validationTable.append(True)
             else:
                 validationTable.append(False)
-        
+
         print("-----------------------------------------")
         print("-----> AUTO REDUCTION:")
         for i in range(len(validationTable)):
@@ -968,24 +1027,26 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         print("Automated pol. reduction ended succesfully")
         print("-----------------------------------------")
         return True
-    
+
     @QtCore.pyqtSlot()
     def download_caltabs(self):
-        '''
+        """
         Downloads caltabs
-        '''
+        """
+        if self.data is None: return
         self.data.download_caltabs()
         self.__display_download_caltabs_propmpt(self.data.caltabsLoaded)
         if self.polEnd.isVisible():
             self.__finishPol()
 
     def __updateLabel(self):
-        rms = self.data.calculateFitRMS(self.data.polyTabResiduals)
-        snr = self.data.calculateSNR()
-        tsys1 = self.data.obs.scans[2*self.actualScanNumber].tsys
-        tsys2 = self.data.obs.scans[2*self.actualScanNumber + 1].tsys
-        tsys = ((tsys1 + tsys2) / 2.0) / 1000.0
-        # tmp
-        #rms = 0.15
-        #snr = 3.5
-        self.scanStacker.setLabel(self.mode, self.data.fitOrder, round(rms,3), self.actualScanNumber+1, len(self.data.obs.mergedScans), round(snr,3), tsys, self.actualBBC)
+        if self.data is not None:
+            rms = self.data.calculateFitRMS(self.data.polyTabResiduals)
+            snr = self.data.calculateSNR()
+            tsys1 = self.data.obs.scans[2*self.actualScanNumber].tsys
+            tsys2 = self.data.obs.scans[2*self.actualScanNumber + 1].tsys
+            tsys = ((tsys1 + tsys2) / 2.0) / 1000.0
+            # tmp
+            #rms = 0.15
+            #snr = 3.5
+            self.scanStacker.setLabel(self.mode, self.data.fitOrder, round(rms,3), self.actualScanNumber+1, len(self.data.obs.mergedScans), round(snr,3), tsys, self.actualBBC)
