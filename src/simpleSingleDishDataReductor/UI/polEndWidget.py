@@ -97,10 +97,13 @@ class polEndWidget(QtWidgets.QWidget):
         self.vboxLeftWidget.addSpacing(8)
         self.vboxLeftWidget.addWidget(CustomHorizontalSeparator())
         self.vboxLeftWidget.addSpacing(8)
+        self.vboxLeftWidget.addWidget(self.setDefaultRangeButton)
+        self.vboxLeftWidget.addWidget(self.reverseChanges)
+        self.vboxLeftWidget.addSpacing(8)
+        self.vboxLeftWidget.addWidget(CustomHorizontalSeparator())
+        self.vboxLeftWidget.addSpacing(8)
         self.vboxLeftWidget.addWidget(self.performFit)
         self.vboxLeftWidget.addWidget(self.performRemoval)
-        self.vboxLeftWidget.addWidget(self.reverseChanges)
-        self.vboxLeftWidget.addWidget(self.setDefaultRangeButton)
         self.vboxLeftWidget.addStretch()
         self.vboxLeftWidget.addWidget(self.save_to_json_btn)
 
@@ -131,10 +134,6 @@ class polEndWidget(QtWidgets.QWidget):
 
 
     def __placeNecessaryButtons(self):
-        #self.layout.addWidget(self.stokesFrame, 0,0)
-        #self.layout.addWidget(self.calHandling, 1,0)
-        #self.layout.addWidget(self.dataEditFrame, 2,0)
-        #self.layout.addWidget(self.modesHandlingFrame, 3,0)
         self.layout.addWidget(self.leftWidget, 0,0, 4, 1)
         self.layout.addWidget(self.newPolEndFigWidget, 0,1,3,4)
         self.layout.addWidget(self.calCoeffFigWidget, 3,1,1,4)
@@ -151,6 +150,8 @@ class polEndWidget(QtWidgets.QWidget):
         self.fitPolynomial.clicked.connect(self.setPolyFitMode)
         self.removeChannels.clicked.connect(self.setRemoveChansMode)
         self.zoomButton.clicked.connect(self.setZoomMode)
+
+
     '''
     PRIVATE SLOTS:
     '''
@@ -163,8 +164,8 @@ class polEndWidget(QtWidgets.QWidget):
         self.removeChannels.setChecked(False)
         self.zoomButton.setChecked(False)
         self.setFitDone()
-        self.performRemoval.setEnabled(False)
-        self.performFit.setEnabled(True)
+        self.performRemoval.setVisible(False)
+        self.performFit.setVisible(True)
         self.newPolEndFig.pSpec.setMouseEnabled(x=False, y=False)
         print("-----> Polynomial fit mode is ACTIVE!")
     @QtCore.pyqtSlot()
@@ -176,8 +177,8 @@ class polEndWidget(QtWidgets.QWidget):
         self.removeChannels.setChecked(True)
         self.zoomButton.setChecked(False)
         self.setRemoveDone()
-        self.performRemoval.setEnabled(True)
-        self.performFit.setEnabled(False)
+        self.performRemoval.setVisible(True)
+        self.performFit.setVisible(False)
         self.newPolEndFig.pSpec.setMouseEnabled(x=False, y=False)
         print("-----> Channel removal mode is ACTIVE!")
     @QtCore.pyqtSlot()
@@ -189,8 +190,8 @@ class polEndWidget(QtWidgets.QWidget):
         self.removeChannels.setChecked(False)
         self.zoomButton.setChecked(True)
         self.setZoomDone()
-        self.performRemoval.setEnabled(False)
-        self.performFit.setEnabled(False)
+        self.performRemoval.setVisible(False)
+        self.performFit.setVisible(False)
         self.newPolEndFig.pSpec.setMouseEnabled(x=True, y=True)
         print("-----> Zoom mode is ACTIVE!")
     @QtCore.pyqtSlot()
