@@ -150,7 +150,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.changeBbcLhc.setEnabled(True)
         self.changeBbcRhc.setEnabled(True)
         self.scanStacker.reset_plots()
+        self.scanStacker.perform_automated_reduction.setEnabled(False)
+        self.scanStacker.autoThreshold = None
         self.__show_scan_stacker()
+
 
     def __show_scan_stacker(self):
         self.polEnd.setVisible(False)
@@ -189,6 +192,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.shrtfitPolyMode = QtGui.QShortcut(QtGui.QKeySequence('f'), self)
         self.shrtAutoRedMode = QtGui.QShortcut(QtGui.QKeySequence('i'), self)
         self.setDefaultRangeOnPolEndShrt = QtGui.QShortcut(QtGui.QKeySequence('b'), self)
+        self.perform_auto_reduction_shortcut = QtGui.QShortcut(QtGui.QKeySequence('a'), self)
 
     def __declareAndPlaceCustomWidgets(self):
         """
@@ -320,6 +324,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performPolyFit.clicked.connect(self.__fitAndPlot)
         self.scanStacker.performRemoval.clicked.connect(self.__removeAndPlot)
         self.scanStacker.cancelRemoval.clicked.connect(self.__cancelRemoval)
+        self.scanStacker.perform_automated_reduction.clicked.connect(self.__perform_auto_reduction)
+
         # -- pol end widget --
         self.polEnd.backToPol.clicked.connect(self.__returnToScanEdit)
         self.polEnd.goToNextPol.clicked.connect(self.__goToNextPol)
@@ -348,6 +354,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.eighthOrderFit.activated.connect(self.__setEightOrderPoly)
         self.ninthOrderFit.activated.connect(self.__setNinthOrderPoly)
         self.tenthOrderFit.activated.connect(self.__setTenthOrderPoly)
+        # -- automated shortducts --
+        self.perform_auto_reduction_shortcut.activated.connect(self.__perform_auto_reduction)
         # -- THIS (or in more phythonic language: self) --
         self.shrtAddToStack.activated.connect(self.__addToStackSlot)
         self.shrtDiscardToStack.activated.connect(self.__discardScan)
@@ -362,6 +370,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.download_caltabs_a.triggered.connect(self.download_caltabs)
         self.save_scans_to_json_a.triggered.connect(self.__save_scans_to_json)
         self.polEnd.save_to_json_btn.clicked.connect(self.__save_final_spectrum_to_json)
+
         # -- connect actions --
         self.load_file_menu_a.triggered.connect(self.__load_file_from_gui)
         self.reload_file_menu_a.triggered.connect(self.__reload_data)
@@ -568,22 +577,26 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.__plotScanNo(self.actualScanNumber)
 
     @QtCore.pyqtSlot()
-    def __addToStackSlot(self):
-        '''
+    def __perform_auto_reduction(self) -> None:
+        if not self.scanStacker.isVisible(): return
+        if self.scanStacker.autoThreshold is None:
+            return
+        if not self.scanStacker.autoRedMode:
+            return
+        flag = self.doAutoReduction()
+        if flag:
+            self.__finishPol()
+            return
+
+    @QtCore.pyqtSlot()
+    def __addToStackSlot(self) -> None:
+        """
         Adds to stack of reduced spectra
         'STACK' is being averaged, what gives better and better SNR with every addition
-        UPDATE:
-        if 'autoReductionMode' is activated, it will try to perform it with discarding standard adding to stack procedure
-        if auto procedure fails for some reason, it will do standard task anyway
-        '''
+        """
         if self.data is None: return
         if not self.scanStacker.isVisible():
             return
-        if self.scanStacker.autoRedMode:
-            flag = self.doAutoReduction()
-            if flag:
-                self.__finishPol()
-                return
         self.data.addToStack(self.actualScanNumber)
         if self.data.checkIfAllScansProceeded():
             self.scanStacker.newOtherPropsFigure.setTotalFluxStacked(self.actualScanNumber)
@@ -792,13 +805,15 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.scanStacker.finishPol.setText("  Finish RHC")
             self.polEnd.goToNextPol.setText("  Finish reduction")
             self.lhcReduction = False
-            self.scanStacker.autoThreshold = -1e11
+            self.scanStacker.autoThreshold = None
         else:
             self.data.clearStack(pol='RHC')
             self.__finishDataReduction()
-            self.scanStacker.autoThreshold = -1e11
+            self.scanStacker.autoThreshold = None
             return
 
+        self.scanStacker.autoThrshold = None
+        self.scanStacker.perform_automated_reduction.setEnabled(False)
         self.bbcindex += 1
         self.actualBBC = self.BBCs[self.bbcindex]
         self.data.setActualBBC(self.actualBBC)
@@ -886,8 +901,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.BBCs[0] = index+1
 
         if self.lhcReduction:
-            self.scanStacker.autoThreshold = -1e11
+            self.scanStacker.autoThreshold = None
             self.scanStacker.newOtherPropsFigure.setTotalFluxDefaultBrush()
+            self.scanStacker.perform_automated_reduction.setEnabled(False)
             self.data.clearStackedData()
             self.actualScanNumber = 0
             self.__plotScanNo(self.actualScanNumber)
@@ -904,8 +920,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.BBCs[1] = index+1
 
         if not self.lhcReduction:
-            self.scanStacker.autoThreshold = -1e11
+            self.scanStacker.autoThreshold = None
             self.scanStacker.newOtherPropsFigure.setTotalFluxDefaultBrush()
+            self.scanStacker.perform_automated_reduction.setEnabled(False)
             self.data.clearStackedData()
             self.actualScanNumber = 0
             self.__plotScanNo(self.actualScanNumber)
@@ -1054,21 +1071,20 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         This method is to do automated data reduction
         """
         if self.data is None: return
-        if self.scanStacker.autoThreshold == -1e11:
+        if self.scanStacker.autoThreshold is None:
             return False
 
-        validationTable = []
-
+        validation_table = []
         for i in self.data.totalFluxTab[self.actualBBC-1]:
             if i < self.scanStacker.autoThreshold:
-                validationTable.append(True)
+                validation_table.append(True)
             else:
-                validationTable.append(False)
+                validation_table.append(False)
 
         print("-----------------------------------------")
         print("-----> AUTO REDUCTION:")
-        for i in range(len(validationTable)):
-            if validationTable[i]:
+        for i in range(len(validation_table)):
+            if validation_table[i]:
                 self.data.addToStack(i)
                 print(f"-----> Scan no. {i+1} added")
             else:

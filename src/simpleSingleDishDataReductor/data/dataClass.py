@@ -250,14 +250,14 @@ class dataContainter:
         time *= 24
         return time
 
-    def addToStack(self, scanIndex):
-        if self.__checkIfStacked(scanIndex):
-            print(f"-----> scan no. {scanIndex+1} is already stacked!")
+    def addToStack(self, scan_index: int) -> None:
+        if self.__checkIfStacked(scan_index):
+            print(f"-----> scan no. {scan_index + 1} is already stacked!")
             return
-        self.scans_proceed[scanIndex] = 'ADDED'
-        x,y,residuals, = self.fitChebyForScan(self.actualBBC, self.fitOrder, scanIndex)
+        self.scans_proceed[scan_index] = 'ADDED'
+        x,y,residuals, = self.fitChebyForScan(self.actualBBC, self.fitOrder, scan_index)
         self.stack.append(residuals)
-        self.scansInStack.append(scanIndex)
+        self.scansInStack.append(scan_index)
 
     def discardFromStack(self, scanIndex):
         self.scans_proceed[scanIndex] = 'DISCARDED'

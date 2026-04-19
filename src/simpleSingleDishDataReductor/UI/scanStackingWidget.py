@@ -64,7 +64,7 @@ class scanStackingWidget(custom_widget):
         self.newScanFigure.pTop.scene().sigMouseClicked.connect(self.__onClick)
         self.newOtherPropsFigure.pTotal.scene().sigMouseClicked.connect(self.__onClickAuto)
         # -- for auto threshold --
-        self.autoThreshold = -1e11
+        self.autoThreshold: float | None = None
         self.set_mode("polyfit")
         self.setVisible(True)
 
@@ -98,6 +98,7 @@ class scanStackingWidget(custom_widget):
         self.performPolyFit = custom_button("  Perform Polyfit")
         self.fitPolynomial = custom_button("  Fit polynomial mode")
         self.automaticReduction = custom_button("  Automatic mode")
+        self.perform_automated_reduction = custom_button(" Process scans")
         self.nextScan = QAction("")
         self.prevScan = QAction("")
         self.finishPol = custom_button("  Finish LHC")
@@ -114,6 +115,8 @@ class scanStackingWidget(custom_widget):
 
         for i in range(len(self.bbc_labels)):
             self.grid_labels.addWidget(self.bbc_labels[i], int(i/2) + 5, int(i%2))
+
+        self.perform_automated_reduction.setEnabled(False)
 
         # buttons placing
         def spacer():
@@ -142,6 +145,7 @@ class scanStackingWidget(custom_widget):
         self.vboxLeftWidget.addWidget(self.performPolyFit)
         self.vboxLeftWidget.addWidget(self.performRemoval)
         self.vboxLeftWidget.addWidget(self.cancelRemoval)
+        self.vboxLeftWidget.addWidget(self.perform_automated_reduction)
         self.vboxLeftWidget.addStretch()
 
     def __addIconsToButtons(self):
@@ -157,6 +161,7 @@ class scanStackingWidget(custom_widget):
         self.cancelRemoval.setIcon(ban_icon)
         self.performPolyFit.setIcon(play_icon)
         self.finishPol.setIcon(flag_icon)
+        self.perform_automated_reduction.setIcon(play_icon)
 
     def __placeNecessaryButtons(self):
         # layouts placing
@@ -185,6 +190,7 @@ class scanStackingWidget(custom_widget):
         self.performRemoval.setVisible(False)
         self.cancelRemoval.setVisible(False)
         self.performPolyFit.setVisible(True)
+        self.perform_automated_reduction.setVisible(False)
 
         self.polyFitMode = True
         self.removeChannelsMode = False
@@ -201,6 +207,7 @@ class scanStackingWidget(custom_widget):
         self.performRemoval.setVisible(True)
         self.cancelRemoval.setVisible(True)
         self.performPolyFit.setVisible(False)
+        self.perform_automated_reduction.setVisible(False)
 
         self.polyFitMode = False
         self.removeChannelsMode = True
@@ -219,6 +226,7 @@ class scanStackingWidget(custom_widget):
         self.performRemoval.setVisible(False)
         self.cancelRemoval.setVisible(False)
         self.performPolyFit.setVisible(False)
+        self.perform_automated_reduction.setVisible(True)
 
         self.polyFitMode = False
         self.removeChannelsMode = False
@@ -310,6 +318,7 @@ class scanStackingWidget(custom_widget):
     def __makeAfterClickActionOnAutoPlot(self, y):
             self.autoThreshold = y
             self.newOtherPropsFigure.colorizePoints(self.autoThreshold)
+            self.perform_automated_reduction.setEnabled(True)
 
     def reset_plots(self):
         self.newOtherPropsFigure.clear_plots()
