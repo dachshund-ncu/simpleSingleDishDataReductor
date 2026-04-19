@@ -114,7 +114,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.cancelCalibrations.setIcon(weight_red)
         self.performRemoval.setIcon(minus_solid_icon)
         self.reverseChanges.setIcon(ban_icon)
-        self.performFit.setIcon(play_icon)
+        self.performFit.setIcon(confirmation_icon)
         self.setManualCal.setIcon(gears_icon)
         self.fitPolynomial.setIcon(chart_line_icon)
         self.removeChannels.setIcon(eraser_icon)

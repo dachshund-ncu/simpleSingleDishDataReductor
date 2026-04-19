@@ -474,6 +474,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         #print(self.data.fitBoundsChannels)
         polyTabX, polyTabY, polyTabResiduals = self.data.fitChebyForScan(self.actualBBC, self.data.fitOrder, scanNumber)
         self.scanStacker.newScanFigure.fitChebyPlot.setData(polyTabX, polyTabY)
+        self.scanStacker.newScanFigure.fitChebyPlotShadow.setData(polyTabX, polyTabY)
         self.scanStacker.setFitDone()
         self.scanStacker.newStackedFigure.spectrumToStackPlot.setData(range(len(polyTabResiduals)), polyTabResiduals)
 

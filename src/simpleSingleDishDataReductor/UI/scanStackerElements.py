@@ -3,6 +3,7 @@ import pyqtgraph as pg
 from PyQt6 import QtGui
 from PyQt6 import QtCore
 import numpy as np
+pg.setConfigOptions(antialias=True)
 
 class newScanStackingFigure(templateFigurePG):
     def __init__(self, parent=None):
@@ -35,6 +36,7 @@ class newScanStackingFigure(templateFigurePG):
         green = (191, 255, 0)
         red = (255, 0, 0)
         blue = (0, 0, 255)
+        black = (0, 0, 0)
         # --
 
         self.fullYScanPlots = {
@@ -51,7 +53,8 @@ class newScanStackingFigure(templateFigurePG):
             "edge": self.pZoom.plot([np.nan], pen=blue)
         }
 
-        self.fitChebyPlot = self.pZoom.plot([np.nan], pen=pg.mkPen(red, width=2))
+        self.fitChebyPlotShadow = self.pZoom.plot([np.nan], pen=pg.mkPen(black, width=4))
+        self.fitChebyPlot = self.pZoom.plot([np.nan], pen=pg.mkPen(red, width=3))
         # --
         self.pTop.disableAutoRange()
         self.pZoom.disableAutoRange()
