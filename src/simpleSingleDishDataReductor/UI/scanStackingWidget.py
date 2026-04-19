@@ -159,9 +159,9 @@ class scanStackingWidget(custom_widget):
         self.automaticReduction.setIcon(robot_icon)
         self.performRemoval.setIcon(minus_solid_icon)
         self.cancelRemoval.setIcon(ban_icon)
-        self.performPolyFit.setIcon(play_icon)
+        self.performPolyFit.setIcon(confirmation_icon)
         self.finishPol.setIcon(flag_icon)
-        self.perform_automated_reduction.setIcon(play_icon)
+        self.perform_automated_reduction.setIcon(confirmation_icon)
 
     def __placeNecessaryButtons(self):
         # layouts placing

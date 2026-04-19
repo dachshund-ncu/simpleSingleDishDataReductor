@@ -5,8 +5,8 @@ class CustomHorizontalSeparator(QtWidgets.QFrame):
         QtWidgets.QFrame.__init__(self, *args)
         self.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         self.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
-        self.setStyleSheet("background-color: rgba(255,255,255, 25%);")
-        self.setFixedHeight(1)
+        self.setStyleSheet("background-color: rgba(255,255,255, 35%);")
+        self.setFixedHeight(3)
         self.setSizePolicy(
             QtWidgets.QSizePolicy.Policy.Expanding,
             QtWidgets.QSizePolicy.Policy.Fixed)

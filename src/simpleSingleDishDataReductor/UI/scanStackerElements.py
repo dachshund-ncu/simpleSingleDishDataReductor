@@ -29,7 +29,7 @@ class newScanStackingFigure(templateFigurePG):
         self.pTop.showGrid(x=True, y=True, alpha=0.2)
         self.pZoom.showGrid(x=True, y=True, alpha=0.2)
         # PENS
-        cyan = (255, 255, 255)
+        cyan = (0, 180, 180)
         red2 = (255, 127, 80)
         grey = (137, 137, 137)
         green = (191, 255, 0)
@@ -38,20 +38,20 @@ class newScanStackingFigure(templateFigurePG):
         # --
 
         self.fullYScanPlots = {
-            "continuum": self.pTop.plot([0, 1], pen=red2),
-            "emission": self.pTop.plot([0, 1], pen=green),
-            "rfi": self.pTop.plot([0, 1], pen=grey),
-            "edge": self.pTop.plot([0, 1], pen=blue)
+            "continuum": self.pTop.plot([np.nan], pen=cyan),
+            "emission": self.pTop.plot([np.nan], pen=green),
+            "rfi": self.pTop.plot([np.nan], pen=grey),
+            "edge": self.pTop.plot([np.nan], pen=blue)
         }
 
         self.zoomedYScanPlots = {
-            "continuum": self.pZoom.plot([0, 1], pen=red2),
-            "emission": self.pZoom.plot([0, 1], pen=green),
-            "rfi": self.pZoom.plot([0, 1], pen=grey),
-            "edge": self.pZoom.plot([0, 1], pen=blue)
+            "continuum": self.pZoom.plot([np.nan], pen=cyan),
+            "emission": self.pZoom.plot([np.nan], pen=green),
+            "rfi": self.pZoom.plot([np.nan], pen=grey),
+            "edge": self.pZoom.plot([np.nan], pen=blue)
         }
 
-        self.fitChebyPlot = self.pZoom.plot([0, 1], pen=pg.mkPen(red, width=2))
+        self.fitChebyPlot = self.pZoom.plot([np.nan], pen=pg.mkPen(red, width=2))
         # --
         self.pTop.disableAutoRange()
         self.pZoom.disableAutoRange()
@@ -148,8 +148,8 @@ class stackedSpectrumFigure(templateFigurePG):
         # --
         orange = (255, 165, 0)
         silver = (128, 128, 128)
-        self.spectrumToStackPlot = self.p.plot([0, 1], pen=silver)
-        self.stackPlot = self.p.plot([0, 1], pen=orange)
+        self.spectrumToStackPlot = self.p.plot([np.nan], pen=silver)
+        self.stackPlot = self.p.plot([np.nan], pen=orange)
         self.p.scene().setMoveDistance(100)
         # -
         cursor = QtGui.QCursor(QtCore.Qt.CursorShape.CrossCursor)
@@ -170,10 +170,10 @@ class otherPropsFigure(templateFigurePG):
         for item in self.totalFluxPoints:
             self.pTotal.removeItem(item)
         self.totalFluxPoints = []
-        self.tsysPlot.setData([0])
-        self.actualTsysPlot.setData([0])
-        self.dot1Tsys.setData([0])
-        self.dot2Tsys.setData([0])
+        self.tsysPlot.setData([np.nan])
+        self.actualTsysPlot.setData([np.nan])
+        self.dot1Tsys.setData([np.nan])
+        self.dot2Tsys.setData([np.nan])
 
     def __setUpNewFigure(self):
         self.pTSys = self.addPlot(name='tsysPlot')
@@ -188,13 +188,13 @@ class otherPropsFigure(templateFigurePG):
         blue = (100, 100, 255)
         lime = (0, 255, 0)
         magenta = (255, 0, 255)
-        self.tsysPlot = self.pTSys.plot([0], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
-        self.actualTsysPlot = self.pTSys.plot([0], symbol='o', symbolSize=6, symbolBrush=lime, pen=None)
+        self.tsysPlot = self.pTSys.plot([np.nan], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
+        self.actualTsysPlot = self.pTSys.plot([np.nan], symbol='o', symbolSize=6, symbolBrush=lime, pen=None)
         # self.totalFluxPlot = self.pTotal.plot([0,1], symbol='o', symbolSize=6, symbolBrush=blue, pen=None)
         # dots
-        self.dot1Tsys = self.pTSys.plot([0], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
-        self.dot2Tsys = self.pTSys.plot([0], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
-        self.dotTF = self.pTotal.plot([0], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
+        self.dot1Tsys = self.pTSys.plot([np.nan], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
+        self.dot2Tsys = self.pTSys.plot([np.nan], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
+        self.dotTF = self.pTotal.plot([np.nan], symbol='o', symbolSize=7, symbolBrush=magenta, pen=None)
         # lines
 
         self.tsysVline = pg.InfiniteLine(pos=0.0, angle=90.0, pen=magenta)
