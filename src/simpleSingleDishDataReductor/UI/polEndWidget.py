@@ -66,7 +66,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.vboxLeftWidget = QtWidgets.QVBoxLayout(self.leftWidget)
         self.vboxLeftWidget.setContentsMargins(0,0,0,0)
         # buttons
-        self.goToNextPol = custom_button("  Go to next Pol")
+        self.goToNextPol = custom_button("  Finish polarization")
         self.backToPol = custom_button("  Return to scan edit")
         self.cancelCalibrations = custom_button("  Cancel calibrations")
         self.useCalibrations = custom_button("  Use calibrations")
@@ -299,7 +299,7 @@ class polEndFigurePG(templateFigurePG):
         self.spectrumPlot.setData(x,y)
     
     def drawVline(self, pos, wcolor):
-        penw = pg.mkPen(color=wcolor, width=3, style=QtCore.Qt.DashLine)
+        penw = pg.mkPen(color=wcolor, width=3, style=QtCore.Qt.PenStyle.DashLine)
         self.__vlineTab.append(pg.InfiniteLine(pos=pos, angle=90.0, pen=penw))
         self.pSpec.addItem(self.__vlineTab[len(self.__vlineTab)-1] )
 

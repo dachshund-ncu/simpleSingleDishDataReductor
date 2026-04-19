@@ -110,6 +110,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.__connect_bbc_menus()
             self.__setCheckedBBCActions()
 
+
     @QtCore.pyqtSlot()
     def __load_file_from_gui(self) -> None:
         # 'self' is usually your QMainWindow or QWidget
@@ -134,7 +135,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def __reload_data(self) -> None:
-        print(self.is_on_off)
         self.data = self.__load_data_from_filename(
             software_path=self.software_path,
             target_filename=self.target_filename,
@@ -144,7 +144,18 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
     def __reset_ui(self) -> None:
         self.__delete_bbc_menus()
-        pass
+        self.lhcReduction = True
+        self.scanStacker.finishPol.setText("  Finish LHC")
+        self.polEnd.goToNextPol.setText("  Finish polarization")
+        self.changeBbcLhc.setEnabled(True)
+        self.changeBbcRhc.setEnabled(True)
+        self.scanStacker.reset_plots()
+        self.__show_scan_stacker()
+
+    def __show_scan_stacker(self):
+        self.polEnd.setVisible(False)
+        self.finishW.setVisible(False)
+        self.scanStacker.setVisible(True)
 
     def __declareAndPlaceButtons(self):
         """
@@ -190,6 +201,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.orderChanger = changeOrder()
         self.calCoeffChanger = changeCalCoeffWindow()
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
+        self.layout.addWidget(self.polEnd, 0, 1, 2, 1)
+        self.layout.addWidget(self.finishW, 0, 1, 2, 1)
 
     def __add_bbc_menus(self):
         if self.data is not None:
@@ -593,8 +606,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if self.data is None: return
         # UI
         self.scanStacker.setVisible(False)
-        self.layout.removeWidget(self.scanStacker)
-        self.layout.addWidget(self.polEnd, 0, 1)
+        # self.layout.removeWidget(self.scanStacker)
+        # self.layout.addWidget(self.polEnd, 0, 1)
         self.polEnd.setVisible(True)
 
         if self.lhcReduction:
@@ -775,8 +788,6 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if self.data is None: return
         if len(self.polEnd.fitBoundChannels) != 0:
             ftBds = self.data.convertVelsToChannels(self.actualBBC-1, self.polEnd.fitBoundChannels)
-            self.polEnd.fitBoundChannels
-            self.polEnd.fitBoundChannels
             self.data.finalFitBoundChannels = ftBds
         self.data.fitChebyToFinalSpec(self.actualBBC)
         # --
@@ -824,8 +835,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.polEnd.setVisible(False)
         self.scanStacker.removeLines()
         self.polEnd.removeLines()
-        self.layout.removeWidget(self.polEnd)
-        self.layout.addWidget(self.scanStacker)
+        # self.layout.removeWidget(self.polEnd)
+        # self.layout.addWidget(self.scanStacker)
         self.__plotTimeInfo()
         self.__plotScanNo(self.actualScanNumber)
         self.scanStacker.setVisible(True)
@@ -843,12 +854,12 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         print("-----------------------------------------")
         # disappear
         self.polEnd.setVisible(False)
-        self.layout.removeWidget(self.polEnd)
+        # self.layout.removeWidget(self.polEnd)
         # plot
         I,V, LHC, RHC = self.data.getFinalPols()
         self.finishW.plotPols(self.data.velTab[self.actualBBC-1], I, V, LHC, RHC)
         # appear
-        self.layout.addWidget(self.finishW)
+        # self.layout.addWidget(self.finishW)
         # -- calibration handling --
         if self.calibrated:
             self.finishW.setYlabel("Flux density (Jy)")
@@ -872,8 +883,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         if self.data is None: return
         #UI
         self.polEnd.setVisible(False)
-        self.layout.removeWidget(self.polEnd)
-        self.layout.addWidget(self.scanStacker, 0, 1)
+        # self.layout.removeWidget(self.polEnd)
+        # self.layout.addWidget(self.scanStacker, 0, 1)
         self.scanStacker.setVisible(True)
 
     @QtCore.pyqtSlot()

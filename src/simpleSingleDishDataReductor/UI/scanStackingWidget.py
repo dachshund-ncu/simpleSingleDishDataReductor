@@ -250,6 +250,8 @@ class scanStackingWidget(custom_widget):
             self.autoThreshold = y
             self.newOtherPropsFigure.colorizePoints(self.autoThreshold)
 
+    def reset_plots(self):
+        self.newOtherPropsFigure.clear_plots()
 
     def removeLines(self):
         self.newScanFigure.clearVlines()

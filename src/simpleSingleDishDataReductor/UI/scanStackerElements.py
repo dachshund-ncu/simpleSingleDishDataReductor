@@ -166,6 +166,15 @@ class otherPropsFigure(templateFigurePG):
         self.__makeHorizontalCrossHair()
         self.setBackground(None)
 
+    def clear_plots(self):
+        for item in self.totalFluxPoints:
+            self.pTotal.removeItem(item)
+        self.totalFluxPoints = []
+        self.tsysPlot.setData([0])
+        self.actualTsysPlot.setData([0])
+        self.dot1Tsys.setData([0])
+        self.dot2Tsys.setData([0])
+
     def __setUpNewFigure(self):
         self.pTSys = self.addPlot(name='tsysPlot')
         self.nextRow()
