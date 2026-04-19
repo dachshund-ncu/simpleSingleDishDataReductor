@@ -38,16 +38,16 @@ class newScanStackingFigure(templateFigurePG):
         # --
 
         self.fullYScanPlots = {
-            "continuum": self.pTop.plot([0, 1], pen=grey),
+            "continuum": self.pTop.plot([0, 1], pen=red2),
             "emission": self.pTop.plot([0, 1], pen=green),
-            "rfi": self.pTop.plot([0, 1], pen=red2),
+            "rfi": self.pTop.plot([0, 1], pen=grey),
             "edge": self.pTop.plot([0, 1], pen=blue)
         }
 
         self.zoomedYScanPlots = {
-            "continuum": self.pZoom.plot([0, 1], pen=grey),
+            "continuum": self.pZoom.plot([0, 1], pen=red2),
             "emission": self.pZoom.plot([0, 1], pen=green),
-            "rfi": self.pZoom.plot([0, 1], pen=red2),
+            "rfi": self.pZoom.plot([0, 1], pen=grey),
             "edge": self.pZoom.plot([0, 1], pen=blue)
         }
 

@@ -19,6 +19,7 @@ from .ui_elements.horizontal_separator import CustomHorizontalSeparator
 from .ui_elements.custom_toolbar import CustomToolbar
 from .scanStackerElements import newScanStackingFigure, stackedSpectrumFigure, otherPropsFigure
 from .icons import *
+from typing import Literal
 
 
 class scanStackingWidget(custom_widget):
@@ -44,8 +45,8 @@ class scanStackingWidget(custom_widget):
 
 
         # -------------------------
-        self.clickedOnce = False
-        self.fitDone = True
+        self.clickedOnce: bool = False
+        self.fitDone: bool = True
         self.fitBoundsChannels = [
             [10, 824],
             [1224, 2872],
@@ -54,16 +55,17 @@ class scanStackingWidget(custom_widget):
         self.tmpChans = []
         # -------------------------
 
-        self.removeDone = True
-        self.removeChannelsTab = []
-        self.polyFitMode = True
-        self.removeChannelsMode = False
-        self.autoRedMode = False
+        self.removeDone: bool = True
+        self.removeChannelsTab: list = []
+        self.polyFitMode: bool = True
+        self.removeChannelsMode: bool = False
+        self.autoRedMode:bool = False
         
         self.newScanFigure.pTop.scene().sigMouseClicked.connect(self.__onClick)
         self.newOtherPropsFigure.pTotal.scene().sigMouseClicked.connect(self.__onClickAuto)
         # -- for auto threshold --
         self.autoThreshold = -1e11
+        self.set_mode("polyfit")
         self.setVisible(True)
 
     def updateDataPlots(self):
@@ -127,6 +129,7 @@ class scanStackingWidget(custom_widget):
         self.vboxLeftWidget.addWidget(self.addToStack)
         self.vboxLeftWidget.addWidget(self.discardFromStack)
         self.vboxLeftWidget.addWidget(self.removeFromStack)
+        self.vboxLeftWidget.addWidget(self.finishPol)
         self.vboxLeftWidget.addSpacing(8)
         self.vboxLeftWidget.addWidget(CustomHorizontalSeparator())
         self.vboxLeftWidget.addSpacing(8)
@@ -139,7 +142,6 @@ class scanStackingWidget(custom_widget):
         self.vboxLeftWidget.addWidget(self.performPolyFit)
         self.vboxLeftWidget.addWidget(self.performRemoval)
         self.vboxLeftWidget.addWidget(self.cancelRemoval)
-        self.vboxLeftWidget.addWidget(self.finishPol)
         self.vboxLeftWidget.addStretch()
 
     def __addIconsToButtons(self):
@@ -169,6 +171,65 @@ class scanStackingWidget(custom_widget):
         self.layout.setColumnStretch(1,3)
         self.layout.setColumnStretch(2,2)
         [self.layout.setRowStretch(i, 1) for i in range(self.layout.rowCount())]
+
+    def set_mode(self, mode: Literal["polyfit", "remove", "auto"]) -> None:
+        match mode:
+            case "polyfit":
+                self.__set_polyfit_mode()
+            case "remove":
+                self.__set_remove_mode()
+            case "auto":
+                self.__set_auto_mode()
+
+    def __set_polyfit_mode(self):
+        self.performRemoval.setVisible(False)
+        self.cancelRemoval.setVisible(False)
+        self.performPolyFit.setVisible(True)
+
+        self.polyFitMode = True
+        self.removeChannelsMode = False
+        self.autoRedMode = False
+
+        if not self.fitPolynomial.isChecked():
+            self.fitPolynomial.setChecked(True)
+        self.removeChannels.setChecked(False)
+        self.automaticReduction.setChecked(False)
+        self.removeLines()
+        self.newOtherPropsFigure.yTFCross.setVisible(False)
+
+    def __set_remove_mode(self):
+        self.performRemoval.setVisible(True)
+        self.cancelRemoval.setVisible(True)
+        self.performPolyFit.setVisible(False)
+
+        self.polyFitMode = False
+        self.removeChannelsMode = True
+        self.autoRedMode = False
+
+        if not self.removeChannels.isChecked():
+            self.removeChannels.setChecked(True)
+        self.fitPolynomial.setChecked(False)
+        self.automaticReduction.setChecked(False)
+        self.removeLines()
+        self.newOtherPropsFigure.yTFCross.setVisible(False)
+        self.resetRemoveChans()
+        self.removeLines()
+
+    def __set_auto_mode(self):
+        self.performRemoval.setVisible(False)
+        self.cancelRemoval.setVisible(False)
+        self.performPolyFit.setVisible(False)
+
+        self.polyFitMode = False
+        self.removeChannelsMode = False
+        self.autoRedMode = True
+
+        if not self.automaticReduction.isChecked():
+            self.automaticReduction.setChecked(True)
+        self.fitPolynomial.setChecked(False)
+        self.removeChannels.setChecked(False)
+        self.removeLines()
+        self.newOtherPropsFigure.yTFCross.setVisible(True)
 
     def __defaultSettings(self):
         self.fitPolynomial.setCheckable(True)

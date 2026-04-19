@@ -687,17 +687,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def __setPolyFitMode(self):
         if self.data is None: return
-        self.scanStacker.polyFitMode = True
-        self.scanStacker.removeChannelsMode = False
-        self.scanStacker.autoRedMode = False
-        self.scanStacker.fitPolynomial.setChecked(True)
-        self.scanStacker.removeChannels.setChecked(False)
-        self.scanStacker.automaticReduction.setChecked(False)
-        self.scanStacker.performRemoval.setEnabled(False)
-        self.scanStacker.cancelRemoval.setEnabled(False)
-        self.scanStacker.performPolyFit.setEnabled(True)
-        self.scanStacker.removeLines()
-        self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(False)
+        # self.scanStacker.polyFitMode = True
+        self.scanStacker.set_mode("polyfit")
         self.mode = 'Polynomial fit'
         self.__updateLabel()
         print("-----> Polynomial fit mode is ACTIVE!")
@@ -705,19 +696,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def __setRemoveChansMode(self):
         if self.data is None: return
-        self.scanStacker.polyFitMode = False
-        self.scanStacker.removeChannelsMode = True
-        self.scanStacker.autoRedMode = False
-        self.scanStacker.fitPolynomial.setChecked(False)
-        self.scanStacker.removeChannels.setChecked(True)
-        self.scanStacker.automaticReduction.setChecked(False)
-        self.scanStacker.performRemoval.setEnabled(True)
-        self.scanStacker.cancelRemoval.setEnabled(True)
-        self.scanStacker.performPolyFit.setEnabled(False)
+        self.scanStacker.set_mode("remove")
         self.scanStacker.setBoundChannels(self.data.fitBoundsChannels)
-        self.scanStacker.resetRemoveChans()
-        self.scanStacker.removeLines()
-        self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(False)
         self.mode = 'Remove channels'
         self.__updateLabel()
         print("-----> Channel removal mode is ACTIVE!")
@@ -725,16 +705,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def __setAutoReductionMode(self):
         if self.data is None: return
-        self.scanStacker.polyFitMode = False
-        self.scanStacker.removeChannelsMode = False
-        self.scanStacker.autoRedMode = True
-        self.scanStacker.fitPolynomial.setChecked(False)
-        self.scanStacker.removeChannels.setChecked(False)
-        self.scanStacker.cancelRemoval.setEnabled(False)
-        self.scanStacker.performPolyFit.setEnabled(False)
-        self.scanStacker.performRemoval.setEnabled(False)
-        self.scanStacker.automaticReduction.setChecked(True)
-        self.scanStacker.newOtherPropsFigure.yTFCross.setVisible(True)
+        self.scanStacker.set_mode("auto")
+
         self.mode = 'AUTO'
         self.__updateLabel()
         print("-----> Auto reduction mode is ACTIVE!")
