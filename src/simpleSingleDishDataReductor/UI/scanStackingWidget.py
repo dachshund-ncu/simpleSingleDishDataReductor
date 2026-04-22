@@ -10,7 +10,6 @@ Class, that holds the scan stacking widget:
 from PyQt6 import QtWidgets, QtGui
 from PyQt6.QtGui import QAction
 
-from .icons import rectangle_xmark_icon
 from .ui_elements.customLeftBarWidget import cWidget
 from .ui_elements.custom_widget import custom_widget, CustomWidgetSemiTransparent
 from .ui_elements.customButton import custom_button
