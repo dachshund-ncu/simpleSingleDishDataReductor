@@ -27,7 +27,7 @@ dependencies = [
 
 [project.gui-scripts]
 # GUI version (prevents terminal popup on Windows)
-ssddr = "simpleSingleDishDataReductor.__main__:main"
+sdred = "simpleSingleDishDataReductor.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/simpleSingleDishDataReductor"]

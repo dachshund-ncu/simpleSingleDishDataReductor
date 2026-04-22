@@ -89,7 +89,7 @@ class scanStackingWidget(custom_widget):
         self.vboxLeftWidget.setContentsMargins(0,0,0,0)
         self.nextPrevScanLayout = QtWidgets.QHBoxLayout()
         # buttons
-        self.addToStack = custom_button("  Add to stack")
+        self.addToStack = custom_button(f"  Add to stack")
         self.discardFromStack = custom_button("  Discard from stack")
         self.removeFromStack = custom_button("  Remove from stack")
         self.removeChannels = custom_button("  Remove channels")

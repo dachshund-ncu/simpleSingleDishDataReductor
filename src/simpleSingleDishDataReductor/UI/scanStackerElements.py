@@ -3,6 +3,9 @@ import pyqtgraph as pg
 from PyQt6 import QtGui
 from PyQt6 import QtCore
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="All-NaN slice encountered")
+
 pg.setConfigOptions(antialias=True)
 
 class newScanStackingFigure(templateFigurePG):
@@ -40,21 +43,21 @@ class newScanStackingFigure(templateFigurePG):
         # --
 
         self.fullYScanPlots = {
-            "continuum": self.pTop.plot([np.nan], pen=cyan),
-            "emission": self.pTop.plot([np.nan], pen=green),
-            "rfi": self.pTop.plot([np.nan], pen=grey),
-            "edge": self.pTop.plot([np.nan], pen=blue)
+            "continuum": self.pTop.plot([], pen=cyan),
+            "emission": self.pTop.plot([], pen=green),
+            "rfi": self.pTop.plot([], pen=grey),
+            "edge": self.pTop.plot([], pen=blue)
         }
 
         self.zoomedYScanPlots = {
-            "continuum": self.pZoom.plot([np.nan], pen=cyan),
-            "emission": self.pZoom.plot([np.nan], pen=green),
-            "rfi": self.pZoom.plot([np.nan], pen=grey),
-            "edge": self.pZoom.plot([np.nan], pen=blue)
+            "continuum": self.pZoom.plot([], pen=cyan),
+            "emission": self.pZoom.plot([], pen=green),
+            "rfi": self.pZoom.plot([], pen=grey),
+            "edge": self.pZoom.plot([], pen=blue)
         }
 
-        self.fitChebyPlotShadow = self.pZoom.plot([np.nan], pen=pg.mkPen(black, width=4))
-        self.fitChebyPlot = self.pZoom.plot([np.nan], pen=pg.mkPen(red, width=3))
+        self.fitChebyPlotShadow = self.pZoom.plot([], pen=pg.mkPen(black, width=4))
+        self.fitChebyPlot = self.pZoom.plot([], pen=pg.mkPen(red, width=3))
         # --
         self.pTop.disableAutoRange()
         self.pZoom.disableAutoRange()
