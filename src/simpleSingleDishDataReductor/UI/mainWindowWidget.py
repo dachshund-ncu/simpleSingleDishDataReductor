@@ -36,6 +36,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.setVisible(False)
         self.setStyleSheet(style_sheet)
 
+        # -- initialize window name --
+        self.setWindowTitle("Simple single dish data reductor")
+
         # -- initialize default parameters --
         self.__initialize_data_reduction_parameters()
 
@@ -80,6 +83,8 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             target_filename=target_filename,
             onOff=is_on_off)
         self.__initialize_data_reduction_parameters()
+        # -- set window parameters --
+        self.setWindowTitle(f"{data.obs.scans[0].sourcename} {data.obs.scans[0].isotime}")
         return data
 
     def __set_window_title(self):
