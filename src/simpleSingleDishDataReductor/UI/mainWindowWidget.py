@@ -758,14 +758,14 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def __removeAndPlot(self):
         if self.data is None: return
-        self.data.removeChannels(self.actualBBC, self.actualScanNumber, self.scanStacker.removeChannelsTab)
+        self.data.remove_channels(self.actualBBC, self.actualScanNumber, self.scanStacker.removeChannelsTab)
         self.scanStacker.setRemoveDone()
         self.__plotScanNo(self.actualScanNumber)
 
     @QtCore.pyqtSlot()
     def __cancelRemoval(self):
         if self.data is None: return
-        self.data.cancelRemoval(self.actualBBC, self.actualScanNumber)
+        self.data.cancel_removal(self.actualBBC, self.actualScanNumber)
         self.scanStacker.setRemoveDone()
         self.__plotScanNo(self.actualScanNumber)
 

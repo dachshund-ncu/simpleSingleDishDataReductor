@@ -320,11 +320,18 @@ class dataContainter:
             velsTab[i] = velsTab[i][::-1]
         return velsTab
 
-    def removeChannels(self, BBC, scanNumber, removeTab):
-        self.obs.mergedScans[scanNumber].removeChannels(BBC, removeTab)
+    def remove_channels(
+            self,
+            bbc_index: int,
+            scan_index: int,
+            remove_tab: list[list[int]]) -> None:
+        self.obs.mergedScans[scan_index].remove_channels(bbc_index, remove_tab)
     
-    def cancelRemoval(self, BBC, scanNumber):
-        self.obs.mergedScans[scanNumber].cancelRemove(BBC)
+    def cancel_removal(
+            self,
+            bbc_index: int,
+            scan_index: int):
+        self.obs.mergedScans[scan_index].cancel_remove(bbc_index)
     
     def fitChebyToFinalSpec(self, BBC):
         fitVels, fitData = self.__getDataFromRanges(BBC, self.finalFitBoundChannels)
