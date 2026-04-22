@@ -4,21 +4,43 @@
 Single dish radio telescope data reductor. 
 Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in both frequency-switch and on-off mode). It makes use of the QT interface and pyqtgraph plotting library to interactively visualize the data.
 
-### Requirements ###
-This package requires AT LEAST python 3.8
+### Requirements
+This package requires AT LEAST python 3.10
+
+### Installation
+Can be installed via pip
 
 ```bash
+# in repository main directory
 python3 -m pip install .
 ```
-
-### Usage ###
+or via [UV](https://docs.astral.sh/uv)
+```bash
+# in repository main directory
+uv sync
 ```
-usage: python3 -m simpleSingleDishDataReductor [-h] [-n] [-f] filename
+### Running
+When installed via pip
+```bash
+# anywhere
+python3 -m pip simpleSingleDishDataReductor
+```
+
+when installed bia UV
+```bash
+# in repository main directory
+uv run sdred
+```
+
+
+### Help
+```
+usage: sdred [-h] [-n] [-f] [filename]
 
 Data reduction tool for 32-m NCU RT spectral data. Version 1.14.
 
 positional arguments:
-  filename
+  filename     .tar.bz2 archive filename
 
 options:
   -h, --help   show this help message and exit
