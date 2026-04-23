@@ -13,8 +13,7 @@ class custom_widget(QtWidgets.QWidget):
             border-radius: 10px;
             padding: 0px;
             font-size: 15px;
-            margin-left: 0px;
-            margin-right: 0px;
+            margin: 1px;
         }
         ''')
 
@@ -24,14 +23,16 @@ class CustomWidgetSemiTransparent(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self, *args)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet('''
-        QWidget {
-            background-color: rgba(255, 255, 255, 5%);
-            border-radius: 10px;
-            padding: 0px;
-            font-size: 15px;
-            margin-left: 0px;
-            margin-right: 0px;
-            margin-top: 0px;
-            margin-bottom: 0px;
-        }
-        ''')
+            CustomWidgetSemiTransparent {
+                background-color: rgba(255, 255, 255, 5%);
+                border: 0.5px solid rgba(255, 255, 255, 15%);
+                border-radius: 10px;
+                padding: 0px;
+                font-size: 15px;
+                margin-left: 1px;
+                margin-right: 1px;
+                margin-top: 1px;
+                margin-bottom: 1px;
+            }
+            ''')
+

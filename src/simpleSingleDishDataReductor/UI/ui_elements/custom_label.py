@@ -9,6 +9,7 @@ class custom_label(QLabel):
                 QLabel { \
                     background-color: transparent;\
                     padding: 0px;\
+                    border: 0.5px solid transparent;\
                     text-align: center;\
                     color: white; /* text color */\
                     font-size: 14px; /* font size */\
@@ -21,6 +22,7 @@ class custom_label(QLabel):
                 QLabel { \
                     background-color: %s;\
                     padding: 0px;\
+                    border: 0.5px solid transparent;\
                     text-align: center;\
                     color: white; /* text color */\
                     font-size: 14px; /* font size */\

@@ -65,6 +65,7 @@ class scanStackingWidget(custom_widget):
         # -- for auto threshold --
         self.autoThreshold: float | None = None
         self.set_mode("polyfit")
+        # self.labelsWidget.setStyleSheet("background-color: #222; border: 1px solid red;")
         self.setVisible(True)
 
     def updateDataPlots(self):
@@ -164,7 +165,6 @@ class scanStackingWidget(custom_widget):
 
     def __placeNecessaryButtons(self):
         # layouts placing
-        self.layout.setContentsMargins(0,0,0,0)
         self.layout.addWidget(self.leftWidget, 0, 0, 3, 1)
         self.layout.addWidget(self.newScanFigureWidget, 0, 1, 2,1)
         self.layout.addWidget(self.newStackedFigureWidget, 2, 1, 1, 1)
@@ -263,7 +263,6 @@ class scanStackingWidget(custom_widget):
         # ----------
         self.labelsWidget = CustomWidgetSemiTransparent()
         self.labelsWidget.setLayout(self.grid_labels)
-
 
     # ---- clicking and fitting ----
     def __onClick(self, event):
