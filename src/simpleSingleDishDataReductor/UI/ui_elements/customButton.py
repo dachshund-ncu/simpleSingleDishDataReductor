@@ -26,12 +26,12 @@ class custom_button(QtWidgets.QPushButton):
                 margin-bottom: 0px;
             }
             QPushButton:hover {
-                background-color: rgba(255,255,255,12%);
-                border: 1px solid rgba(255,255,255,50%);
+                background-color: rgba(255,255,255,10%);
+                border: 1px solid rgba(255,255,255,25%);
             }
             QPushButton:pressed {
-                background-color: rgba(255,255,255,15%);
-                border: 1px solid rgba(255,255,255,50%);
+                background-color: rgba(255,255,255,20%);
+                border: 1px solid rgba(255,255,255,25%);
             }
             QPushButton:checked {
                 background-color: #C2185B;

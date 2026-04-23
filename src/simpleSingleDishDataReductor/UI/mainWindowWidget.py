@@ -15,6 +15,7 @@ from .fitOrderChangeWidget import changeOrder
 from .manualCalCoeffSetter import changeCalCoeffWindow
 from .ui_elements.custom_menu import CustomMenu
 from .ui_elements import style_sheet
+from .extended_inormation_widget import extended_information_widget
 import os
 import numpy as np
 import sys
@@ -114,6 +115,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
             self.__add_bbc_menus()
             self.__connect_bbc_menus()
             self.__setCheckedBBCActions()
+            self.__set_advanced_label()
 
 
     @QtCore.pyqtSlot()
@@ -212,6 +214,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.layout.addWidget(self.scanStacker, 0, 1, 2, 1)
         self.layout.addWidget(self.polEnd, 0, 1, 2, 1)
         self.layout.addWidget(self.finishW, 0, 1, 2, 1)
+        self.advanced_properties_view = extended_information_widget()
 
     def __add_bbc_menus(self):
         if self.data is not None:
@@ -265,10 +268,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.advanced_menu.addSeparator()
         self.download_caltabs_a = QtGui.QAction("Download caltabs", self)
         self.save_scans_to_json_a = QtGui.QAction("Save scans to json", self)
+        self.show_advanced_informations_a = QtGui.QAction("Show advanced informations", self)
 
+        self.advanced_menu.addAction(self.show_advanced_informations_a)
         self.advanced_menu.addAction(self.download_caltabs_a)
         self.advanced_menu.addSeparator()
         self.advanced_menu.addAction(self.save_scans_to_json_a)
+
 
     def __declare_file_menu(self) -> None:
         # declare
@@ -374,6 +380,7 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.setDefaultRangeOnPolEndShrt.activated.connect(self.__setAutoRangeOnPolEndPlot)
         self.download_caltabs_a.triggered.connect(self.download_caltabs)
         self.save_scans_to_json_a.triggered.connect(self.__save_scans_to_json)
+        self.show_advanced_informations_a.triggered.connect(self.__show_advanced_information_widget)
         self.polEnd.save_to_json_btn.clicked.connect(self.__save_final_spectrum_to_json)
 
         # -- connect actions --
@@ -1126,3 +1133,35 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     def toggle_on_off(self):
         self.is_on_off = self.is_on_off_action.isChecked()
         self.__reload_data()
+
+    @QtCore.pyqtSlot()
+    def __show_advanced_information_widget(self):
+        self.advanced_properties_view.setVisible(True)
+
+    def __set_advanced_label(self):
+        if self.data is None: return
+        scans_sorted = sorted(self.data.obs.scans, key=lambda s: s.mjd, reverse=False)
+        time_begin = scans_sorted[0].isotime
+        time_end = scans_sorted[-1].isotime
+        label = ""
+        label += f"Source: {self.data.obs.scans[0].sourcename}\n"
+        label += f"UTC Start: {time_begin}\n"
+        label += f"UTC End: {time_end}\n"
+        label += f"No. of scans: {len(scans_sorted)}\n"
+        label += f"Rest frequencies: \n"
+        for bbc_index, bbc_restf in enumerate(self.data.obs.scans[0].rest):
+            label += f"   BBC{bbc_index+1}: {bbc_restf} MHz\n"
+        label += f"Coordinates: \n"
+        label += f"    RA: {self.data.obs.scans[0].rah:02.0f}h{self.data.obs.scans[0].ram:02.0f}m{self.data.obs.scans[0].ras:02.0f}s\n"
+        label += f"    DEC: {self.data.obs.scans[0].decd:02.0f}d{self.data.obs.scans[0].decm:02.0f}m{self.data.obs.scans[0].decs:02.0f}s\n"
+
+        scans_sorted_z = sorted(self.data.obs.scans, key=lambda s: s.EL, reverse=False)
+        el_min = scans_sorted_z[0].EL
+        el_max = scans_sorted_z[-1].EL
+        label += f"Elevation angle: {el_min:.2f} : {el_max:.2f} deg\n"
+
+        scans_sorted_az = sorted(self.data.obs.scans, key=lambda s: s.AZ, reverse=False)
+        az_min = scans_sorted_az[0].AZ
+        az_max = scans_sorted_az[-1].AZ
+        label += f"Azimuth angle: {az_min:.2f} : {az_max:.2f} deg\n"
+        self.advanced_properties_view.set_text(label)
