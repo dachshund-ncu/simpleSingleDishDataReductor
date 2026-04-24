@@ -22,6 +22,7 @@ import sys
 import functools as fctls
 from simpleSingleDishDataReductor.data.dataClass import dataContainter
 from simpleSingleDishDataReductor.UI.icons import satellite_dish
+from UI import about_text_for_widget, shortcuts_text_for_widget
 
 
 # -- class definition starts here --
@@ -69,6 +70,10 @@ class mainWindowWidget(QtWidgets.QMainWindow):
 
         if self.data is not None and len(self.data.caltabs) < 1:
             self.display_caltab_prompt("Seems there are no downloaded caltabs. Would you like to download them?")
+
+    def closeEvent(self, event):
+        QtWidgets.QApplication.instance().quit()
+        event.accept()
 
     def __load_data_from_filename(
             self,
@@ -215,6 +220,11 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.layout.addWidget(self.polEnd, 0, 1, 2, 1)
         self.layout.addWidget(self.finishW, 0, 1, 2, 1)
         self.advanced_properties_view = extended_information_widget()
+        self.about_view = extended_information_widget()
+        self.shortcuts_view = extended_information_widget()
+        self.about_view.set_text(about_text_for_widget)
+        self.shortcuts_view.set_text(shortcuts_text_for_widget)
+
 
     def __add_bbc_menus(self):
         if self.data is not None:
@@ -291,6 +301,13 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.quit_file_menu_a)
 
+    def __declare_help_menu(self) -> None:
+        self.help_menu = CustomMenu("Help", self)
+        self.about_menu_a = QtGui.QAction("About", self)
+        self.shortcuts_menu_a = QtGui.QAction("Shortcuts", self)
+        self.help_menu.addAction(self.about_menu_a)
+        self.help_menu.addAction(self.shortcuts_menu_a)
+
     def __declareMenu(self):
         """
         This method declares the menu and adds it to the window's Menu Bar
@@ -300,9 +317,11 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         # -- advanced menu --
         self.__declare_advanced_menu()
         self.__declare_file_menu()
+        self.__declare_help_menu()
 
         menubar.addMenu(self.file_menu)
         menubar.addMenu(self.advanced_menu)
+        menubar.addMenu(self.help_menu)
 
     def __setCheckedBBCActions(self):
         """
@@ -336,6 +355,9 @@ class mainWindowWidget(QtWidgets.QMainWindow):
         self.scanStacker.performRemoval.clicked.connect(self.__removeAndPlot)
         self.scanStacker.cancelRemoval.clicked.connect(self.__cancelRemoval)
         self.scanStacker.perform_automated_reduction.clicked.connect(self.__perform_auto_reduction)
+        # -- about menu --
+        self.about_menu_a.triggered.connect(self.__show_about_widget)
+        self.shortcuts_menu_a.triggered.connect(self.__show_shortcuts_widget)
 
         # -- pol end widget --
         self.polEnd.backToPol.clicked.connect(self.__returnToScanEdit)
@@ -1137,6 +1159,14 @@ class mainWindowWidget(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def __show_advanced_information_widget(self):
         self.advanced_properties_view.setVisible(True)
+
+    @QtCore.pyqtSlot()
+    def __show_about_widget(self):
+        self.about_view.setVisible(True)
+
+    @QtCore.pyqtSlot()
+    def __show_shortcuts_widget(self):
+        self.shortcuts_view.setVisible(True)
 
     def __set_advanced_label(self):
         if self.data is None: return

@@ -21,7 +21,7 @@ class polEndWidget(QtWidgets.QWidget):
         super().__init__()
         self.setVisible(False)
         self.layout = QtWidgets.QGridLayout(self)
-        self.layout.setSpacing(10)
+        self.layout.setSpacing(5)
         self.layout.setContentsMargins(0,0,0,0)
         self.newPolEndFig = polEndFigurePG(self)
         self.calCoeffFig = calTabFigure(self)

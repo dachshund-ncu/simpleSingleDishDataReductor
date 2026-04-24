@@ -1,0 +1,1 @@
+from .about import about_text_for_widget, shortcuts_text_for_widget
