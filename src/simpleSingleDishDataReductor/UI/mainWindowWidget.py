@@ -16,13 +16,12 @@ from .manualCalCoeffSetter import changeCalCoeffWindow
 from .ui_elements.custom_menu import CustomMenu
 from .ui_elements import style_sheet
 from .extended_inormation_widget import extended_information_widget
-import os
 import numpy as np
 import sys
 import functools as fctls
 from simpleSingleDishDataReductor.data.dataClass import dataContainter
 from simpleSingleDishDataReductor.UI.icons import satellite_dish
-from UI import about_text_for_widget, shortcuts_text_for_widget
+from simpleSingleDishDataReductor.UI import about_text_for_widget, shortcuts_text_for_widget
 
 
 # -- class definition starts here --

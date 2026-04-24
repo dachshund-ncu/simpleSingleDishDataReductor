@@ -1,5 +1,5 @@
 from .ui_elements.custom_widget import custom_widget
-from icons import gears_icon
+from simpleSingleDishDataReductor.UI.icons import gears_icon
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTextEdit
 
 class extended_information_widget(custom_widget):
