@@ -18,6 +18,7 @@ or via [UV](https://docs.astral.sh/uv)
 ```bash
 # in repository main directory
 uv sync
+uv tool install .
 ```
 ### Running
 When installed via pip
@@ -28,8 +29,8 @@ python3 -m pip simpleSingleDishDataReductor
 
 when installed bia UV
 ```bash
-# in repository main directory
-uv run sdred
+# anywhere
+sdred
 ```
 
 
