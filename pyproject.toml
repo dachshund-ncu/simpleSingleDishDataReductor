@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling", "pyarmor", "pyarmor.cli.core.windows", "pyarmor.cli.core.linux"]
+build-backend = "hatchling.build"
+
+[project]
+name = "simpleSingleDishDataReductor"
+version = "1.14"
+description = "A simple single dish data reduction tool."
+authors = [
+    { name = "Michał Durjasz", email = "md@astro.umk.pl" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "PyQt6",
+    "pyqtgraph",
+    "mpmath",
+    "astropy",
+    "barycorrpy",
+    "validators",
+    "requests",
+    "platformdirs",
+    "ncu-salsa-rt4 @ git+https://github.com/dachshund-ncu/ncu-salsa-rt4.git@main"
+]
+
+[project.gui-scripts]
+sdred = "simpleSingleDishDataReductor.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/simpleSingleDishDataReductor"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.uv.sources]
+ncu-salsa-rt4 = { git = "https://github.com/dachshund-ncu/ncu-salsa-rt4.git", branch = "main" }

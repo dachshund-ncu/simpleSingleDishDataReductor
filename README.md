@@ -4,40 +4,49 @@
 Single dish radio telescope data reductor. 
 Designed to work with data, obtained from 32m NCU radio telescope autocorrelator (in both frequency-switch and on-off mode). It makes use of the QT interface and pyqtgraph plotting library to interactively visualize the data.
 
-### Requirements ###
-Bear in mind, that this package requires AT LEAST python 3.8
+### Requirements
+This package requires AT LEAST python 3.10
 
-- PyQt5
+### Installation
+Can be installed via pip
 
-- pyqtgraph
-
-- mpmath
-
-- astropy
-
-- barycorrpy
-
-- validators
-
-- requests
-
-- platformdirs
-
-
-### Installation of the needed packages ###
 ```bash
-python3 -m pip install --upgrade pip
-python3 -m pip install -r requirements.txt
+# in repository main directory
+python3 -m pip install .
+```
+or via [UV](https://docs.astral.sh/uv)
+```bash
+# in repository main directory
+uv sync
+```
+### Running
+When installed via pip
+```bash
+# anywhere
+python3 -m pip simpleSingleDishDataReductor
 ```
 
-### Usage ###
+when installed bia UV
+```bash
+# in repository main directory
+uv run sdred
 ```
-python3 singleDReductor.py your_archive.tar.bz2 [OPTIONS]
-	OPTIONS:
-	-h, --help    | show this help message and exit
-	-v, --version | show version and exit
-	-n, --nocal   | do not use calibration tables
-	-f, --onoff   | do an on-off reduction instead of a frequency-switch
+
+
+### Help
 ```
+usage: sdred [-h] [-n] [-f] [filename]
+
+Data reduction tool for 32-m NCU RT spectral data. Version 1.14.
+
+positional arguments:
+  filename     .tar.bz2 archive filename
+
+options:
+  -h, --help   show this help message and exit
+  -n, --nocal  do not use calibration tables
+  -f, --onoff  do an on-off reduction instead of a frequency-switch
+```
+
 ### Output ###
 Files that go outside are in .fits format. Filename: sourcename_MJD.fits
