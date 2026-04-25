@@ -27,7 +27,7 @@ When installed via pip
 python3 -m pip simpleSingleDishDataReductor
 ```
 
-when installed bia UV
+when installed via UV
 ```bash
 # anywhere
 sdred
