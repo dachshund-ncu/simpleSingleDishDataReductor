@@ -1,7 +1,5 @@
-#! /usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-This is MAIN fo simpleSingleDishDataRecuctot
+This is MAIN fo simpleSingleDishDataRecuctor
 Author: Michał Durjasz
 E-mail: md@astro.umk.pl
 
