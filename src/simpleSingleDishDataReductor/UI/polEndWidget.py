@@ -5,6 +5,7 @@ This class holds widget for polarization reduction end
 
 from PyQt6 import QtCore, QtWidgets, QtGui
 from .ui_elements.customButton import custom_button
+from .ui_elements.custom_widget import custom_widget
 from .moreEfficentFigureTemplate import templateFigurePG
 import pyqtgraph as pg
 from .ui_elements.customLeftBarWidget import cWidget
@@ -12,7 +13,7 @@ from .ui_elements.horizontal_separator import CustomHorizontalSeparator
 from .ui_elements.custom_widget import CustomWidgetSemiTransparent
 from .icons import *
 
-class polEndWidget(QtWidgets.QWidget):
+class polEndWidget(custom_widget):
     def __init__(self):
         '''
         Initializing the widget
@@ -105,7 +106,7 @@ class polEndWidget(QtWidgets.QWidget):
         self.vboxLeftWidget.addWidget(self.performFit)
         self.vboxLeftWidget.addWidget(self.performRemoval)
         self.vboxLeftWidget.addStretch()
-        self.vboxLeftWidget.addWidget(self.save_to_json_btn)
+        # self.vboxLeftWidget.addWidget(self.save_to_json_btn)
 
     def __addIconsToButtons(self):
         self.backToPol.setIcon(rotate_icon)
